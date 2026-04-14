@@ -305,12 +305,12 @@
 <ul class="menu-inner">
 
     {{-- DASHBOARD --}}
-    <li class="menu-item active">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bxs-dashboard"></i>
-            <div>Dashboard</div>
-        </a>
-    </li>
+    <li class="menu-item {{ Request::routeIs('dashboard') ? 'active' : '' }}">
+    <a href="{{ route('dashboard') }}" class="menu-link">
+        <i class="menu-icon bx bxs-dashboard"></i>
+        <div>Dashboard</div>
+    </a>
+</li>
 
 
     {{-- PELATIHAN --}}
@@ -328,21 +328,21 @@
     <li class="menu-item {{ Request::routeIs('jadwal-pelatihan.index') ? 'active' : '' }}">
     <a href="{{ route('jadwal-pelatihan.index') }}" class="menu-link">
         <i class="menu-icon bx bx-calendar-event"></i>
-        <div data-i18n="Jadwal Pelatihan">Jadwal Pelatihan</div>
+        <div data-i18n="Jadwal Pelatihan">Jadwal Kegiatan</div>
     </a>
 </li>
 
     <li class="menu-item {{ Request::routeIs('sertifikasi.*') ? 'active' : '' }}">
         <a href="{{ route('sertifikasi.index') }}" class="menu-link">
             <i class="menu-icon bx bx-award"></i>
-            <div>Sertifikat</div>
+            <div>Sertifikasi</div>
         </a>
     </li>
 
     <li class="menu-item">
         <a href="#" class="menu-link" onclick="return false;">
             <i class="menu-icon bx bx-file"></i>
-            <div>Laporan Pelatihan</div>
+            <div>Tugas belajar</div>
         </a>
     </li>
 
@@ -359,19 +359,8 @@
     </a>
 </li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-building"></i>
-            <div>Data Instansi</div>
-        </a>
-    </li>
+    
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-chalkboard"></i>
-            <div>Data Pelatih</div>
-        </a>
-    </li>
 
     <li class="menu-item">
         <a href="#" class="menu-link" onclick="return false;">
@@ -392,12 +381,7 @@
         </a>
     </li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-shield"></i>
-            <div>Manajemen Role</div>
-        </a>
-    </li>
+    
 
 </ul>
 

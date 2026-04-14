@@ -39,7 +39,6 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        {{-- REVISI: Instansi pindah ke kolom JP atas --}}
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Instansi Penyelenggara</label>
                             <span class="fs-5 fw-bold" style="color: #5c4a3a;">{{ $pelatihan->instansi_penyelenggara }}</span>
@@ -72,7 +71,6 @@
                                 <td class="text-center fw-bold text-muted">{{ $index + 1 }}</td>
                                 <td class="fw-semibold">{{ $p->nip }}</td>
                                 <td class="text-uppercase" style="letter-spacing: 0.5px;">{{ $p->nama_peserta }}</td>
-                                {{-- REVISI: JP tampil di setiap baris --}}
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border px-2 py-1">{{ $p->jp ?? '0' }}</span>
                                 </td>
@@ -104,10 +102,12 @@
                                                             <div class="small text-muted">{{ $p->nip }}</div>
                                                         </div>
                                                         
-                                                        {{-- REVISI: Input JP pindah ke modal per peserta --}}
                                                         <div class="mb-3">
                                                             <label class="form-label small fw-bold text-uppercase">Jam Pelajaran (JP)</label>
                                                             <input type="number" name="jp" class="form-control rounded-3" value="{{ $p->jp }}" placeholder="Masukkan jumlah JP">
+                                                            <div class="form-text small" style="color: #f97316;">
+                                                                <i class="bi bi-info-circle-fill"></i> Mengisi JP akan otomatis memperbarui <strong>semua peserta</strong> di event ini.
+                                                            </div>
                                                         </div>
 
                                                         <div class="mb-3">

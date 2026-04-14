@@ -38,7 +38,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-1">
-                                        <button type="button" class="btn btn-outline-danger w-100 rounded-3 shadow-sm" onclick="this.closest('.baris-peserta').remove()">
+                                        <button type="button" class="btn btn-outline-danger w-100 rounded-3 shadow-sm" onclick="hapusBaris(this)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -63,6 +63,9 @@
                         <div class="col-md-4">
                             <label class="form-label fw-bold" style="color: #b87a4a;">WAKTU PELAKSANAAN</label>
                             <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->waktu_pelaksanaan }}" required>
+                            <div class="form-text mt-2 text-muted">
+                                <i class="bi bi-info-circle me-1"></i> Status akan otomatis disesuaikan (Mendatang/Berlangsung/Selesai) berdasarkan tanggal ini.
+                            </div>
                         </div>
 
                         <div class="col-md-4">
@@ -70,37 +73,23 @@
                             <input type="text" name="instansi" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->instansi_penyelenggara }}" required>
                         </div>
 
-                        {{-- REVISI: Tambahkan 3 Pilihan Status --}}
-                        <div class="col-12 mt-3">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">STATUS PELATIHAN</label>
-                            <div class="d-flex gap-3 mt-1 flex-wrap">
-                                {{-- Akan Datang --}}
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="statusMendatang" value="mendatang" {{ $pelatihan->status == 'mendatang' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="statusMendatang">
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill" style="cursor: pointer;">Akan Datang</span>
-                                    </label>
-                                </div>
-                                {{-- Sedang Berlangsung --}}
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="statusBerlangsung" value="berlangsung" {{ $pelatihan->status == 'berlangsung' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="statusBerlangsung">
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill" style="cursor: pointer;">Sedang Berlangsung</span>
-                                    </label>
-                                </div>
-                                {{-- Selesai --}}
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="status" id="statusSelesai" value="selesai" {{ $pelatihan->status == 'selesai' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="statusSelesai">
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill" style="cursor: pointer;">Selesai Berlangsung</span>
-                                    </label>
-                                </div>
-                            </div>
+                        {{-- INFO STATUS SAAT INI (Opsional, hanya tampilan readonly) --}}
+                        <div class="col-12 mt-2">
+                             <div class="p-3 rounded-3 bg-light border border-dashed text-center">
+                                 <span class="text-muted me-2 small uppercase fw-bold">Status Sistem Saat Ini:</span>
+                                 @if($pelatihan->status == 'selesai')
+                                     <span class="badge bg-success rounded-pill px-3 py-2">Selesai Berlangsung</span>
+                                 @elseif($pelatihan->status == 'berlangsung')
+                                     <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Sedang Berlangsung</span>
+                                 @else
+                                     <span class="badge bg-primary rounded-pill px-3 py-2">Akan Datang</span>
+                                 @endif
+                             </div>
                         </div>
 
                         {{-- TOMBOL AKSI --}}
                         <div class="col-12 mt-5 text-end border-top pt-4">
-                            <a href="{{ route('rekap-pelatihan.show', $pelatihan->id) }}" class="btn btn-light rounded-4 px-4 me-2 border fw-semibold">Batal</a>
+                            <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light rounded-4 px-4 me-2 border fw-semibold">Batal</a>
                             <button type="submit" class="btn rounded-4 px-5 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #f97316, #f59e0b); border: none;">
                                 <i class="bi bi-save me-2"></i>SIMPAN PERUBAHAN
                             </button>
@@ -123,6 +112,15 @@
             container.appendChild(newRow);
         }
     }
+
+    function hapusBaris(btn) {
+        const rows = document.querySelectorAll('.baris-peserta');
+        if (rows.length > 1) {
+            btn.closest('.baris-peserta').remove();
+        } else {
+            alert('Minimal harus ada satu peserta!');
+        }
+    }
 </script>
 
 <style>
@@ -130,9 +128,8 @@
         border-color: #f97316 !important;
         box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1) !important;
     }
-    .form-check-input:checked {
-        background-color: #f97316;
-        border-color: #f97316;
+    .bg-light {
+        background-color: #fcfcfc !important;
     }
 </style>
 @endsection

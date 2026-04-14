@@ -7,15 +7,41 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class RekapPelatihanController extends Controller
 {
     /**
-     * Tampilkan daftar event pelatihan (Index)
+     * Helper untuk menentukan status berdasarkan tanggal
+     */
+    private function determineStatus($waktu_pelaksanaan)
+    {
+        $today = Carbon::today();
+        $pelaksanaan = Carbon::parse($waktu_pelaksanaan);
+
+        if ($pelaksanaan->isPast() && !$pelaksanaan->isToday()) {
+            return 'selesai';
+        } elseif ($pelaksanaan->isToday()) {
+            return 'berlangsung';
+        } else {
+            return 'mendatang';
+        }
+    }
+
+    /**
+     * Tampilkan daftar event pelatihan yang sudah SELESAI
      */
     public function index(Request $request)
     {
         try {
+            $today = Carbon::today()->toDateString();
+
+            // SINKRONISASI OTOMATIS: 
+            DB::table('pelatihan')
+                ->where('waktu_pelaksanaan', '<', $today)
+                ->where('status', '!=', 'selesai')
+                ->update(['status' => 'selesai', 'updated_at' => now()]);
+
             $query = DB::table('pelatihan')->where('status', 'selesai');
             
             if ($request->filled('tahun')) {
@@ -40,18 +66,12 @@ class RekapPelatihanController extends Controller
         }
     }
 
-    /**
-     * Tampilkan form tambah data
-     */
     public function create()
     {
         $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
         return view('dashboard.rekap-pelatihan.create', compact('pegawais'));
     }
 
-    /**
-     * Simpan data pelatihan (JP dihapus dari sini karena pindah ke per orang)
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -64,14 +84,15 @@ class RekapPelatihanController extends Controller
         ]);
 
         DB::beginTransaction();
-
         try {
+            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
+
             $pelatihanId = DB::table('pelatihan')->insertGetId([
                 'jenis_pelatihan'        => $request->jenis_pelatihan,
                 'tahun'                  => $request->tahun_pelatihan,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
                 'instansi_penyelenggara' => $request->instansi,
-                'status'                 => 'mendatang', // Default saat baru dibuat
+                'status'                 => $statusOtomatis, 
                 'created_at'             => now(),
                 'updated_at'             => now(),
             ]);
@@ -82,7 +103,7 @@ class RekapPelatihanController extends Controller
                     'pelatihan_id' => $pelatihanId,
                     'nip'          => $parts[0],
                     'nama_peserta' => $parts[1],
-                    'jp'           => null, // JP diisi nanti lewat halaman Show (Modal)
+                    'jp'           => null,
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -90,35 +111,43 @@ class RekapPelatihanController extends Controller
 
             DB::commit();
 
-            return redirect()->route('rekap-pelatihan.index')
-                             ->with('success', 'Event pelatihan berhasil disimpan! Silakan kelola JP dan Sertifikat di detail peserta.');
+            $targetRoute = ($statusOtomatis == 'selesai') ? 'rekap-pelatihan.index' : 'jadwal-pelatihan.index';
+            
+            return redirect()->route($targetRoute)
+                             ->with('success', "Pelatihan berhasil disimpan dengan status: $statusOtomatis");
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal simpan pelatihan: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan.');
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan.');
         }
     }
 
     /**
-     * Tampilkan Detail Pelatihan
+     * PERBAIKAN UTAMA: Mengarah ke file rekap-pelatihan-show.blade.php
      */
     public function show($id)
     {
         try {
             $pelatihan = DB::table('pelatihan')->where('id', $id)->first();
-            if (!$pelatihan) abort(404);
+            
+            if (!$pelatihan) {
+                return redirect()->route('rekap-pelatihan.index')->with('error', 'Data pelatihan tidak ditemukan.');
+            }
 
             $peserta = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
 
+            // Di sini kita sesuaikan dengan nama file kamu: rekap-pelatihan-show.blade.php
             return view('dashboard.rekap-pelatihan.rekap-pelatihan-show', compact('pelatihan', 'peserta'));
+            
         } catch (\Exception $e) {
-            return redirect()->route('rekap-pelatihan.index');
+            Log::error('Error Detail Rekap: ' . $e->getMessage());
+            return redirect()->route('rekap-pelatihan.index')->with('error', 'Gagal memuat detail.');
         }
     }
 
     /**
-     * Fungsi untuk Update JP & Upload Sertifikat per peserta
+     * Update Sertifikat & JP
      */
     public function uploadSertifikatPeserta(Request $request, $id)
     {
@@ -127,18 +156,19 @@ class RekapPelatihanController extends Controller
             'sertifikat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
+        DB::beginTransaction();
         try {
             $peserta = DB::table('pelatihan_peserta')->where('id', $id)->first();
-            if (!$peserta) return redirect()->back()->with('error', 'Data peserta tidak ditemukan.');
+            if (!$peserta) return redirect()->back()->with('error', 'Data tidak ditemukan.');
 
-            $dataUpdate = [
-                'updated_at' => now()
-            ];
-
-            if ($request->has('jp')) {
-                $dataUpdate['jp'] = $request->jp;
+            // Sinkronisasi JP massal (Opsional, sesuai logika kamu)
+            if ($request->filled('jp')) {
+                DB::table('pelatihan_peserta')
+                    ->where('pelatihan_id', $peserta->pelatihan_id)
+                    ->update(['jp' => $request->jp, 'updated_at' => now()]);
             }
 
+            // Upload Sertifikat
             if ($request->hasFile('sertifikat')) {
                 if ($peserta->sertifikat_path) {
                     Storage::disk('public')->delete($peserta->sertifikat_path);
@@ -147,35 +177,32 @@ class RekapPelatihanController extends Controller
                 $file = $request->file('sertifikat');
                 $fileName = time() . '_' . $peserta->nip . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('uploads/sertifikat_peserta', $fileName, 'public');
-                $dataUpdate['sertifikat_path'] = $filePath;
+                
+                DB::table('pelatihan_peserta')->where('id', $id)->update([
+                    'sertifikat_path' => $filePath,
+                    'updated_at' => now()
+                ]);
             }
 
-            DB::table('pelatihan_peserta')->where('id', $id)->update($dataUpdate);
-
-            return redirect()->back()->with('success', 'Data JP dan Sertifikat ' . $peserta->nama_peserta . ' berhasil diperbarui!');
+            DB::commit();
+            return redirect()->back()->with('success', 'Berhasil memperbarui data.');
         } catch (\Exception $e) {
-            Log::error('Error update data peserta (JP/Sertif): ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal memperbarui data peserta.');
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memperbarui data.');
         }
     }
 
-    /**
-     * Tampilkan Form Edit
-     */
     public function edit($id)
     {
         $pelatihan = DB::table('pelatihan')->where('id', $id)->first();
         if (!$pelatihan) abort(404);
-
+        
         $pesertaTerpilih = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
         $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
-
+        
         return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais'));
     }
 
-    /**
-     * Update Data Pelatihan
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -184,36 +211,27 @@ class RekapPelatihanController extends Controller
             'tahun_pelatihan'   => 'required',
             'waktu_pelaksanaan' => 'required|date',
             'instansi'          => 'required|string',
-            'status'            => 'required|in:mendatang,berlangsung,selesai', // Tambahan revisi status
         ]);
 
         DB::beginTransaction();
-
         try {
-            // Update Tabel Induk (JP dihapus, Status ditambahkan)
+            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
+
             DB::table('pelatihan')->where('id', $id)->update([
                 'jenis_pelatihan'        => $request->jenis_pelatihan,
                 'tahun'                  => $request->tahun_pelatihan,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
                 'instansi_penyelenggara' => $request->instansi,
-                'status'                 => $request->status,
+                'status'                 => $statusOtomatis,
                 'updated_at'             => now(),
             ]);
 
-            // Ambil data detail lama (JP & Sertifikat) agar tidak hilang saat re-insert
-            $oldDataPeserta = DB::table('pelatihan_peserta')
-                ->where('pelatihan_id', $id)
-                ->get()
-                ->keyBy('nip');
-
-            // Hapus peserta lama
+            $oldDataPeserta = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get()->keyBy('nip');
             DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->delete();
 
-            // Insert ulang peserta dengan mempertahankan JP dan Sertifikat lama jika NIP sama
             foreach ($request->peserta as $p) {
                 $parts = explode('|', $p);
                 $nip = $parts[0];
-                
                 DB::table('pelatihan_peserta')->insert([
                     'pelatihan_id'    => $id,
                     'nip'             => $nip,
@@ -226,31 +244,22 @@ class RekapPelatihanController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('rekap-pelatihan.index')->with('success', 'Data pelatihan berhasil diperbarui!');
-
+            return redirect()->route('rekap-pelatihan.index')->with('success', 'Data diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal update pelatihan: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan.');
         }
     }
 
-    /**
-     * Hapus Pelatihan
-     */
     public function destroy($id)
     {
         try {
             $peserta = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
-            
             foreach ($peserta as $p) {
-                if ($p->sertifikat_path) {
-                    Storage::disk('public')->delete($p->sertifikat_path);
-                }
+                if ($p->sertifikat_path) Storage::disk('public')->delete($p->sertifikat_path);
             }
-            
             DB::table('pelatihan')->where('id', $id)->delete();
-            return redirect()->route('rekap-pelatihan.index')->with('success', 'Data berhasil dihapus.');
+            return redirect()->route('rekap-pelatihan.index')->with('success', 'Data dihapus.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus data.');
         }
