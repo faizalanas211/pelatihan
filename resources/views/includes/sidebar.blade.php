@@ -325,16 +325,15 @@
         </a>
     </li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-calendar-event"></i>
-            <div>Jadwal Pelatihan</div>
-            <span class="menu-badge">3</span>
-        </a>
-    </li>
+    <li class="menu-item {{ Request::routeIs('jadwal-pelatihan.index') ? 'active' : '' }}">
+    <a href="{{ route('jadwal-pelatihan.index') }}" class="menu-link">
+        <i class="menu-icon bx bx-calendar-event"></i>
+        <div data-i18n="Jadwal Pelatihan">Jadwal Pelatihan</div>
+    </a>
+</li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
+    <li class="menu-item {{ Request::routeIs('sertifikasi.*') ? 'active' : '' }}">
+        <a href="{{ route('sertifikasi.index') }}" class="menu-link">
             <i class="menu-icon bx bx-award"></i>
             <div>Sertifikat</div>
         </a>
@@ -353,12 +352,12 @@
         <span class="menu-header-text">📁 MASTER DATA</span>
     </li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-user"></i>
-            <div>Data Pegawai</div>
-        </a>
-    </li>
+    <li class="menu-item {{ Request::is('dashboard/pegawai*') ? 'active' : '' }}">
+    <a href="{{ route('pegawai.index') }}" class="menu-link">
+        <i class="menu-icon bx bx-user"></i>
+        <div>Data Pegawai</div>
+    </a>
+</li>
 
     <li class="menu-item">
         <a href="#" class="menu-link" onclick="return false;">

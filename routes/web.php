@@ -24,10 +24,11 @@ use App\Http\Controllers\PotonganController;
 use App\Http\Controllers\SlipGajiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\PasswordController; // Pastikan ini diimport jika dipakai
 use App\Models\PerjalananDinas;
 use Maatwebsite\Excel\Excel;
 
-// ========== CONTROLLER PELATIHAN (BARU) ==========
+// ========== CONTROLLER PELATIHAN & SERTIFIKASI ==========
 use App\Http\Controllers\RekapPelatihanController;
 use App\Http\Controllers\JadwalPelatihanController;
 use App\Http\Controllers\SertifikatController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PelatihanSayaController;
 use App\Http\Controllers\SertifikatSayaController;
 use App\Http\Controllers\NilaiSayaController;
+use App\Http\Controllers\SertifikasiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +50,6 @@ use App\Http\Controllers\NilaiSayaController;
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'loginAction'])->name('loginAction');
-
     Route::get('/register', [AuthController::class, 'register'])->name('register');
     Route::post('/register', [AuthController::class, 'registerAction'])->name('registerAction');
 });
@@ -60,46 +61,46 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->prefix('dashboard')->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | DASHBOARD (ADMIN & PEGAWAI)
-    |--------------------------------------------------------------------------
-    */
+    // DASHBOARD UTAMA
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
-    | ================= PELATIHAN (BARU) =================
+    | PELATIHAN & SERTIFIKASI
     |--------------------------------------------------------------------------
     */
     
-    // Rekap Pelatihan
-    // Rekap Pelatihan (CRUD)
+    // 1. Rekap Pelatihan
     Route::resource('rekap-pelatihan', RekapPelatihanController::class);
     Route::get('rekap-pelatihan/{id}/peserta', [RekapPelatihanController::class, 'peserta'])->name('rekap-pelatihan.peserta');
-    // Jadwal Pelatihan
+    Route::post('rekap-pelatihan/upload-sertifikat-peserta/{id}', [RekapPelatihanController::class, 'uploadSertifikatPeserta'])->name('rekap-pelatihan.upload-sertifikat-peserta');
+    
+    // 2. Jadwal Pelatihan
     Route::resource('jadwal-pelatihan', JadwalPelatihanController::class);
     
-    // Sertifikat
+    // 3. Sertifikasi (BARU & KOLEKTIF)
+    Route::resource('sertifikasi', SertifikasiController::class);
+    // Rute Upload File per Orang di Show Sertifikasi
+    Route::post('sertifikasi/upload-file/{id}', [SertifikasiController::class, 'uploadFile'])->name('sertifikasi.upload-file');
+    
+    // 4. Sertifikat Event
     Route::resource('sertifikat', SertifikatController::class);
     Route::get('sertifikat/cetak/{id}', [SertifikatController::class, 'cetak'])->name('sertifikat.cetak');
     
-    // Laporan Pelatihan
+    // 5. Laporan Pelatihan
     Route::get('laporan-pelatihan', [LaporanPelatihanController::class, 'index'])->name('laporan-pelatihan.index');
     Route::get('laporan-pelatihan/export-excel', [LaporanPelatihanController::class, 'exportExcel'])->name('laporan-pelatihan.export-excel');
     Route::get('laporan-pelatihan/export-pdf', [LaporanPelatihanController::class, 'exportPdf'])->name('laporan-pelatihan.export-pdf');
     
-    // Master Data Pelatihan
+    // 6. Master Data Pelatihan
     Route::resource('instansi', InstansiController::class);
     Route::resource('pelatih', PelatihController::class);
     Route::resource('materi', MateriController::class);
-    
-    // Manajemen Role
     Route::resource('role', RoleController::class);
-    
+
     /*
     |--------------------------------------------------------------------------
-    | ================= PELATIHAN UNTUK PEGAWAI =================
+    | MENU PEGAWAI (USER)
     |--------------------------------------------------------------------------
     */
     Route::get('pelatihan-saya', [PelatihanSayaController::class, 'index'])->name('pelatihan-saya.index');
@@ -112,32 +113,27 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ================= DATA MASTER (ADMIN) - YANG MASIH DIPERLUKAN
+    | DATA MASTER (ADMIN)
     |--------------------------------------------------------------------------
     */
-
     // Pegawai
     Route::resource('pegawai', PegawaiController::class);
     Route::post('pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
-    Route::post('/pegawai/generate-akun', [PegawaiController::class, 'generateAkun'])->name('pegawai.generateAkun');
-    Route::post('/pegawai/generate-akun-semua', [PegawaiController::class, 'generateAkunSemua'])->name('pegawai.generateAkunSemua');
+    Route::post('pegawai/generate-akun', [PegawaiController::class, 'generateAkun'])->name('pegawai.generateAkun');
+    Route::post('pegawai/generate-akun-semua', [PegawaiController::class, 'generateAkunSemua'])->name('pegawai.generateAkunSemua');
 
     // Pejabat
     Route::resource('pejabat', PejabatController::class);
 
     // Profile & Password
-    Route::get('/ganti-password', [App\Http\Controllers\PasswordController::class, 'edit'])->name('password.edit');
-    Route::post('/ganti-password', [App\Http\Controllers\PasswordController::class, 'update'])->name('password.update');
-    Route::post('/profile/update-photo', [App\Http\Controllers\ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::get('ganti-password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::post('ganti-password', [PasswordController::class, 'update'])->name('password.update');
+    Route::post('profile/update-photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
 
     // Pengaturan Template
     Route::resource('template', TemplateController::class);
-    Route::get('/dashboard/templates/{id}/preview', [TemplateController::class, 'preview'])->name('template.preview');
+    Route::get('templates/{id}/preview', [TemplateController::class, 'preview'])->name('template.preview');
 
-    /*
-    |--------------------------------------------------------------------------
-    | LOGOUT
-    |--------------------------------------------------------------------------
-    */
+    // Logout
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 });
