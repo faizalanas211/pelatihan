@@ -41,6 +41,7 @@ use App\Http\Controllers\PelatihanSayaController;
 use App\Http\Controllers\SertifikatSayaController;
 use App\Http\Controllers\NilaiSayaController;
 use App\Http\Controllers\SertifikasiController;
+use App\Http\Controllers\MasterPelatihanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -97,6 +98,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::resource('pelatih', PelatihController::class);
     Route::resource('materi', MateriController::class);
     Route::resource('role', RoleController::class);
+    Route::resource('master-pelatihan', MasterPelatihanController::class);
 
     /*
     |--------------------------------------------------------------------------

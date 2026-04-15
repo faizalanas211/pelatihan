@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
+use App\Models\MasterPelatihan; // Pastikan model ini ada
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -66,30 +67,36 @@ class RekapPelatihanController extends Controller
         }
     }
 
-    public function create()
+    public function create() 
     {
-        $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
-        return view('dashboard.rekap-pelatihan.create', compact('pegawais'));
+        $pegawais = Pegawai::all();
+        $masterPelatihan = MasterPelatihan::all();
+        
+        // REVISI: Sesuaikan path view dengan folder dashboard kamu
+        return view('dashboard.rekap-pelatihan.create', compact('pegawais', 'masterPelatihan'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'peserta'           => 'required|array',
-            'peserta.*'         => 'required',
-            'jenis_pelatihan'   => 'required|string',
-            'tahun_pelatihan'   => 'required',
-            'waktu_pelaksanaan' => 'required|date',
-            'instansi'          => 'required|string',
+            'peserta'               => 'required|array',
+            'peserta.*'             => 'required',
+            'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
+            'waktu_pelaksanaan'     => 'required|date',
+            'instansi'              => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
+            // Ambil data dari Master
+            $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
             $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
 
+            // Simpan data pelatihan (Nama, Tahun, JP diambil dari Master)
             $pelatihanId = DB::table('pelatihan')->insertGetId([
-                'jenis_pelatihan'        => $request->jenis_pelatihan,
-                'tahun'                  => $request->tahun_pelatihan,
+                'jenis_pelatihan'        => $master->nama_pelatihan,
+                'tahun'                  => $master->tahun,
+                'jp'                     => $master->jp,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
                 'instansi_penyelenggara' => $request->instansi,
                 'status'                 => $statusOtomatis, 
@@ -103,7 +110,7 @@ class RekapPelatihanController extends Controller
                     'pelatihan_id' => $pelatihanId,
                     'nip'          => $parts[0],
                     'nama_peserta' => $parts[1],
-                    'jp'           => null,
+                    'jp'           => $master->jp, 
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -114,41 +121,33 @@ class RekapPelatihanController extends Controller
             $targetRoute = ($statusOtomatis == 'selesai') ? 'rekap-pelatihan.index' : 'jadwal-pelatihan.index';
             
             return redirect()->route($targetRoute)
-                             ->with('success', "Pelatihan berhasil disimpan dengan status: $statusOtomatis");
+                             ->with('success', "Pelatihan berhasil disimpan!");
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal simpan pelatihan: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan.');
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * PERBAIKAN UTAMA: Mengarah ke file rekap-pelatihan-show.blade.php
-     */
     public function show($id)
     {
         try {
             $pelatihan = DB::table('pelatihan')->where('id', $id)->first();
             
             if (!$pelatihan) {
-                return redirect()->route('rekap-pelatihan.index')->with('error', 'Data pelatihan tidak ditemukan.');
+                return redirect()->route('rekap-pelatihan.index')->with('error', 'Data tidak ditemukan.');
             }
 
             $peserta = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
 
-            // Di sini kita sesuaikan dengan nama file kamu: rekap-pelatihan-show.blade.php
             return view('dashboard.rekap-pelatihan.rekap-pelatihan-show', compact('pelatihan', 'peserta'));
             
         } catch (\Exception $e) {
-            Log::error('Error Detail Rekap: ' . $e->getMessage());
             return redirect()->route('rekap-pelatihan.index')->with('error', 'Gagal memuat detail.');
         }
     }
 
-    /**
-     * Update Sertifikat & JP
-     */
     public function uploadSertifikatPeserta(Request $request, $id)
     {
         $request->validate([
@@ -161,14 +160,12 @@ class RekapPelatihanController extends Controller
             $peserta = DB::table('pelatihan_peserta')->where('id', $id)->first();
             if (!$peserta) return redirect()->back()->with('error', 'Data tidak ditemukan.');
 
-            // Sinkronisasi JP massal (Opsional, sesuai logika kamu)
             if ($request->filled('jp')) {
                 DB::table('pelatihan_peserta')
                     ->where('pelatihan_id', $peserta->pelatihan_id)
                     ->update(['jp' => $request->jp, 'updated_at' => now()]);
             }
 
-            // Upload Sertifikat
             if ($request->hasFile('sertifikat')) {
                 if ($peserta->sertifikat_path) {
                     Storage::disk('public')->delete($peserta->sertifikat_path);
@@ -185,10 +182,10 @@ class RekapPelatihanController extends Controller
             }
 
             DB::commit();
-            return redirect()->back()->with('success', 'Berhasil memperbarui data.');
+            return redirect()->back()->with('success', 'Berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal memperbarui data.');
+            return redirect()->back()->with('error', 'Gagal update.');
         }
     }
 
@@ -198,28 +195,30 @@ class RekapPelatihanController extends Controller
         if (!$pelatihan) abort(404);
         
         $pesertaTerpilih = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
-        $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
+        $pegawais = Pegawai::all();
+        $masterPelatihan = MasterPelatihan::all();
         
-        return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais'));
+        return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais', 'masterPelatihan'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'peserta'           => 'required|array',
-            'jenis_pelatihan'   => 'required|string',
-            'tahun_pelatihan'   => 'required',
-            'waktu_pelaksanaan' => 'required|date',
-            'instansi'          => 'required|string',
+            'peserta'               => 'required|array',
+            'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
+            'waktu_pelaksanaan'     => 'required|date',
+            'instansi'              => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
+            $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
             $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
 
             DB::table('pelatihan')->where('id', $id)->update([
-                'jenis_pelatihan'        => $request->jenis_pelatihan,
-                'tahun'                  => $request->tahun_pelatihan,
+                'jenis_pelatihan'        => $master->nama_pelatihan,
+                'tahun'                  => $master->tahun,
+                'jp'                     => $master->jp,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
                 'instansi_penyelenggara' => $request->instansi,
                 'status'                 => $statusOtomatis,
@@ -236,7 +235,7 @@ class RekapPelatihanController extends Controller
                     'pelatihan_id'    => $id,
                     'nip'             => $nip,
                     'nama_peserta'    => $parts[1],
-                    'jp'              => $oldDataPeserta[$nip]->jp ?? null,
+                    'jp'              => $oldDataPeserta[$nip]->jp ?? $master->jp,
                     'sertifikat_path' => $oldDataPeserta[$nip]->sertifikat_path ?? null,
                     'created_at'      => now(),
                     'updated_at'      => now(),
@@ -247,7 +246,7 @@ class RekapPelatihanController extends Controller
             return redirect()->route('rekap-pelatihan.index')->with('success', 'Data diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Terjadi kesalahan.');
+            return redirect()->back()->with('error', 'Gagal update.');
         }
     }
 
@@ -261,7 +260,7 @@ class RekapPelatihanController extends Controller
             DB::table('pelatihan')->where('id', $id)->delete();
             return redirect()->route('rekap-pelatihan.index')->with('success', 'Data dihapus.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus data.');
+            return redirect()->back()->with('error', 'Gagal menghapus.');
         }
     }
 }

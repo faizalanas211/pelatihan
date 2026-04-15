@@ -15,13 +15,13 @@
     <div class="col-12">
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center;">
-                <i class="bi bi-people-fill" style="color: #f97316; font-size: 1.8rem;"></i>
+                <i class="bi bi-journal-plus" style="color: #f97316; font-size: 1.8rem;"></i>
             </div>
             <div>
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.6rem;">
                     Tambah Data Pelatihan
                 </h3>
-                <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Pilih peserta dan lengkapi detail pelatihan yang dilaksanakan</p>
+                <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Pilih jenis pelatihan dari master data dan tentukan peserta</p>
             </div>
         </div>
         <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
@@ -45,14 +45,42 @@
                     </div>
                 @endif
 
-                <form action="{{ route('rekap-pelatihan.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('rekap-pelatihan.store') }}" method="POST">
                     @csrf
                     
                     <div class="row g-4">
+                        {{-- SEKSI PILIH PELATIHAN (REVISI: Dropdown dari Master) --}}
+                        <div class="col-12">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">JENIS PELATIHAN (MASTER DATA)</label>
+                            <select name="master_pelatihan_id" class="form-select rounded-3 shadow-sm py-2" required>
+                                <option value="" disabled selected>-- Pilih Jenis Pelatihan --</option>
+                                @foreach($masterPelatihan as $m)
+                                    <option value="{{ $m->id }}" {{ old('master_pelatihan_id') == $m->id ? 'selected' : '' }}>
+                                        {{ $m->nama_pelatihan }} — [{{ $m->jp }} JP] — (Tahun {{ $m->tahun }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text small mt-2">
+                                <i class="bi bi-info-circle"></i> Nama, JP, dan Tahun otomatis mengikuti Master Data yang dipilih.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">WAKTU PELAKSANAAN</label>
+                            <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 shadow-sm py-2" value="{{ old('waktu_pelaksanaan') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">INSTANSI PENYELENGGARA</label>
+                            <input type="text" name="instansi" class="form-control rounded-3 shadow-sm py-2" placeholder="Nama instansi penyelenggara" value="{{ old('instansi') }}" required>
+                        </div>
+
+                        <hr class="my-3 text-muted opacity-25">
+
                         {{-- SEKSI PESERTA --}}
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <label class="form-label fw-bold mb-0" style="color: #b87a4a;">DAFTAR PESERTA</label>
+                                <label class="form-label fw-bold mb-0" style="color: #b87a4a;">DAFTAR PESERTA PELATIHAN</label>
                                 <button type="button" class="btn btn-sm btn-orange-outline rounded-3" onclick="tambahBaris()">
                                     <i class="bi bi-plus-lg me-1"></i> Tambah Orang
                                 </button>
@@ -76,46 +104,13 @@
                             </div>
                         </div>
 
-                        <hr class="my-3 text-muted opacity-25">
-
-                        <div class="col-12">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">JENIS PELATIHAN</label>
-                            <input type="text" name="jenis_pelatihan" class="form-control rounded-3 shadow-sm py-2" placeholder="Contoh: Teknis IT, Leadership, dll" value="{{ old('jenis_pelatihan') }}" required>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">TAHUN</label>
-                            <select name="tahun_pelatihan" class="form-select rounded-3 shadow-sm py-2">
-                                @for ($i = date('Y'); $i >= 2020; $i--)
-                                    <option value="{{ $i }}" {{ old('tahun_pelatihan') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">WAKTU PELAKSANAAN</label>
-                            <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 shadow-sm py-2" value="{{ old('waktu_pelaksanaan') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">JP (JAM PELAJARAN)</label>
-                            <div class="input-group">
-                                {{-- REVISI 1: Hapus 'required' agar boleh kosong --}}
-                                <input type="number" name="jp" class="form-control rounded-start-3 shadow-sm py-2" placeholder="Boleh kosong" value="{{ old('jp') }}">
-                                <span class="input-group-text rounded-end-3" style="background: #fffbeb; color: #b87a4a; font-weight: 600;">Jam</span>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">INSTANSI PENYELENGGARA</label>
-                            <input type="text" name="instansi" class="form-control rounded-3 shadow-sm py-2" placeholder="Nama instansi penyelenggara" value="{{ old('instansi') }}" required>
-                        </div>
-
-                        {{-- REVISI 2: Hapus input file sertifikat di sini, karena mentor minta per orang di halaman Show --}}
+                        {{-- INFO SERTIFIKAT --}}
                         <div class="col-12 mt-2">
                             <div class="alert alert-warning border-0 rounded-4 py-3 shadow-sm d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                                 <div>
                                     <strong class="d-block text-uppercase" style="font-size: 0.75rem;">Info Sertifikat</strong>
-                                    <span class="small">File sertifikat diunggah <strong>secara individu</strong> melalui halaman detail (Show) setelah data disimpan.</span>
+                                    <span class="small">Data Master sudah mencakup JP dan Tahun. File sertifikat diunggah di halaman detail tiap peserta.</span>
                                 </div>
                             </div>
                         </div>
@@ -126,7 +121,7 @@
                                     Batal
                                 </a>
                                 <button type="submit" class="btn rounded-4 px-5 shadow-sm fw-bold text-white" style="background: linear-gradient(135deg, #f97316, #f59e0b); border: none;">
-                                    <i class="bi bi-save me-2"></i>SIMPAN DATA
+                                    <i class="bi bi-save me-2"></i>SIMPAN REKAP
                                 </button>
                             </div>
                         </div>
@@ -137,7 +132,7 @@
     </div>
 </div>
 
-{{-- SCRIPT DYNAMIC DROPDOWN --}}
+{{-- SCRIPT DYNAMIC PESERTA --}}
 <script>
     function tambahBaris() {
         const container = document.getElementById('container-peserta');

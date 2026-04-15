@@ -312,6 +312,26 @@
     </a>
 </li>
 
+    {{-- MASTER DATA --}}
+    <li class="menu-header">
+        <span class="menu-header-text">📁 MASTER DATA</span>
+    </li>
+
+    <li class="menu-item {{ Request::is('dashboard/masterdata*') ? 'active' : '' }}">
+        <a href="{{ route('master-pelatihan.index') }}" class="menu-link">
+        <i class="menu-icon bx bx-list-check"></i>
+        <div>Master Data</div>
+        </a>
+    </li>
+
+    <li class="menu-item {{ Request::is('dashboard/pegawai*') ? 'active' : '' }}">
+    <a href="{{ route('pegawai.index') }}" class="menu-link">
+        <i class="menu-icon bx bx-user"></i>
+        <div>Data Pegawai</div>
+    </a>
+</li>
+    
+
 
     {{-- PELATIHAN --}}
     <li class="menu-header">
@@ -347,27 +367,12 @@
     </li>
 
 
-    {{-- MASTER DATA --}}
-    <li class="menu-header">
-        <span class="menu-header-text">📁 MASTER DATA</span>
-    </li>
-
-    <li class="menu-item {{ Request::is('dashboard/pegawai*') ? 'active' : '' }}">
-    <a href="{{ route('pegawai.index') }}" class="menu-link">
-        <i class="menu-icon bx bx-user"></i>
-        <div>Data Pegawai</div>
-    </a>
-</li>
+    
 
     
 
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
-            <i class="menu-icon bx bx-book-open"></i>
-            <div>Materi Pelatihan</div>
-        </a>
-    </li>
+   
 
     {{-- PENGATURAN --}}
     <li class="menu-header">
