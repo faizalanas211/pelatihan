@@ -39,7 +39,7 @@ class MasterPelatihanController extends Controller
     {
         // Validasi input
         $request->validate([
-            'kategori'       => 'required|in:pelatihan,sertifikasi,tugas_belajar',
+            'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
             'jp'             => 'nullable|numeric',
             'tahun'          => 'required|digits:4',
@@ -68,7 +68,7 @@ class MasterPelatihanController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kategori'       => 'required|in:pelatihan,sertifikasi,tugas_belajar',
+            'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
             'jp'             => 'nullable|numeric',
             'tahun'          => 'required|digits:4',

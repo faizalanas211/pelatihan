@@ -6,15 +6,6 @@
 
 @section('content')
 <div class="row g-4">
-    {{-- NOTIFIKASI --}}
-    @if(session('success'))
-    <div class="col-12">
-        <div class="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center" style="background: #ecfdf5; color: #059669;">
-            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-            <div>{{ session('success') }}</div>
-        </div>
-    </div>
-    @endif
 
     {{-- HEADER & FILTER --}}
     <div class="col-12">
@@ -37,7 +28,7 @@
                             <option value="">Semua Kategori</option>
                             <option value="pelatihan" {{ request('kategori') == 'pelatihan' ? 'selected' : '' }}>Pelatihan</option>
                             <option value="sertifikasi" {{ request('kategori') == 'sertifikasi' ? 'selected' : '' }}>Sertifikasi</option>
-                            <option value="tugas_belajar" {{ request('kategori') == 'tugas_belajar' ? 'selected' : '' }}>Tugas Belajar</option>
+                            <option value="tubel" {{ request('kategori') == 'tubel' ? 'selected' : '' }}>Tugas Belajar</option>
                         </select>
 
                         <select name="tahun" class="form-select rounded-3 border-0 shadow-sm" style="background: #f8f9fa; min-width: 120px;" onchange="this.form.submit()">
@@ -84,7 +75,7 @@
                                         $badgeStyle = match($item->kategori) {
                                             'pelatihan' => 'background: #e0f2fe; color: #0369a1;', // Biru
                                             'sertifikasi' => 'background: #f0fdf4; color: #166534;', // Hijau
-                                            'tugas_belajar' => 'background: #faf5ff; color: #6b21a8;', // Ungu
+                                            'tubel' => 'background: #faf5ff; color: #6b21a8;', // Ungu
                                             default => 'background: #f1f5f9; color: #475569;'
                                         };
                                     @endphp
@@ -130,7 +121,7 @@
                                                     <select name="kategori" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
                                                         <option value="pelatihan" {{ $item->kategori == 'pelatihan' ? 'selected' : '' }}>Pelatihan</option>
                                                         <option value="sertifikasi" {{ $item->kategori == 'sertifikasi' ? 'selected' : '' }}>Sertifikasi</option>
-                                                        <option value="tugas_belajar" {{ $item->kategori == 'tugas_belajar' ? 'selected' : '' }}>Tugas Belajar</option>
+                                                        <option value="tubel" {{ $item->kategori == 'tubel' ? 'selected' : '' }}>Tugas Belajar</option>
                                                     </select>
                                                 </div>
                                                 <div class="mb-3">
@@ -197,7 +188,7 @@
                         </button>
                     </div>
                     <div class="col-12">
-                        <button class="btn btn-light w-100 text-start p-3 rounded-4 border d-flex align-items-center gap-3 kategori-item" onclick="bukaForm('tugas_belajar')">
+                        <button class="btn btn-light w-100 text-start p-3 rounded-4 border d-flex align-items-center gap-3 kategori-item" onclick="bukaForm('tubel')">
                             <div class="p-2 rounded-3" style="background: #fff3e0; color: #f97316;"><i class="bi bi-book-half"></i></div>
                             <div><div class="fw-bold">Tugas Belajar</div><div class="small text-muted">Kuliah S1, S2, atau S3</div></div>
                         </button>

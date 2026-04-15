@@ -42,6 +42,7 @@ use App\Http\Controllers\SertifikatSayaController;
 use App\Http\Controllers\NilaiSayaController;
 use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\MasterPelatihanController;
+use App\Http\Controllers\TugasBelajarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +100,14 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::resource('materi', MateriController::class);
     Route::resource('role', RoleController::class);
     Route::resource('master-pelatihan', MasterPelatihanController::class);
+
+    // 7. Tugas Belajar
+    Route::resource('tugas-belajar', TugasBelajarController::class);
+    Route::get('/tugas-belajar/get-tubel', [TugasBelajarController::class, 'getTubelByTahun'])
+    ->name('tugas-belajar.get-tubel');
+    // Route::get('rekap-pelatihan/{id}/peserta', [RekapPelatihanController::class, 'peserta'])->name('rekap-pelatihan.peserta');
+    // Route::post('rekap-pelatihan/upload-sertifikat-peserta/{id}', [RekapPelatihanController::class, 'uploadSertifikatPeserta'])->name('rekap-pelatihan.upload-sertifikat-peserta');
+    
 
     /*
     |--------------------------------------------------------------------------

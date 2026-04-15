@@ -359,8 +359,8 @@
         </a>
     </li>
 
-    <li class="menu-item">
-        <a href="#" class="menu-link" onclick="return false;">
+    <li class="menu-item {{ Request::routeIs('tugas-belajar.*') ? 'active' : '' }}">
+        <a href="{{ route('tugas-belajar.index') }}" class="menu-link">
             <i class="menu-icon bx bx-file"></i>
             <div>Tugas belajar</div>
         </a>

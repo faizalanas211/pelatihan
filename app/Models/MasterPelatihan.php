@@ -35,4 +35,9 @@ class MasterPelatihan extends Model
         'jp' => 'integer',
         'tahun' => 'integer',
     ];
+
+    public function tubelPeserta()
+    {
+        return $this->hasMany(TubelPeserta::class);
+    }
 }
