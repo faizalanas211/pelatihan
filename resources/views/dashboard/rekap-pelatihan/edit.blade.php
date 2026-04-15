@@ -1,13 +1,28 @@
 @extends('layouts.admin')
 
+@section('breadcrumb')
+<li class="breadcrumb-item">
+    <a href="{{ route('rekap-pelatihan.index') }}" style="color: #f97316; text-decoration: none;">Rekap Pelatihan</a>
+</li>
+<li class="breadcrumb-item active fw-semibold" style="color: #f97316;">
+    Edit Pelatihan
+</li>
+@endsection
+
 @section('content')
 <div class="row g-4">
     <div class="col-12">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <h3 class="fw-bold mb-0" style="color: #f97316;">Edit Data Pelatihan</h3>
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%);">
+                <i class="bi bi-pencil-square" style="color: #f97316; font-size: 1.5rem;"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold mb-0" style="color: #5c4a3a;">Edit Data Pelatihan</h3>
+                <p class="text-muted mb-0 small">Perbarui informasi pelaksanaan atau daftar peserta</p>
+            </div>
         </div>
         
-        <div class="card rounded-4 border-0 shadow-sm">
+        <div class="card rounded-4 border-0 shadow-sm overflow-hidden">
             <div class="card-body p-4 p-md-5">
                 <form action="{{ route('rekap-pelatihan.update', $pelatihan->id) }}" method="POST">
                     @csrf
@@ -17,17 +32,17 @@
                         {{-- SEKSI PESERTA --}}
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <label class="form-label fw-bold mb-0" style="color: #b87a4a;">DAFTAR PESERTA</label>
-                                <button type="button" class="btn btn-sm btn-outline-warning rounded-3" onclick="tambahBaris()">
+                                <label class="form-label fw-bold mb-0" style="color: #b87a4a;">DAFTAR PESERTA PELATIHAN</label>
+                                <button type="button" class="btn btn-sm btn-orange-outline rounded-3" onclick="tambahBaris()">
                                     <i class="bi bi-plus-lg me-1"></i> Tambah Orang
                                 </button>
                             </div>
 
                             <div id="container-peserta">
-                                @foreach($pesertaTerpilih as $pt)
-                                <div class="row g-3 mb-3 baris-peserta align-items-end">
+                                @foreach($pesertaTerpilih as $index => $pt)
+                                <div class="row g-3 mb-3 baris-peserta align-items-end animate__animated animate__fadeIn">
                                     <div class="col-md-11">
-                                        <label class="small text-muted mb-1 text-uppercase">Pilih Nama Pegawai</label>
+                                        @if($index == 0) <label class="small text-muted mb-1 text-uppercase">Pilih Nama Pegawai</label> @endif
                                         <select name="peserta[]" class="form-select rounded-3 shadow-sm py-2" required>
                                             @foreach($pegawais as $peg)
                                                 <option value="{{ $peg->nip }}|{{ $peg->nama }}" 
@@ -37,7 +52,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-1">
+                                    <div class="col-md-1 text-end">
                                         <button type="button" class="btn btn-outline-danger w-100 rounded-3 shadow-sm" onclick="hapusBaris(this)">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -51,47 +66,52 @@
 
                         {{-- INFORMASI PELATIHAN --}}
                         <div class="col-12">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">JENIS PELATIHAN / NAMA KEGIATAN</label>
-                            <input type="text" name="jenis_pelatihan" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->jenis_pelatihan }}" required>
+                            <label class="form-label fw-bold" style="color: #b87a4a;">NAMA KEGIATAN / JENIS PELATIHAN</label>
+                            <input type="text" name="jenis_pelatihan" class="form-control rounded-3 py-2 shadow-sm bg-light" value="{{ $pelatihan->jenis_pelatihan }}" readonly>
+                            <div class="form-text mt-1 italic"><i class="bi bi-info-circle"></i> Nama pelatihan mengikuti Master Data (Read-only).</div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-bold" style="color: #b87a4a;">TAHUN</label>
-                            <input type="number" name="tahun_pelatihan" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->tahun }}" required>
+                            <input type="number" name="tahun" class="form-control rounded-3 py-2 shadow-sm bg-light" value="{{ $pelatihan->tahun }}" readonly>
                         </div>
                         
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">WAKTU PELAKSANAAN</label>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">TANGGAL MULAI</label>
                             <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->waktu_pelaksanaan }}" required>
-                            <div class="form-text mt-2 text-muted">
-                                <i class="bi bi-info-circle me-1"></i> Status akan otomatis disesuaikan (Mendatang/Berlangsung/Selesai) berdasarkan tanggal ini.
-                            </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">INSTANSI PENYELENGGARA</label>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">TANGGAL SELESAI</label>
+                            <input type="date" name="tanggal_selesai" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->tanggal_selesai }}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">INSTANSI</label>
                             <input type="text" name="instansi" class="form-control rounded-3 py-2 shadow-sm" value="{{ $pelatihan->instansi_penyelenggara }}" required>
                         </div>
 
-                        {{-- INFO STATUS SAAT INI (Opsional, hanya tampilan readonly) --}}
-                        <div class="col-12 mt-2">
-                             <div class="p-3 rounded-3 bg-light border border-dashed text-center">
-                                 <span class="text-muted me-2 small uppercase fw-bold">Status Sistem Saat Ini:</span>
+                        {{-- INFO STATUS --}}
+                        <div class="col-12">
+                             <div class="p-3 rounded-4 bg-light border border-dashed d-flex align-items-center justify-content-center gap-3">
+                                 <span class="text-muted small text-uppercase fw-bold">Status Saat Ini:</span>
                                  @if($pelatihan->status == 'selesai')
-                                     <span class="badge bg-success rounded-pill px-3 py-2">Selesai Berlangsung</span>
+                                     <span class="badge bg-success rounded-pill px-4 py-2 shadow-sm text-uppercase">Selesai</span>
                                  @elseif($pelatihan->status == 'berlangsung')
-                                     <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Sedang Berlangsung</span>
+                                     <span class="badge bg-warning text-dark rounded-pill px-4 py-2 shadow-sm text-uppercase">Berlangsung</span>
                                  @else
-                                     <span class="badge bg-primary rounded-pill px-3 py-2">Akan Datang</span>
+                                     <span class="badge bg-info text-white rounded-pill px-4 py-2 shadow-sm text-uppercase">Mendatang</span>
                                  @endif
+                                 <div class="vr mx-2"></div>
+                                 <small class="text-muted italic">Status akan terupdate otomatis berdasarkan rentang tanggal yang baru.</small>
                              </div>
                         </div>
 
                         {{-- TOMBOL AKSI --}}
-                        <div class="col-12 mt-5 text-end border-top pt-4">
-                            <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light rounded-4 px-4 me-2 border fw-semibold">Batal</a>
+                        <div class="col-12 mt-5 d-flex justify-content-end gap-3 pt-4 border-top">
+                            <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light rounded-4 px-4 border fw-semibold">Batal</a>
                             <button type="submit" class="btn rounded-4 px-5 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #f97316, #f59e0b); border: none;">
-                                <i class="bi bi-save me-2"></i>SIMPAN PERUBAHAN
+                                <i class="bi bi-save me-2"></i>UPDATE DATA
                             </button>
                         </div>
                     </div>
@@ -105,10 +125,24 @@
     function tambahBaris() {
         const container = document.getElementById('container-peserta');
         const rows = document.querySelectorAll('.baris-peserta');
+        
         if (rows.length > 0) {
             const newRow = rows[0].cloneNode(true);
-            const selects = newRow.querySelectorAll('select');
-            selects.forEach(select => select.selectedIndex = 0);
+            
+            // Hapus label jika baris yang diclone adalah baris pertama
+            const label = newRow.querySelector('label');
+            if (label) label.remove();
+            
+            // Reset pilihan select
+            const select = newRow.querySelector('select');
+            select.selectedIndex = 0;
+            
+            // Pastikan tombol sampah aktif
+            const btnHapus = newRow.querySelector('button');
+            btnHapus.disabled = false;
+            btnHapus.classList.remove('disabled');
+
+            newRow.classList.add('animate__fadeIn');
             container.appendChild(newRow);
         }
     }
@@ -124,12 +158,10 @@
 </script>
 
 <style>
-    .form-control:focus, .form-select:focus {
-        border-color: #f97316 !important;
-        box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1) !important;
-    }
-    .bg-light {
-        background-color: #fcfcfc !important;
-    }
+    .btn-orange-outline { color: #f97316; border: 1px solid #f97316; background: transparent; transition: all 0.2s; }
+    .btn-orange-outline:hover { background: #f97316; color: white; }
+    .form-control:focus, .form-select:focus { border-color: #f97316 !important; box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1) !important; }
+    .bg-light { background-color: #f8f9fa !important; }
+    .italic { font-style: italic; font-size: 0.8rem; }
 </style>
 @endsection

@@ -21,7 +21,7 @@
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.6rem;">
                     Tambah Data Pelatihan
                 </h3>
-                <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Pilih jenis pelatihan dari master data dan tentukan peserta</p>
+                <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Pilih jenis pelatihan dari master data dan tentukan rentang waktu pelaksanaan</p>
             </div>
         </div>
         <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
@@ -49,7 +49,7 @@
                     @csrf
                     
                     <div class="row g-4">
-                        {{-- SEKSI PILIH PELATIHAN (REVISI: Dropdown dari Master) --}}
+                        {{-- SEKSI PILIH PELATIHAN --}}
                         <div class="col-12">
                             <label class="form-label fw-bold" style="color: #b87a4a;">JENIS PELATIHAN (MASTER DATA)</label>
                             <select name="master_pelatihan_id" class="form-select rounded-3 shadow-sm py-2" required>
@@ -65,9 +65,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">WAKTU PELAKSANAAN</label>
+                        {{-- REVISI: DUA KOLOM TANGGAL --}}
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">TANGGAL MULAI</label>
                             <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 shadow-sm py-2" value="{{ old('waktu_pelaksanaan') }}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">TANGGAL SELESAI</label>
+                            <input type="date" name="tanggal_selesai" class="form-control rounded-3 shadow-sm py-2" value="{{ old('tanggal_selesai') }}" required>
                         </div>
 
                         <div class="col-md-6">
@@ -109,8 +115,8 @@
                             <div class="alert alert-warning border-0 rounded-4 py-3 shadow-sm d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                                 <div>
-                                    <strong class="d-block text-uppercase" style="font-size: 0.75rem;">Info Sertifikat</strong>
-                                    <span class="small">Data Master sudah mencakup JP dan Tahun. File sertifikat diunggah di halaman detail tiap peserta.</span>
+                                    <strong class="d-block text-uppercase" style="font-size: 0.75rem;">Info Status & Sertifikat</strong>
+                                    <span class="small">Status pelatihan otomatis ditentukan dari rentang tanggal. Sertifikat diunggah setelah pelatihan selesai.</span>
                                 </div>
                             </div>
                         </div>

@@ -17,31 +17,47 @@
             <div class="card-header p-4 border-0 d-flex justify-content-between align-items-center" style="background: #fffbeb;">
                 <div>
                     <h4 class="fw-bold mb-1" style="color: #5c4a3a;">{{ $pelatihan->jenis_pelatihan }}</h4>
-                    <p class="mb-0 text-muted">Data Rekap Pelatihan Terdaftar</p>
+                    <p class="mb-0 text-muted">Data Rekap & Detail Pelaksanaan Pelatihan</p>
                 </div>
-                <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
-                    <i class="bi bi-pencil-square me-2"></i>Edit & Validasi
-                </a>
+                <div class="d-flex gap-2">
+                    <span class="badge rounded-pill px-3 py-2" 
+                        style="background: {{ $pelatihan->status == 'selesai' ? '#dcfce7' : ($pelatihan->status == 'berlangsung' ? '#fef9c3' : '#dbeafe') }}; 
+                               color: {{ $pelatihan->status == 'selesai' ? '#166534' : ($pelatihan->status == 'berlangsung' ? '#854d0e' : '#1e40af') }};">
+                        <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
+                        {{ strtoupper($pelatihan->status) }}
+                    </span>
+                    <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
+                        <i class="bi bi-pencil-square me-2"></i>Edit
+                    </a>
+                </div>
             </div>
             
             <div class="card-body p-4 p-md-5 bg-white">
                 <div class="row g-4 mb-5">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
-                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Tahun Pelatihan</label>
+                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Tahun</label>
                             <span class="fs-5 fw-bold" style="color: #f97316;">{{ $pelatihan->tahun }}</span>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    {{-- REVISI: MENAMPILKAN RENTANG TANGGAL --}}
+                    <div class="col-md-5">
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Waktu Pelaksanaan</label>
-                            <span class="fs-5 fw-bold" style="color: #5c4a3a;">{{ \Carbon\Carbon::parse($pelatihan->waktu_pelaksanaan)->translatedFormat('d F Y') }}</span>
+                            <span class="fs-6 fw-bold" style="color: #5c4a3a;">
+                                <i class="bi bi-calendar3 me-2 text-muted"></i>
+                                {{ \Carbon\Carbon::parse($pelatihan->waktu_pelaksanaan)->translatedFormat('d M Y') }} 
+                                <span class="text-muted mx-2">s/d</span>
+                                {{ \Carbon\Carbon::parse($pelatihan->tanggal_selesai)->translatedFormat('d M Y') }}
+                            </span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
-                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Instansi Penyelenggara</label>
-                            <span class="fs-5 fw-bold" style="color: #5c4a3a;">{{ $pelatihan->instansi_penyelenggara }}</span>
+                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Penyelenggara</label>
+                            <span class="fs-6 fw-bold text-truncate d-block" style="color: #5c4a3a;" title="{{ $pelatihan->instansi_penyelenggara }}">
+                                {{ $pelatihan->instansi_penyelenggara }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -50,7 +66,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <div style="width: 5px; height: 25px; background: #f97316; border-radius: 10px;"></div>
-                        <h5 class="fw-bold mb-0" style="color: #5c4a3a;">Daftar Peserta, JP & Sertifikat</h5>
+                        <h5 class="fw-bold mb-0" style="color: #5c4a3a;">Daftar Peserta & Sertifikat</h5>
                     </div>
                 </div>
 
@@ -60,9 +76,9 @@
                             <tr>
                                 <th width="60" class="text-center py-3">NO</th>
                                 <th width="180" class="py-3">NIP</th>
-                                <th class="py-3">NAMA LENGKAP PESERTA</th>
+                                <th class="py-3">NAMA PESERTA</th>
                                 <th width="100" class="text-center py-3">JP</th>
-                                <th width="200" class="text-center py-3">AKSI</th>
+                                <th width="200" class="text-center py-3">AKSI / SERTIFIKAT</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -70,19 +86,19 @@
                             <tr>
                                 <td class="text-center fw-bold text-muted">{{ $index + 1 }}</td>
                                 <td class="fw-semibold">{{ $p->nip }}</td>
-                                <td class="text-uppercase" style="letter-spacing: 0.5px;">{{ $p->nama_peserta }}</td>
+                                <td class="text-uppercase" style="letter-spacing: 0.5px; font-size: 0.85rem;">{{ $p->nama_peserta }}</td>
                                 <td class="text-center">
                                     <span class="badge bg-light text-dark border px-2 py-1">{{ $p->jp ?? '0' }}</span>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex gap-2 justify-content-center">
                                         @if($p->sertifikat_path)
-                                            <a href="{{ asset('storage/' . $p->sertifikat_path) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-3">
-                                                <i class="bi bi-file-earmark-check-fill"></i> Lihat
+                                            <a href="{{ asset('storage/' . $p->sertifikat_path) }}" target="_blank" class="btn btn-sm btn-success rounded-3 shadow-sm">
+                                                <i class="bi bi-file-earmark-pdf-fill"></i> Lihat
                                             </a>
                                         @endif
                                         <button class="btn btn-sm btn-outline-orange rounded-3 fw-bold" style="color: #f97316; border-color: #f97316;" data-bs-toggle="modal" data-bs-target="#uploadModal{{ $p->id }}">
-                                            <i class="bi bi-gear-fill me-1"></i> Kelola
+                                            <i class="bi bi-gear-fill me-1"></i> {{ $p->sertifikat_path ? 'Ganti' : 'Kelola' }}
                                         </button>
                                     </div>
 
@@ -93,32 +109,32 @@
                                                 <form action="{{ route('rekap-pelatihan.upload-sertifikat-peserta', $p->id) }}" method="POST" enctype="multipart/form-data">
                                                     @csrf
                                                     <div class="modal-header border-0 bg-light rounded-top-4">
-                                                        <h6 class="modal-title fw-bold">Kelola Data Peserta</h6>
+                                                        <h6 class="modal-title fw-bold text-dark">Kelola Data: {{ $p->nama_peserta }}</h6>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body p-4 text-start">
-                                                        <div class="mb-4 text-center">
-                                                            <h6 class="fw-bold mb-0">{{ $p->nama_peserta }}</h6>
-                                                            <div class="small text-muted">{{ $p->nip }}</div>
-                                                        </div>
-                                                        
                                                         <div class="mb-3">
                                                             <label class="form-label small fw-bold text-uppercase">Jam Pelajaran (JP)</label>
                                                             <input type="number" name="jp" class="form-control rounded-3" value="{{ $p->jp }}" placeholder="Masukkan jumlah JP">
                                                             <div class="form-text small" style="color: #f97316;">
-                                                                <i class="bi bi-info-circle-fill"></i> Mengisi JP akan otomatis memperbarui <strong>semua peserta</strong> di event ini.
+                                                                <i class="bi bi-info-circle-fill"></i> Mengubah JP di sini akan memperbarui seluruh peserta pada event ini.
                                                             </div>
                                                         </div>
 
                                                         <div class="mb-3">
                                                             <label class="form-label small fw-bold text-uppercase">File Sertifikat</label>
                                                             <input type="file" name="sertifikat" class="form-control rounded-3" accept=".pdf,.jpg,.jpeg,.png">
-                                                            <div class="form-text small text-danger">Format: PDF, JPG, PNG (Max 2MB). Biarkan kosong jika tidak ingin mengganti file.</div>
+                                                            @if($p->sertifikat_path)
+                                                                <div class="mt-2 small text-success">
+                                                                    <i class="bi bi-check-circle-fill"></i> Sertifikat sudah terunggah.
+                                                                </div>
+                                                            @endif
+                                                            <div class="form-text small text-danger">Format: PDF, JPG, PNG (Max 2MB).</div>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer border-0">
                                                         <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn text-white rounded-3 px-4 fw-bold" style="background: #f97316;">Simpan Data</button>
+                                                        <button type="submit" class="btn text-white rounded-3 px-4 fw-bold" style="background: #f97316;">Simpan Perubahan</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -136,8 +152,8 @@
                 </div>
 
                 <div class="mt-5 d-flex justify-content-between">
-                    <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light rounded-4 px-4 border">
-                        <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar
+                    <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light rounded-4 px-4 border fw-semibold">
+                        <i class="bi bi-arrow-left me-2"></i>Kembali
                     </a>
                 </div>
             </div>
@@ -147,18 +163,29 @@
 
 <style>
     .table thead th {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         letter-spacing: 1px;
         color: #b87a4a;
         border-bottom: 2px solid #fed7aa;
+        text-transform: uppercase;
     }
     .table tbody td {
         padding: 1rem;
         color: #5c4a3a;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    .btn-outline-orange {
+        border: 1px solid #f97316;
+        background: transparent;
+        transition: all 0.2s;
     }
     .btn-outline-orange:hover {
         background: #f97316;
         color: white !important;
+    }
+    .badge {
+        font-weight: 600;
+        font-size: 0.75rem;
     }
 </style>
 @endsection

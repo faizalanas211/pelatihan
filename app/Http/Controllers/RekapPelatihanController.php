@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
-use App\Models\MasterPelatihan; // Pastikan model ini ada
+use App\Models\MasterPelatihan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,19 +13,20 @@ use Carbon\Carbon;
 class RekapPelatihanController extends Controller
 {
     /**
-     * Helper untuk menentukan status berdasarkan tanggal
+     * Helper untuk menentukan status berdasarkan rentang tanggal
      */
-    private function determineStatus($waktu_pelaksanaan)
+    private function determineStatus($tglMulai, $tglSelesai)
     {
         $today = Carbon::today();
-        $pelaksanaan = Carbon::parse($waktu_pelaksanaan);
+        $mulai = Carbon::parse($tglMulai);
+        $selesai = Carbon::parse($tglSelesai);
 
-        if ($pelaksanaan->isPast() && !$pelaksanaan->isToday()) {
-            return 'selesai';
-        } elseif ($pelaksanaan->isToday()) {
-            return 'berlangsung';
+        if ($today->gt($selesai)) {
+            return 'selesai'; // Sudah melewati tanggal selesai
+        } elseif ($today->between($mulai, $selesai)) {
+            return 'berlangsung'; // Sedang dalam masa pelatihan
         } else {
-            return 'mendatang';
+            return 'mendatang'; // Belum mulai
         }
     }
 
@@ -38,8 +39,9 @@ class RekapPelatihanController extends Controller
             $today = Carbon::today()->toDateString();
 
             // SINKRONISASI OTOMATIS: 
+            // Cek berdasarkan tanggal_selesai untuk mengubah status ke selesai
             DB::table('pelatihan')
-                ->where('waktu_pelaksanaan', '<', $today)
+                ->where('tanggal_selesai', '<', $today)
                 ->where('status', '!=', 'selesai')
                 ->update(['status' => 'selesai', 'updated_at' => now()]);
 
@@ -67,12 +69,18 @@ class RekapPelatihanController extends Controller
         }
     }
 
+    /**
+     * Tampilkan form tambah rekap (HANYA KATEGORI PELATIHAN)
+     */
     public function create() 
     {
         $pegawais = Pegawai::all();
-        $masterPelatihan = MasterPelatihan::all();
+
+        // Filter hanya yang kategorinya 'pelatihan'
+        $masterPelatihan = MasterPelatihan::where('kategori', 'pelatihan')
+                            ->orderBy('nama_pelatihan', 'asc')
+                            ->get();
         
-        // REVISI: Sesuaikan path view dengan folder dashboard kamu
         return view('dashboard.rekap-pelatihan.create', compact('pegawais', 'masterPelatihan'));
     }
 
@@ -82,22 +90,22 @@ class RekapPelatihanController extends Controller
             'peserta'               => 'required|array',
             'peserta.*'             => 'required',
             'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
-            'waktu_pelaksanaan'     => 'required|date',
+            'waktu_pelaksanaan'     => 'required|date', // Bertindak sebagai Tanggal Mulai
+            'tanggal_selesai'       => 'required|date|after_or_equal:waktu_pelaksanaan',
             'instansi'              => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
-            // Ambil data dari Master
             $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
-            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
+            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan, $request->tanggal_selesai);
 
-            // Simpan data pelatihan (Nama, Tahun, JP diambil dari Master)
             $pelatihanId = DB::table('pelatihan')->insertGetId([
                 'jenis_pelatihan'        => $master->nama_pelatihan,
                 'tahun'                  => $master->tahun,
                 'jp'                     => $master->jp,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
+                'tanggal_selesai'        => $request->tanggal_selesai,
                 'instansi_penyelenggara' => $request->instansi,
                 'status'                 => $statusOtomatis, 
                 'created_at'             => now(),
@@ -189,6 +197,9 @@ class RekapPelatihanController extends Controller
         }
     }
 
+    /**
+     * Tampilkan form edit rekap (HANYA KATEGORI PELATIHAN)
+     */
     public function edit($id)
     {
         $pelatihan = DB::table('pelatihan')->where('id', $id)->first();
@@ -196,7 +207,10 @@ class RekapPelatihanController extends Controller
         
         $pesertaTerpilih = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
         $pegawais = Pegawai::all();
-        $masterPelatihan = MasterPelatihan::all();
+
+        $masterPelatihan = MasterPelatihan::where('kategori', 'pelatihan')
+                            ->orderBy('nama_pelatihan', 'asc')
+                            ->get();
         
         return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais', 'masterPelatihan'));
     }
@@ -207,19 +221,21 @@ class RekapPelatihanController extends Controller
             'peserta'               => 'required|array',
             'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
             'waktu_pelaksanaan'     => 'required|date',
+            'tanggal_selesai'       => 'required|date|after_or_equal:waktu_pelaksanaan',
             'instansi'              => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
             $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
-            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan);
+            $statusOtomatis = $this->determineStatus($request->waktu_pelaksanaan, $request->tanggal_selesai);
 
             DB::table('pelatihan')->where('id', $id)->update([
                 'jenis_pelatihan'        => $master->nama_pelatihan,
                 'tahun'                  => $master->tahun,
                 'jp'                     => $master->jp,
                 'waktu_pelaksanaan'      => $request->waktu_pelaksanaan,
+                'tanggal_selesai'        => $request->tanggal_selesai,
                 'instansi_penyelenggara' => $request->instansi,
                 'status'                 => $statusOtomatis,
                 'updated_at'             => now(),
