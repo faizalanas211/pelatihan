@@ -5,7 +5,7 @@
     <a href="{{ route('tugas-belajar.index') }}" style="color: #f97316; text-decoration: none;">Rekap Tugas Belajar</a>
 </li>
 <li class="breadcrumb-item active fw-semibold" style="color: #f97316;">
-    Tambah Tugas Belajar
+    Edit Data Tugas Belajar
 </li>
 @endsection
 
@@ -20,7 +20,7 @@
             </div>
             <div>
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Tambah Data Tugas Belajar
+                    Edit Data Tugas Belajar
                 </h3>
                 <p class="text-muted mb-0 mt-1">Input peserta tugas belajar berdasarkan master data</p>
             </div>
@@ -47,7 +47,7 @@
 
                     {{-- FILTER TAHUN (BUKAN INPUT DATA) --}}
                     <div class="mb-4">
-                        <label class="form-label fw-bold">FILTER TAHUN</label>
+                        <label class="form-label fw-bold">FILTER TAHUN <span class="text-danger">*</span></label>
 
                         <select id="filterTahun" class="form-select">
                             <option value="">-- Semua Tahun --</option>
@@ -61,7 +61,7 @@
 
                     {{-- MASTER TUBEL --}}
                     <div class="mb-4">
-                        <label class="form-label fw-bold">MASTER TUGAS BELAJAR</label>
+                        <label class="form-label fw-bold">MASTER TUGAS BELAJAR <span class="text-danger">*</span></label>
                         
                         <select name="master_pelatihan_id" id="masterTubel" class="form-select" required>
                             <option value="">-- Pilih Tubel --</option>
@@ -79,12 +79,12 @@
                     <hr>
 
                     {{-- HEADER PESERTA --}}
-<div class="d-flex justify-content-between align-items-center">
-    <label class="fw-bold mb-0">DATA PESERTA</label>
-    <button type="button" class="btn btn-sm btn-orange-outline" onclick="tambahBaris()">
-        <i class="bi bi-plus-lg me-1"></i> Tambah Peserta
-    </button>
-</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="fw-bold mb-0">DATA PESERTA</label>
+                        <button type="button" class="btn btn-sm btn-orange-outline" onclick="tambahBaris()">
+                            <i class="bi bi-plus-lg me-1"></i> Tambah Peserta
+                        </button>
+                    </div>
 
                     <div id="container-peserta">
 
@@ -93,7 +93,7 @@
 
             {{-- BARIS 1: PEGAWAI --}}
             <div class="mb-3">
-                <label class="small fw-semibold text-muted">Pegawai</label>
+                <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
                 <select name="pegawai_id[]" class="form-select" required>
                     <option value="">-- Pilih Pegawai --</option>
                     @foreach($pegawais as $p)
@@ -108,23 +108,23 @@
             <div class="row g-3">
 
                 <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">Tanggal Mulai</label>
+                    <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
                     <input type="date" name="tanggal_mulai[]" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">Tanggal Selesai</label>
+                    <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
                     <input type="date" name="tanggal_selesai[]" class="form-control" required>
                 </div>
 
                 <div class="col-md-3">
                     <label class="small fw-semibold text-muted">No SK</label>
-                    <input type="text" name="no_sk[]" class="form-control" placeholder="Nomor SK" required>
+                    <input type="text" name="no_sk[]" class="form-control" placeholder="Nomor SK">
                 </div>
 
                 <div class="col-md-3">
                     <label class="small fw-semibold text-muted">Upload SK</label>
-                    <input type="file" name="file_sk[]" class="form-control" required>
+                    <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
                 </div>
 
             </div>

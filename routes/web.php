@@ -106,8 +106,12 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/tugas-belajar/get-tubel', [TugasBelajarController::class, 'getTubelByTahun'])
     ->name('tugas-belajar.get-tubel');
     // Route::get('rekap-pelatihan/{id}/peserta', [RekapPelatihanController::class, 'peserta'])->name('rekap-pelatihan.peserta');
-    // Route::post('rekap-pelatihan/upload-sertifikat-peserta/{id}', [RekapPelatihanController::class, 'uploadSertifikatPeserta'])->name('rekap-pelatihan.upload-sertifikat-peserta');
-    
+    Route::put('tugas-belajar/peserta/{id}', 
+            [TugasBelajarController::class, 'updatePeserta']
+        )->name('tugas-belajar.updatePeserta');
+    Route::delete('tugas-belajar/{id}/peserta', 
+            [TugasBelajarController::class, 'destroyPeserta']
+        )->name('tugas-belajar.destroyPeserta');
 
     /*
     |--------------------------------------------------------------------------

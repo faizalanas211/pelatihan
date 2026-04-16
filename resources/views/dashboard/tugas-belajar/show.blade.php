@@ -23,20 +23,22 @@
                     <p class="mb-0 text-muted">Data Peserta Tugas Belajar</p>
                 </div>
                 <div>
-                    <a href="{{ route('tugas-belajar.create', [
-    'tahun' => $tubel->tahun,
-    'master_id' => $tubel->id
-]) }}" 
-class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold"
-style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
-    <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Tubel
-</a>
+    <a href="{{ route('tugas-belajar.create', [
+        'tahun' => $tubel->tahun,
+        'master_id' => $tubel->id
+    ]) }}" 
+    class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold"
+    style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
+        <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Tubel
+    </a>
 
-                    <a href="{{ route('tugas-belajar.edit', $tubel->id) }}" 
-                    class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
-                        <i class="bi bi-pencil-square me-2"></i>Edit
-                    </a>
-                </div>
+    @if($peserta->count() > 0)
+    <a href="{{ route('tugas-belajar.edit', $tubel->id) }}" 
+       class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
+        <i class="bi bi-pencil-square me-2"></i>Edit
+    </a>
+    @endif
+</div>
             </div>
             
             <div class="card-body p-4 p-md-5 bg-white">
@@ -92,12 +94,18 @@ style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
                                 <td class="text-center">
                                     {{ \Carbon\Carbon::parse($p->tanggal_mulai)->format('d M Y') }}
                                     <br>
-                                    <small class="text-muted">s/d</small>
+                                        <small class="text-muted">s/d</small>
                                     <br>
                                     {{ \Carbon\Carbon::parse($p->tanggal_selesai)->format('d M Y') }}
                                 </td>
 
-                                <td>{{ $p->no_sk_tubel }}</td>
+                                <td>
+                                    @if($p->no_sk_tubel)
+                                        {{ $p->no_sk_tubel }}
+                                    @else
+                                        <span class="text-muted small">Belum ada</span>
+                                    @endif
+                                </td>
 
                                 {{-- file --}}
                                 <td class="text-center">
@@ -126,36 +134,65 @@ style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
                             <div class="modal fade" id="modal{{ $p->id }}" tabindex="-1">
                                 <div class="modal-dialog">
                                     <div class="modal-content rounded-4">
-                                        <form action="{{ route('tugas-belajar.update', $p->id) }}" 
+                                        <form action="{{ route('tugas-belajar.updatePeserta', $p->id) }}" 
                                               method="POST" 
                                               enctype="multipart/form-data">
                                             @csrf
+                                            @method('PUT')
 
                                             <div class="modal-header">
                                                 <h6 class="fw-bold">
                                                     Kelola: {{ $p->pegawai->nama }}
                                                 </h6>
-                                                <button class="btn-close" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
 
                                             <div class="modal-body">
 
-                                                <div class="mb-3">
-                                                    <label>No SK</label>
-                                                    <input type="text" name="no_sk_tubel" 
-                                                           class="form-control"
-                                                           value="{{ $p->no_sk_tubel }}">
+                                                {{-- TANGGAL --}}
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-semibold">Tanggal Mulai</label>
+                                                        <input type="date" 
+                                                            name="tanggal_mulai" 
+                                                            class="form-control"
+                                                            value="{{ $p->tanggal_mulai }}">
+                                                    </div>
+
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-semibold">Tanggal Selesai</label>
+                                                        <input type="date" 
+                                                            name="tanggal_selesai" 
+                                                            class="form-control"
+                                                            value="{{ $p->tanggal_selesai }}">
+                                                    </div>
                                                 </div>
 
+                                                {{-- NO SK --}}
                                                 <div class="mb-3">
-                                                    <label>Upload SK</label>
-                                                    <input type="file" name="file_sk_tubel" class="form-control">
+                                                    <label class="small fw-semibold">No SK</label>
+                                                    <input type="text" 
+                                                        name="no_sk_tubel" 
+                                                        class="form-control"
+                                                        value="{{ $p->no_sk_tubel }}">
+                                                </div>
+
+                                                {{-- FILE --}}
+                                                <div class="mb-3">
+                                                    <label class="small fw-semibold">Upload SK</label>
+                                                    <input type="file" name="file_sk_tubel" class="form-control" accept="application/pdf">
+
+                                                    @if($p->file_sk_tubel)
+                                                        <small class="text-success">
+                                                            ✔ File sudah ada
+                                                        </small>
+                                                    @endif
                                                 </div>
 
                                             </div>
 
                                             <div class="modal-footer">
-                                                <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                                                 <button class="btn text-white" style="background:#f97316;">
                                                     Simpan
                                                 </button>

@@ -35,7 +35,7 @@
     </div>
 
     {{-- FILTER --}}
-    <div class="col-12">
+    <div class="col-12 mb-4">
         <form action="{{ route('tugas-belajar.index') }}" method="GET">
             <div class="card border-0 shadow-sm rounded-4" style="background: #fffcf8;">
                 <div class="card-body p-3">
