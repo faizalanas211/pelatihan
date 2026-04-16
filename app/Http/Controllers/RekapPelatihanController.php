@@ -22,11 +22,11 @@ class RekapPelatihanController extends Controller
         $selesai = Carbon::parse($tglSelesai);
 
         if ($today->gt($selesai)) {
-            return 'selesai'; // Sudah melewati tanggal selesai
+            return 'selesai'; 
         } elseif ($today->between($mulai, $selesai)) {
-            return 'berlangsung'; // Sedang dalam masa pelatihan
+            return 'berlangsung';
         } else {
-            return 'mendatang'; // Belum mulai
+            return 'mendatang';
         }
     }
 
@@ -38,8 +38,7 @@ class RekapPelatihanController extends Controller
         try {
             $today = Carbon::today()->toDateString();
 
-            // SINKRONISASI OTOMATIS: 
-            // Cek berdasarkan tanggal_selesai untuk mengubah status ke selesai
+            // SINKRONISASI OTOMATIS: Update ke status selesai jika tgl_selesai sudah lewat
             DB::table('pelatihan')
                 ->where('tanggal_selesai', '<', $today)
                 ->where('status', '!=', 'selesai')
@@ -70,18 +69,26 @@ class RekapPelatihanController extends Controller
     }
 
     /**
-     * Tampilkan form tambah rekap (HANYA KATEGORI PELATIHAN)
+     * Tampilkan form tambah rekap dengan FITUR FILTER TAHUN
      */
     public function create() 
     {
         $pegawais = Pegawai::all();
 
-        // Filter hanya yang kategorinya 'pelatihan'
+        // Ambil daftar tahun unik dari Master Pelatihan untuk dropdown filter di View
+        $daftarTahun = MasterPelatihan::where('kategori', 'pelatihan')
+                        ->select('tahun')
+                        ->distinct()
+                        ->orderBy('tahun', 'desc')
+                        ->pluck('tahun');
+
+        // Ambil semua master data pelatihan (filter kategori pelatihan saja)
         $masterPelatihan = MasterPelatihan::where('kategori', 'pelatihan')
+                            ->orderBy('tahun', 'desc')
                             ->orderBy('nama_pelatihan', 'asc')
                             ->get();
         
-        return view('dashboard.rekap-pelatihan.create', compact('pegawais', 'masterPelatihan'));
+        return view('dashboard.rekap-pelatihan.create', compact('pegawais', 'masterPelatihan', 'daftarTahun'));
     }
 
     public function store(Request $request)
@@ -90,7 +97,7 @@ class RekapPelatihanController extends Controller
             'peserta'               => 'required|array',
             'peserta.*'             => 'required',
             'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
-            'waktu_pelaksanaan'     => 'required|date', // Bertindak sebagai Tanggal Mulai
+            'waktu_pelaksanaan'     => 'required|date',
             'tanggal_selesai'       => 'required|date|after_or_equal:waktu_pelaksanaan',
             'instansi'              => 'required|string',
         ]);
@@ -198,7 +205,7 @@ class RekapPelatihanController extends Controller
     }
 
     /**
-     * Tampilkan form edit rekap (HANYA KATEGORI PELATIHAN)
+     * Tampilkan form edit rekap dengan FITUR FILTER TAHUN
      */
     public function edit($id)
     {
@@ -208,11 +215,19 @@ class RekapPelatihanController extends Controller
         $pesertaTerpilih = DB::table('pelatihan_peserta')->where('pelatihan_id', $id)->get();
         $pegawais = Pegawai::all();
 
+        // Ambil daftar tahun unik untuk filter
+        $daftarTahun = MasterPelatihan::where('kategori', 'pelatihan')
+                        ->select('tahun')
+                        ->distinct()
+                        ->orderBy('tahun', 'desc')
+                        ->pluck('tahun');
+
         $masterPelatihan = MasterPelatihan::where('kategori', 'pelatihan')
+                            ->orderBy('tahun', 'desc')
                             ->orderBy('nama_pelatihan', 'asc')
                             ->get();
         
-        return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais', 'masterPelatihan'));
+        return view('dashboard.rekap-pelatihan.edit', compact('pelatihan', 'pesertaTerpilih', 'pegawais', 'masterPelatihan', 'daftarTahun'));
     }
 
     public function update(Request $request, $id)

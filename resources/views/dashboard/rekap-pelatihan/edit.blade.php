@@ -24,10 +24,24 @@
         
         <div class="card rounded-4 border-0 shadow-sm overflow-hidden">
             <div class="card-body p-4 p-md-5">
+                {{-- Error Reporting --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger rounded-4 border-0 mb-4 shadow-sm">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form action="{{ route('rekap-pelatihan.update', $pelatihan->id) }}" method="POST">
                     @csrf
                     @method('PUT')
                     
+                    {{-- KUNCI UTAMA: Mengirim ID Master Pelatihan agar Controller bisa findOrFail --}}
+                    <input type="hidden" name="master_pelatihan_id" value="{{ $pelatihan->master_pelatihan_id ?? '' }}">
+
                     <div class="row g-4">
                         {{-- SEKSI PESERTA --}}
                         <div class="col-12">
@@ -67,7 +81,7 @@
                         {{-- INFORMASI PELATIHAN --}}
                         <div class="col-12">
                             <label class="form-label fw-bold" style="color: #b87a4a;">NAMA KEGIATAN / JENIS PELATIHAN</label>
-                            <input type="text" name="jenis_pelatihan" class="form-control rounded-3 py-2 shadow-sm bg-light" value="{{ $pelatihan->jenis_pelatihan }}" readonly>
+                            <input type="text" class="form-control rounded-3 py-2 shadow-sm bg-light" value="{{ $pelatihan->jenis_pelatihan }}" readonly>
                             <div class="form-text mt-1 italic"><i class="bi bi-info-circle"></i> Nama pelatihan mengikuti Master Data (Read-only).</div>
                         </div>
 
@@ -95,13 +109,16 @@
                         <div class="col-12">
                              <div class="p-3 rounded-4 bg-light border border-dashed d-flex align-items-center justify-content-center gap-3">
                                  <span class="text-muted small text-uppercase fw-bold">Status Saat Ini:</span>
-                                 @if($pelatihan->status == 'selesai')
-                                     <span class="badge bg-success rounded-pill px-4 py-2 shadow-sm text-uppercase">Selesai</span>
-                                 @elseif($pelatihan->status == 'berlangsung')
-                                     <span class="badge bg-warning text-dark rounded-pill px-4 py-2 shadow-sm text-uppercase">Berlangsung</span>
-                                 @else
-                                     <span class="badge bg-info text-white rounded-pill px-4 py-2 shadow-sm text-uppercase">Mendatang</span>
-                                 @endif
+                                 @php
+                                    $statusClass = [
+                                        'selesai' => 'bg-success',
+                                        'berlangsung' => 'bg-warning text-dark',
+                                        'mendatang' => 'bg-info text-white'
+                                    ][$pelatihan->status] ?? 'bg-secondary';
+                                 @endphp
+                                 <span class="badge {{ $statusClass }} rounded-pill px-4 py-2 shadow-sm text-uppercase">
+                                     {{ $pelatihan->status }}
+                                 </span>
                                  <div class="vr mx-2"></div>
                                  <small class="text-muted italic">Status akan terupdate otomatis berdasarkan rentang tanggal yang baru.</small>
                              </div>
@@ -128,16 +145,12 @@
         
         if (rows.length > 0) {
             const newRow = rows[0].cloneNode(true);
-            
-            // Hapus label jika baris yang diclone adalah baris pertama
             const label = newRow.querySelector('label');
             if (label) label.remove();
             
-            // Reset pilihan select
             const select = newRow.querySelector('select');
             select.selectedIndex = 0;
             
-            // Pastikan tombol sampah aktif
             const btnHapus = newRow.querySelector('button');
             btnHapus.disabled = false;
             btnHapus.classList.remove('disabled');

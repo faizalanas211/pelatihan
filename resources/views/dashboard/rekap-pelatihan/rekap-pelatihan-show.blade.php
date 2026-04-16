@@ -20,12 +20,7 @@
                     <p class="mb-0 text-muted">Data Rekap & Detail Pelaksanaan Pelatihan</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <span class="badge rounded-pill px-3 py-2" 
-                        style="background: {{ $pelatihan->status == 'selesai' ? '#dcfce7' : ($pelatihan->status == 'berlangsung' ? '#fef9c3' : '#dbeafe') }}; 
-                               color: {{ $pelatihan->status == 'selesai' ? '#166534' : ($pelatihan->status == 'berlangsung' ? '#854d0e' : '#1e40af') }};">
-                        <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
-                        {{ strtoupper($pelatihan->status) }}
-                    </span>
+                    
                     <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
                         <i class="bi bi-pencil-square me-2"></i>Edit
                     </a>

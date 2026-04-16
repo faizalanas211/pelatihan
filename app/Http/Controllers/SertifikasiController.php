@@ -3,248 +3,205 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
+use App\Models\MasterPelatihan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class SertifikasiController extends Controller
 {
     /**
-     * Tampilkan Index (Hanya status 'selesai')
-     * Muncul di menu Sertifikasi
+     * Helper status otomatis - PERSIS REKAP PELATIHAN
      */
+    private function determineStatus($tglMulai, $tglSelesai)
+    {
+        $today = Carbon::today();
+        $mulai = Carbon::parse($tglMulai);
+        $selesai = Carbon::parse($tglSelesai);
+
+        if ($today->gt($selesai)) {
+            return 'selesai'; 
+        } elseif ($today->between($mulai, $selesai)) {
+            return 'berlangsung';
+        } else {
+            return 'mendatang';
+        }
+    }
+
     public function index(Request $request)
     {
         try {
-            // Filter: Hanya menampilkan data yang statusnya 'selesai'
+            $today = Carbon::today()->toDateString();
+            DB::table('sertifikasi')
+                ->where('tanggal_selesai', '<', $today)
+                ->where('status', '!=', 'selesai')
+                ->update(['status' => 'selesai', 'updated_at' => now()]);
+
             $query = DB::table('sertifikasi')->where('status', 'selesai');
-            
+            if ($request->filled('tahun')) { $query->whereYear('tgl_terbit', $request->tahun); }
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
-                    $q->where('jenis_sertifikasi', 'like', "%$search%")
-                      ->orWhere('instansi_penerbit', 'like', "%$search%");
+                    $q->where('jenis_sertifikasi', 'like', '%' . $search . '%')
+                      ->orWhere('instansi_penerbit', 'like', '%' . $search . '%');
                 });
             }
-
             $sertifikasi = $query->orderBy('tgl_terbit', 'desc')->paginate(9);
             return view('dashboard.sertifikasi.index', compact('sertifikasi'));
         } catch (\Exception $e) {
-            Log::error('Error Index Sertifikasi: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal memuat data.');
         }
     }
 
-    /**
-     * Form Tambah Kolektif
-     */
     public function create()
     {
         $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
-        return view('dashboard.sertifikasi.create', compact('pegawais'));
+        $daftarTahun = MasterPelatihan::where('kategori', 'sertifikasi')->select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $masterSertifikasi = MasterPelatihan::where('kategori', 'sertifikasi')->orderBy('tahun', 'desc')->get();
+        return view('dashboard.sertifikasi.create', compact('pegawais', 'masterSertifikasi', 'daftarTahun'));
     }
 
-    /**
-     * Simpan Data Induk & List Peserta
-     */
     public function store(Request $request)
     {
-        // Validasi tanpa 'status' karena kita set otomatis
         $request->validate([
-            'peserta'           => 'required|array',
-            'jenis_sertifikasi' => 'required|string',
-            'tgl_terbit'        => 'required|date',
-            'instansi'          => 'required|string',
+            'peserta' => 'required|array',
+            'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
+            'tgl_terbit' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tgl_terbit',
+            'instansi' => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
-            // Simpan ke tabel induk dengan default status 'selesai'
+            $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
+            $statusOtomatis = $this->determineStatus($request->tgl_terbit, $request->tanggal_selesai);
+
             $sertifikasiId = DB::table('sertifikasi')->insertGetId([
-                'jenis_sertifikasi' => $request->jenis_sertifikasi,
+                'master_pelatihan_id' => $master->id,
+                'jenis_sertifikasi' => $master->nama_pelatihan,
                 'instansi_penerbit' => $request->instansi,
-                'tgl_terbit'        => $request->tgl_terbit,
-                'status'            => 'selesai', // Set otomatis selesai agar muncul di menu Sertifikasi
-                'created_at'        => now(),
-                'updated_at'        => now(),
+                'tgl_terbit' => $request->tgl_terbit,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'status' => $statusOtomatis, 
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             foreach ($request->peserta as $p) {
                 $parts = explode('|', $p);
                 DB::table('sertifikasi_peserta')->insert([
                     'sertifikasi_id' => $sertifikasiId,
-                    'nip'            => $parts[0],
-                    'nama_peserta'   => $parts[1],
-                    'created_at'     => now(),
-                    'updated_at'     => now(),
+                    'nip' => $parts[0],
+                    'nama_peserta' => $parts[1],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
-
             DB::commit();
-
-            // Karena default adalah 'selesai', langsung arahkan ke index sertifikasi
-            return redirect()->route('sertifikasi.index')->with('success', 'Data Sertifikasi berhasil disimpan!');
-            
+            $targetRoute = ($statusOtomatis == 'selesai') ? 'sertifikasi.index' : 'jadwal-pelatihan.index';
+            return redirect()->route($targetRoute)->with('success', 'Data berhasil disimpan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error Store Sertifikasi: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data.');
+            return redirect()->back()->withInput()->with('error', 'Gagal simpan.');
         }
     }
 
-    /**
-     * Tampilkan Detail
-     */
     public function show($id)
     {
         $sertifikasi = DB::table('sertifikasi')->where('id', $id)->first();
         if (!$sertifikasi) abort(404);
-
         $peserta = DB::table('sertifikasi_peserta')->where('sertifikasi_id', $id)->get();
-        
         return view('dashboard.sertifikasi.show', compact('sertifikasi', 'peserta'));
     }
 
-    /**
-     * Form Edit
-     */
     public function edit($id)
     {
         $sertifikasi = DB::table('sertifikasi')->where('id', $id)->first();
         if (!$sertifikasi) abort(404);
-
         $pesertaTerpilih = DB::table('sertifikasi_peserta')->where('sertifikasi_id', $id)->get();
         $pegawais = Pegawai::where('status', 'aktif')->orderBy('nama')->get();
+        $masterSertifikasi = MasterPelatihan::where('kategori', 'sertifikasi')->get();
 
-        return view('dashboard.sertifikasi.edit', compact('sertifikasi', 'pesertaTerpilih', 'pegawais'));
+        return view('dashboard.sertifikasi.edit', compact('sertifikasi', 'pesertaTerpilih', 'pegawais', 'masterSertifikasi'));
     }
 
     /**
-     * Update Data Induk & Sinkronisasi Peserta agar File Tidak Hilang
+     * UPDATE - REVISI TOTAL (Status Otomatis & Tanpa Validasi Status Required)
      */
     public function update(Request $request, $id)
     {
         $request->validate([
-            'peserta'           => 'required|array',
-            'jenis_sertifikasi' => 'required|string',
-            'tgl_terbit'        => 'required|date',
-            'instansi'          => 'required|string',
-            'status'            => 'required|in:mendatang,berlangsung,selesai'
+            'peserta' => 'required|array',
+            'tgl_terbit' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tgl_terbit',
+            'instansi' => 'required|string',
         ]);
 
         DB::beginTransaction();
         try {
-            // 1. Update Induk
+            // Logika Status Otomatis seperti Rekap Pelatihan
+            $statusOtomatis = $this->determineStatus($request->tgl_terbit, $request->tanggal_selesai);
+
             DB::table('sertifikasi')->where('id', $id)->update([
-                'jenis_sertifikasi' => $request->jenis_sertifikasi,
                 'instansi_penerbit' => $request->instansi,
-                'tgl_terbit'        => $request->tgl_terbit,
-                'status'            => $request->status,
-                'updated_at'        => now(),
+                'tgl_terbit' => $request->tgl_terbit,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'status' => $statusOtomatis,
+                'updated_at' => now(),
             ]);
 
-            // 2. Backup data detail (path & masa berlaku) berdasarkan NIP
-            $oldDetails = DB::table('sertifikasi_peserta')
-                            ->where('sertifikasi_id', $id)
-                            ->get()
-                            ->keyBy('nip');
-
-            // 3. Reset detail (hapus yang lama)
+            $oldDetails = DB::table('sertifikasi_peserta')->where('sertifikasi_id', $id)->get()->keyBy('nip');
             DB::table('sertifikasi_peserta')->where('sertifikasi_id', $id)->delete();
 
-            // 4. Re-insert dengan sinkronisasi agar data upload tidak hilang
             foreach ($request->peserta as $p) {
                 $parts = explode('|', $p);
                 $nip = $parts[0];
-                
                 DB::table('sertifikasi_peserta')->insert([
-                    'sertifikasi_id'  => $id,
-                    'nip'             => $nip,
-                    'nama_peserta'    => $parts[1],
-                    // Sinkronisasi data lama jika NIP nya sama
-                    'masa_berlaku'    => $oldDetails[$nip]->masa_berlaku ?? null,
+                    'sertifikasi_id' => $id,
+                    'nip' => $nip,
+                    'nama_peserta' => $parts[1],
+                    'masa_berlaku' => $oldDetails[$nip]->masa_berlaku ?? null,
                     'sertifikat_path' => $oldDetails[$nip]->sertifikat_path ?? null,
-                    'created_at'      => $oldDetails[$nip]->created_at ?? now(),
-                    'updated_at'      => now(),
+                    'created_at' => $oldDetails[$nip]->created_at ?? now(),
+                    'updated_at' => now(),
                 ]);
             }
-
             DB::commit();
-
-            // Redirect berdasarkan status akhir
-            if($request->status == 'selesai') {
-                return redirect()->route('sertifikasi.show', $id)->with('success', 'Data berhasil diperbarui!');
-            } else {
-                return redirect()->route('jadwal-pelatihan.index')->with('success', 'Data dipindahkan ke Jadwal Pelatihan.');
-            }
-            
+            return redirect()->route('sertifikasi.index')->with('success', 'Data berhasil diperbarui!');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error Update Sertifikasi: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal update data.');
+            return redirect()->back()->with('error', 'Gagal update.');
         }
     }
 
-    /**
-     * Kelola File & Masa Berlaku per Orang (Modal di halaman Show)
-     */
     public function uploadFile(Request $request, $id)
     {
-        $request->validate([
-            'sertifikat'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'masa_berlaku' => 'nullable|date'
-        ]);
-
+        $request->validate(['sertifikat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048', 'masa_berlaku' => 'nullable|date']);
         try {
             $peserta = DB::table('sertifikasi_peserta')->where('id', $id)->first();
             if (!$peserta) return redirect()->back()->with('error', 'Data tidak ditemukan.');
-
-            $updateData = [
-                'masa_berlaku' => $request->masa_berlaku,
-                'updated_at'   => now()
-            ];
-
+            $updateData = ['masa_berlaku' => $request->masa_berlaku, 'updated_at' => now()];
             if ($request->hasFile('sertifikat')) {
-                // Hapus file lama jika ada sebelum ganti baru
-                if ($peserta->sertifikat_path) {
-                    Storage::disk('public')->delete($peserta->sertifikat_path);
-                }
-
+                if ($peserta->sertifikat_path) Storage::disk('public')->delete($peserta->sertifikat_path);
                 $file = $request->file('sertifikat');
                 $fileName = 'SERTIF_' . time() . '_' . $peserta->nip . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('uploads/sertifikat_pegawai', $fileName, 'public');
                 $updateData['sertifikat_path'] = $filePath;
             }
-
             DB::table('sertifikasi_peserta')->where('id', $id)->update($updateData);
-
-            return redirect()->back()->with('success', 'Data ' . $peserta->nama_peserta . ' berhasil diperbarui!');
-        } catch (\Exception $e) {
-            Log::error('Error Upload/Update Peserta: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan.');
-        }
+            return redirect()->back()->with('success', 'Data berhasil diperbarui!');
+        } catch (\Exception $e) { return redirect()->back()->with('error', 'Terjadi kesalahan.'); }
     }
 
-    /**
-     * Hapus Event dan Seluruh File Fisik Peserta
-     */
     public function destroy($id)
     {
         try {
             $peserta = DB::table('sertifikasi_peserta')->where('sertifikasi_id', $id)->get();
-            
-            // Hapus semua file fisik dari storage
-            foreach ($peserta as $p) {
-                if ($p->sertifikat_path) {
-                    Storage::disk('public')->delete($p->sertifikat_path);
-                }
-            }
-            
+            foreach ($peserta as $p) { if ($p->sertifikat_path) Storage::disk('public')->delete($p->sertifikat_path); }
             DB::table('sertifikasi')->where('id', $id)->delete();
             return redirect()->route('sertifikasi.index')->with('success', 'Data berhasil dihapus.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus data.');
-        }
+        } catch (\Exception $e) { return redirect()->back()->with('error', 'Gagal menghapus.'); }
     }
 }

@@ -49,23 +49,34 @@
                     @csrf
                     
                     <div class="row g-4">
+                        {{-- FILTER TAHUN --}}
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold" style="color: #b87a4a;">FILTER TAHUN MASTER</label>
+                            <select id="filter-tahun" class="form-select rounded-3 shadow-sm py-2 border-warning">
+                                <option value="all">-- Semua Tahun --</option>
+                                @foreach($daftarTahun as $th)
+                                    <option value="{{ $th }}">{{ $th }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         {{-- SEKSI PILIH PELATIHAN --}}
-                        <div class="col-12">
+                        <div class="col-md-8">
                             <label class="form-label fw-bold" style="color: #b87a4a;">JENIS PELATIHAN (MASTER DATA)</label>
-                            <select name="master_pelatihan_id" class="form-select rounded-3 shadow-sm py-2" required>
+                            <select name="master_pelatihan_id" id="master_pelatihan_id" class="form-select rounded-3 shadow-sm py-2" required>
                                 <option value="" disabled selected>-- Pilih Jenis Pelatihan --</option>
                                 @foreach($masterPelatihan as $m)
-                                    <option value="{{ $m->id }}" {{ old('master_pelatihan_id') == $m->id ? 'selected' : '' }}>
-                                        {{ $m->nama_pelatihan }} — [{{ $m->jp }} JP] — (Tahun {{ $m->tahun }})
+                                    <option value="{{ $m->id }}" 
+                                            data-tahun="{{ $m->tahun }}" 
+                                            class="opt-pelatihan"
+                                            {{ old('master_pelatihan_id') == $m->id ? 'selected' : '' }}>
+                                        {{ $m->nama_pelatihan }} — [{{ $m->jp }} JP] — ({{ $m->tahun }})
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="form-text small mt-2">
-                                <i class="bi bi-info-circle"></i> Nama, JP, dan Tahun otomatis mengikuti Master Data yang dipilih.
-                            </div>
                         </div>
 
-                        {{-- REVISI: DUA KOLOM TANGGAL --}}
+                        {{-- TANGGAL PELAKSANAAN --}}
                         <div class="col-md-3">
                             <label class="form-label fw-bold" style="color: #b87a4a;">TANGGAL MULAI</label>
                             <input type="date" name="waktu_pelaksanaan" class="form-control rounded-3 shadow-sm py-2" value="{{ old('waktu_pelaksanaan') }}" required>
@@ -110,13 +121,13 @@
                             </div>
                         </div>
 
-                        {{-- INFO SERTIFIKAT --}}
+                        {{-- INFO STATUS --}}
                         <div class="col-12 mt-2">
                             <div class="alert alert-warning border-0 rounded-4 py-3 shadow-sm d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill fs-4 me-3"></i>
                                 <div>
                                     <strong class="d-block text-uppercase" style="font-size: 0.75rem;">Info Status & Sertifikat</strong>
-                                    <span class="small">Status pelatihan otomatis ditentukan dari rentang tanggal. Sertifikat diunggah setelah pelatihan selesai.</span>
+                                    <span class="small">Status pelatihan otomatis ditentukan dari rentang tanggal. Sertifikat diunggah melalui menu detail setelah data disimpan.</span>
                                 </div>
                             </div>
                         </div>
@@ -138,8 +149,28 @@
     </div>
 </div>
 
-{{-- SCRIPT DYNAMIC PESERTA --}}
+{{-- SCRIPTS --}}
 <script>
+    // FUNGSI FILTER TAHUN MASTER
+    document.getElementById('filter-tahun').addEventListener('change', function() {
+        const selectedTahun = this.value;
+        const selectPelatihan = document.getElementById('master_pelatihan_id');
+        const options = selectPelatihan.querySelectorAll('.opt-pelatihan');
+
+        // Reset pilihan pelatihan saat filter berubah
+        selectPelatihan.value = "";
+
+        options.forEach(option => {
+            const tahunOption = option.getAttribute('data-tahun');
+            if (selectedTahun === 'all' || tahunOption === selectedTahun) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    });
+
+    // FUNGSI TAMBAH BARIS PESERTA
     function tambahBaris() {
         const container = document.getElementById('container-peserta');
         const barisAsli = document.querySelector('.baris-peserta');
@@ -168,6 +199,7 @@
 </script>
 
 <style>
+    #filter-tahun { cursor: pointer; background-color: #fffbeb; }
     .btn-orange-outline { color: #f97316; border: 1px solid #f97316; background: transparent; transition: all 0.2s ease; }
     .btn-orange-outline:hover { background: #f97316; color: white; }
     .form-control:focus, .form-select:focus { border-color: #f97316 !important; box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1) !important; }
