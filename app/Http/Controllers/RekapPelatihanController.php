@@ -234,7 +234,6 @@ class RekapPelatihanController extends Controller
     {
         $request->validate([
             'peserta'               => 'required|array',
-            'master_pelatihan_id'   => 'required|exists:master_pelatihans,id',
             'waktu_pelaksanaan'     => 'required|date',
             'tanggal_selesai'       => 'required|date|after_or_equal:waktu_pelaksanaan',
             'instansi'              => 'required|string',

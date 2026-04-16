@@ -39,8 +39,13 @@
                     @csrf
                     @method('PUT')
                     
-                    {{-- KUNCI UTAMA: Mengirim ID Master Pelatihan agar Controller bisa findOrFail --}}
-                    <input type="hidden" name="master_pelatihan_id" value="{{ $pelatihan->master_pelatihan_id ?? '' }}">
+                    {{-- PERBAIKAN: Mencari master_pelatihan_id dari database --}}
+                    @php
+                        $masterId = \App\Models\MasterPelatihan::where('nama_pelatihan', $pelatihan->jenis_pelatihan)
+                                    ->where('kategori', 'pelatihan')
+                                    ->value('id');
+                    @endphp
+                    <input type="hidden" name="master_pelatihan_id" value="{{ $masterId }}">
 
                     <div class="row g-4">
                         {{-- SEKSI PESERTA --}}
