@@ -23,22 +23,22 @@
                     <p class="mb-0 text-muted">Data Peserta Tugas Belajar</p>
                 </div>
                 <div>
-    <a href="{{ route('tugas-belajar.create', [
-        'tahun' => $tubel->tahun,
-        'master_id' => $tubel->id
-    ]) }}" 
-    class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold"
-    style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
-        <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Tubel
-    </a>
+                    <a href="{{ route('tugas-belajar.create', [
+                        'tahun' => $tubel->tahun,
+                        'master_id' => $tubel->id
+                    ]) }}" 
+                    class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold"
+                    style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
+                        <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Tubel
+                    </a>
 
-    @if($peserta->count() > 0)
-    <a href="{{ route('tugas-belajar.edit', $tubel->id) }}" 
-       class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
-        <i class="bi bi-pencil-square me-2"></i>Edit
-    </a>
-    @endif
-</div>
+                    @if($peserta->count() > 0)
+                    <a href="{{ route('tugas-belajar.edit', $tubel->id) }}" 
+                    class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
+                        <i class="bi bi-pencil-square me-2"></i>Edit
+                    </a>
+                    @endif
+                </div>
             </div>
             
             <div class="card-body p-4 p-md-5 bg-white">
