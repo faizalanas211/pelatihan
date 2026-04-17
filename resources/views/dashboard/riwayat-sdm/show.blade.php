@@ -17,15 +17,27 @@
     {{-- HEADER PEGAWAI --}}
     <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body d-flex justify-content-between align-items-center">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
                     <h4 class="fw-bold mb-1">{{ $pegawai->nama }}</h4>
                     <span class="text-muted">{{ $pegawai->nip }}</span>
                 </div>
 
-                <a href="{{ route('riwayat-sdm.index') }}" class="btn btn-light">
-                    ← Kembali
-                </a>
+                <div class="d-flex gap-2">
+
+                    <a href="{{ route('riwayat-sdm.export.detail', $pegawai->id) }}"
+                    class="btn btn-orange btn-export">
+                        <i class="bi bi-file-earmark-excel"></i> Export
+                    </a>
+
+                    <a href="{{ route('riwayat-sdm.index', [
+                        'page' => request('page')
+                    ]) }}" 
+                    class="btn btn-light">
+                        ← Kembali
+                    </a>
+
+                </div>
             </div>
         </div>
     </div>

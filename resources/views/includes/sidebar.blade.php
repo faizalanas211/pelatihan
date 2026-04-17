@@ -368,7 +368,7 @@
 
      <li class="menu-item {{ Request::routeIs('riwayat-sdm.*') ? 'active' : '' }}">
         <a href="{{ route('riwayat-sdm.index') }}" class="menu-link">
-            <i class="menu-icon bx bx-file"></i>
+            <i class="menu-icon bi bi-mortarboard"></i>
             <div>Riwayat Pengembangan SDM</div>
         </a>
     </li>

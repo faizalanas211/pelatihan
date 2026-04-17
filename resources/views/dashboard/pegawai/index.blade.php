@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active text-success fw-semibold">Data Pegawai</li>
+<li class="breadcrumb-item active fw-semibold" style="color: #f97316;">
+    Data Pegawai
+</li>
 @endsection
 
 @section('content')
@@ -35,16 +37,26 @@
 </style>
 
 <div class="card p-3">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="card-title mb-3">Data Pegawai</h5>
-        <div>
-            <a href="{{ route('pegawai.create') }}" class="btn btn-primary">+ Tambah Data</a>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-people" style="color: #f97316; font-size: 1.5rem;"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0" style="color: #4a3728;">Data Pegawai</h4>
+                <p class="text-muted mb-0 small">Data Pegawai Aktif Balai Bahasa Provinsi Jawa Tengah</p>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('pegawai.create') }}" class="btn btn-orange"><i class="bi bi-plus-circle me-2"></i> Tambah Data</a>
         </div>
     </div>
+    
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
-            <thead class="table-success">
+            <thead class="table-orange">
                 <tr>
                     <th>#</th>
                     <th>Nama Pegawai</th>
@@ -61,7 +73,7 @@
                         <td>{{ $pegawais->firstItem() + $loop->index }}</td>
 
                         <td>
-                            <strong class="text-success">
+                            <strong class="text-black">
                                 {{ ucwords($item->nama) }}
                             </strong>
                         </td>
@@ -163,5 +175,71 @@ document.getElementById('checkAll')?.addEventListener('change', function () {
     });
 });
 </script>
+
+<style>
+.table-orange {
+    background:#fff7ed;
+}
+
+.text-orange {
+    color:#f97316;
+}
+
+.btn-orange{
+    background: linear-gradient(135deg,#f97316,#f59e0b);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(249,115,22,.35);
+}
+
+.btn-orange:hover{
+    background: linear-gradient(135deg,#ea580c,#d97706);
+    color: #fff;
+}
+
+.table-hover tbody tr:hover{
+    background:#fff7ed;
+}
+
+.action-icon{
+    transition:.2s;
+}
+
+/* EDIT jadi ORANGE */
+.action-icon.edit{
+    color:#f97316;
+}
+.action-icon.edit:hover{
+    color:#ea580c;
+    transform:scale(1.1);
+}
+
+/* DELETE biarin merah */
+.action-icon.delete{
+    color:#ef4444;
+}
+.action-icon.delete:hover{
+    color:#dc2626;
+    transform:scale(1.1);
+}
+
+/* PAGINATION ORANGE */
+.pagination .page-link{
+    color:#f97316;
+    border-radius:8px;
+}
+
+.pagination .page-item.active .page-link{
+    background:#f97316;
+    border-color:#f97316;
+    color:#fff;
+}
+
+.pagination .page-link:hover{
+    background:#fed7aa;
+    color:#f97316;
+}
+</style>
 
 @endsection

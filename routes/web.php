@@ -115,6 +115,10 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
         )->name('tugas-belajar.destroyPeserta');
     
     // 8. Riwayat SDM
+    Route::get('/riwayat-sdm/export', [RiwayatSDMController::class, 'export'])
+            ->name('riwayat-sdm.export');
+    Route::get('/riwayat-sdm/{id}/export', [RiwayatSDMController::class, 'exportDetail'])
+    ->name('riwayat-sdm.export.detail');
     Route::resource('riwayat-sdm', RiwayatSDMController::class);
 
     /*
