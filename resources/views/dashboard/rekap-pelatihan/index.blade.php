@@ -89,6 +89,12 @@
         <div id="pelatihanList">
             <div class="row g-4">
                 @forelse($pelatihan as $item)
+                    @php
+                        // LOGIKA BARU: Ambil tanggal dari peserta pertama karena kolom di tabel pelatihan sudah dihapus
+                        $infoPeserta = DB::table('pelatihan_peserta')
+                                        ->where('pelatihan_id', $item->id)
+                                        ->first();
+                    @endphp
                     <div class="col-md-4">
                         <div class="card rounded-4 border-0 shadow-sm pelatihan-card-grid h-100">
                             <div class="card-body p-4 d-flex flex-column">
@@ -99,20 +105,9 @@
                                     <div class="text-end">
                                         <span class="badge" style="background: #fffbeb; color: #f97316; border: 1px solid #fed7aa;">{{ $item->tahun }}</span>
                                         <br>
-                                        {{-- LABEL STATUS PELATIHAN --}}
-                                        @if($item->status == 'selesai')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle mt-1" style="font-size: 0.65rem;">
-                                                <i class="bi bi-check-all"></i> SELESAI
-                                            </span>
-                                        @elseif($item->status == 'berlangsung')
-                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle mt-1" style="font-size: 0.65rem;">
-                                                <i class="bi bi-arrow-repeat"></i> BERLANGSUNG
-                                            </span>
-                                        @else
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1" style="font-size: 0.65rem;">
-                                                <i class="bi bi-clock-history"></i> MENDATANG
-                                            </span>
-                                        @endif
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle mt-1" style="font-size: 0.65rem;">
+                                            <i class="bi bi-check-all"></i> SELESAI
+                                        </span>
                                     </div>
                                 </div>
 
@@ -120,7 +115,12 @@
                                 
                                 <p class="text-muted small mb-3">
                                     <i class="bi bi-building me-1"></i> {{ $item->instansi_penyelenggara }}<br>
-                                    <i class="bi bi-calendar3 me-1"></i> {{ \Carbon\Carbon::parse($item->waktu_pelaksanaan)->translatedFormat('d F Y') }}
+                                    <i class="bi bi-calendar3 me-1"></i> 
+                                    @if($infoPeserta)
+                                        {{ \Carbon\Carbon::parse($infoPeserta->tanggal_mulai)->translatedFormat('d F Y') }}
+                                    @else
+                                        <span class="text-danger">Tanggal belum diinput</span>
+                                    @endif
                                 </p>
 
                                 <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">

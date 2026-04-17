@@ -345,12 +345,14 @@
         </a>
     </li>
 
-    <li class="menu-item {{ Request::routeIs('jadwal-pelatihan.index') ? 'active' : '' }}">
+   {{--
+   <li class="menu-item {{ Request::routeIs('jadwal-pelatihan.index') ? 'active' : '' }}">
     <a href="{{ route('jadwal-pelatihan.index') }}" class="menu-link">
         <i class="menu-icon bx bx-calendar-event"></i>
         <div data-i18n="Jadwal Pelatihan">Jadwal Kegiatan</div>
     </a>
 </li>
+    --}}
 
     <li class="menu-item {{ Request::routeIs('sertifikasi.*') ? 'active' : '' }}">
         <a href="{{ route('sertifikasi.index') }}" class="menu-link">

@@ -27,31 +27,20 @@
             </div>
             
             <div class="card-body p-4 p-md-5 bg-white">
-                {{-- INFO UTAMA: TAHUN, TANGGAL, PENERBIT --}}
+                {{-- INFO UTAMA: TAHUN & PENERBIT (RENTANG SUDAH DIHAPUS) --}}
                 <div class="row g-4 mb-5">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
-                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Tahun</label>
-                            <span class="fs-5 fw-bold" style="color: #f97316;">{{ \Carbon\Carbon::parse($sertifikasi->tgl_terbit)->format('Y') }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
-                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Waktu Pelaksanaan / Terbit</label>
-                            <span class="fs-6 fw-bold" style="color: #5c4a3a;">
-                                <i class="bi bi-calendar3 me-2 text-muted"></i>
-                                {{ \Carbon\Carbon::parse($sertifikasi->tgl_terbit)->translatedFormat('d M Y') }} 
-                                @if(isset($sertifikasi->tanggal_selesai))
-                                    <span class="text-muted mx-2">s/d</span>
-                                    {{ \Carbon\Carbon::parse($sertifikasi->tanggal_selesai)->translatedFormat('d M Y') }}
-                                @endif
+                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Tahun Input Data</label>
+                            <span class="fs-5 fw-bold" style="color: #f97316;">
+                                {{ \Carbon\Carbon::parse($sertifikasi->created_at)->format('Y') }}
                             </span>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         <div class="p-3 rounded-4" style="background: #f8f9fa; border: 1px solid #eee;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Instansi Penerbit</label>
-                            <span class="fs-6 fw-bold text-truncate d-block" style="color: #5c4a3a;" title="{{ $sertifikasi->instansi_penerbit }}">
+                            <span class="fs-5 fw-bold text-truncate d-block" style="color: #5c4a3a;" title="{{ $sertifikasi->instansi_penerbit }}">
                                 {{ $sertifikasi->instansi_penerbit }}
                             </span>
                         </div>
@@ -73,6 +62,7 @@
                                 <th width="60" class="text-center py-3">NO</th>
                                 <th width="180" class="py-3">NIP</th>
                                 <th class="py-3">NAMA PEGAWAI</th>
+                                <th width="200" class="text-center py-3">WAKTU PELAKSANAAN</th>
                                 <th width="180" class="text-center py-3">MASA BERLAKU</th>
                                 <th width="200" class="text-center py-3">AKSI / SERTIFIKAT</th>
                             </tr>
@@ -83,6 +73,14 @@
                                 <td class="text-center fw-bold text-muted">{{ $index + 1 }}</td>
                                 <td class="fw-semibold">{{ $p->nip }}</td>
                                 <td class="text-uppercase" style="letter-spacing: 0.5px; font-size: 0.85rem;">{{ $p->nama_peserta }}</td>
+                                
+                                {{-- Tanggal Pelaksanaan per Peserta --}}
+                                <td class="text-center">
+                                    <div class="small fw-bold">{{ \Carbon\Carbon::parse($p->tanggal_mulai)->translatedFormat('d M Y') }}</div>
+                                    <div class="text-muted small my-1">sampai</div>
+                                    <div class="small fw-bold">{{ \Carbon\Carbon::parse($p->tanggal_selesai)->translatedFormat('d M Y') }}</div>
+                                </td>
+
                                 <td class="text-center">
                                     @if($p->masa_berlaku)
                                         <span class="badge bg-light text-dark border px-2 py-1">
@@ -99,7 +97,7 @@
                                                 <i class="bi bi-file-earmark-pdf-fill"></i> Lihat
                                             </a>
                                         @endif
-                                        <button class="btn btn-sm btn-outline-orange rounded-3 fw-bold" style="color: #f97316; border-color: #f97316;" data-bs-toggle="modal" data-bs-target="#uploadModal{{ $p->id }}">
+                                        <button class="btn btn-sm btn-outline-orange rounded-3 fw-bold" data-bs-toggle="modal" data-bs-target="#uploadModal{{ $p->id }}">
                                             <i class="bi bi-gear-fill me-1"></i> {{ $p->sertifikat_path ? 'Ganti' : 'Kelola' }}
                                         </button>
                                     </div>
@@ -123,7 +121,7 @@
                                                         <div class="mb-3">
                                                             <label class="form-label small fw-bold text-uppercase">Masa Berlaku Sertifikat</label>
                                                             <input type="date" name="masa_berlaku" class="form-control rounded-3" value="{{ $p->masa_berlaku }}">
-                                                            <div class="form-text small text-muted">Kosongkan jika sertifikat berlaku selamanya.</div>
+                                                            <div class="form-text small text-muted">Kosongkan jika sertifikat berlaku selamanya (seumur hidup).</div>
                                                         </div>
 
                                                         <div class="mb-3">
@@ -131,10 +129,10 @@
                                                             <input type="file" name="sertifikat" class="form-control rounded-3" accept=".pdf,.jpg,.jpeg,.png">
                                                             @if($p->sertifikat_path)
                                                                 <div class="mt-2 small text-success">
-                                                                    <i class="bi bi-check-circle-fill"></i> File sudah tersedia.
+                                                                    <i class="bi bi-check-circle-fill"></i> Berkas sudah terunggah.
                                                                 </div>
                                                             @endif
-                                                            <div class="form-text small text-danger">Format: PDF, JPG, PNG (Max 2MB).</div>
+                                                            <div class="form-text small text-danger">Format: PDF, JPG, PNG (Maks. 2MB).</div>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer border-0 p-4 pt-0">
@@ -151,16 +149,16 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">Belum ada pegawai terdaftar</td>
+                                <td colspan="6" class="text-center py-4 text-muted">Belum ada pegawai terdaftar dalam sertifikasi ini.</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                <div class="mt-5 d-flex justify-content-between">
+                <div class="mt-5">
                     <a href="{{ route('sertifikasi.index') }}" class="btn btn-light rounded-4 px-4 border fw-semibold">
-                        <i class="bi bi-arrow-left me-2"></i>Kembali
+                        <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar
                     </a>
                 </div>
             </div>
@@ -176,13 +174,9 @@
         border-bottom: 2px solid #fed7aa;
         text-transform: uppercase;
     }
-    .table tbody td {
-        padding: 1rem;
-        color: #5c4a3a;
-        border-bottom: 1px solid #f1f1f1;
-    }
     .btn-outline-orange {
         border: 1px solid #f97316;
+        color: #f97316;
         background: transparent;
         transition: all 0.2s;
     }
@@ -190,9 +184,6 @@
         background: #f97316;
         color: white !important;
     }
-    .badge {
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
+    .italic { font-style: italic; }
 </style>
 @endsection
