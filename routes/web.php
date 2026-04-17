@@ -42,6 +42,7 @@ use App\Http\Controllers\SertifikatSayaController;
 use App\Http\Controllers\NilaiSayaController;
 use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\MasterPelatihanController;
+use App\Http\Controllers\RiwayatSDMController;
 use App\Http\Controllers\TugasBelajarController;
 
 /*
@@ -112,6 +113,9 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::delete('tugas-belajar/{id}/peserta', 
             [TugasBelajarController::class, 'destroyPeserta']
         )->name('tugas-belajar.destroyPeserta');
+    
+    // 8. Riwayat SDM
+    Route::resource('riwayat-sdm', RiwayatSDMController::class);
 
     /*
     |--------------------------------------------------------------------------
