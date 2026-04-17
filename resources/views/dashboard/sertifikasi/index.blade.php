@@ -34,14 +34,14 @@
         <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
     </div>
 
-    {{-- FILTER TAHUN & PENCARIAN (REVISI: Sekarang Serasi dengan Rekap Pelatihan) --}}
+    {{-- FILTER TAHUN & PENCARIAN --}}
     <div class="col-12">
         <form action="{{ route('sertifikasi.index') }}" method="GET">
             <div class="card border-0 shadow-sm rounded-4" style="background: #fffcf8;">
                 <div class="card-body p-3">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-1" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Tahun Terbit</label>
+                            <label class="form-label fw-bold mb-1" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Tahun Input</label>
                             <select class="form-select rounded-3 shadow-sm border-0" name="tahun" style="background: #ffffff; color: #5c4a3a; font-size: 0.9rem;">
                                 <option value="">Semua Tahun</option>
                                 @for ($i = date('Y'); $i >= 2020; $i--)
@@ -82,13 +82,19 @@
                 Daftar Sertifikasi
             </h6>
             <span class="badge rounded-pill px-3 py-2" style="background: #fff3e0; color: #e65100; font-size: 0.75rem;">
-                Total: {{ $sertifikasi->total() }} Sertifikat
+                Total: {{ $sertifikasi->total() }} Kelompok
             </span>
         </div>
 
         <div id="sertifikasiList">
             <div class="row g-4">
                 @forelse($sertifikasi as $item)
+                    @php
+                        // AMBIL DATA DARI TABEL PESERTA KARENA TABEL INDUK TIDAK PUNYA TANGGAL
+                        $infoPeserta = DB::table('sertifikasi_peserta')
+                                        ->where('sertifikasi_id', $item->id)
+                                        ->first();
+                    @endphp
                     <div class="col-md-4">
                         <div class="card rounded-4 border-0 shadow-sm pelatihan-card-grid h-100">
                             <div class="card-body p-4 d-flex flex-column">
@@ -98,7 +104,7 @@
                                     </div>
                                     <div class="text-end">
                                         <span class="badge" style="background: #fffbeb; color: #f97316; border: 1px solid #fed7aa;">
-                                            {{ \Carbon\Carbon::parse($item->tgl_terbit)->format('Y') }}
+                                            {{ \Carbon\Carbon::parse($item->created_at)->format('Y') }}
                                         </span>
                                         <br>
                                         <span class="badge bg-success-subtle text-success border border-success-subtle mt-1" style="font-size: 0.65rem;">
@@ -111,7 +117,12 @@
                                 
                                 <p class="text-muted small mb-3">
                                     <i class="bi bi-building me-1"></i> {{ $item->instansi_penerbit }}<br>
-                                    <i class="bi bi-calendar3 me-1"></i> {{ \Carbon\Carbon::parse($item->tgl_terbit)->translatedFormat('d F Y') }}
+                                    <i class="bi bi-calendar3 me-1"></i> Pelaksanaan: 
+                                    @if($infoPeserta)
+                                        {{ \Carbon\Carbon::parse($infoPeserta->tanggal_mulai)->format('d/m/Y') }}
+                                    @else
+                                        -
+                                    @endif
                                 </p>
 
                                 <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
