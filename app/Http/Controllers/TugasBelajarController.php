@@ -14,20 +14,47 @@ class TugasBelajarController extends Controller
 {
     public function index(Request $request)
     {
-        $tubel = MasterPelatihan::where('kategori', 'tubel')
-                ->when($request->tahun, fn($q) => $q->where('tahun', $request->tahun))
-                ->when($request->search, fn($q) =>
-                    $q->where('nama_pelatihan', 'like', '%' . $request->search . '%')
-                )
-                ->paginate(9);
+        $tahun = $request->tahun;
+        $search = $request->search;
 
-        return view('dashboard.tugas-belajar.index', compact('tubel'));
-        
+        $tahunList = MasterPelatihan::where('kategori', 'tubel')
+                    ->select('tahun')
+                    ->distinct()
+                    ->orderBy('tahun', 'desc')
+                    ->pluck('tahun');
+
+        $tubel = MasterPelatihan::where('kategori', 'tubel')
+
+            // 🔹 FILTER TAHUN
+            ->when($tahun, function ($q) use ($tahun) {
+                $q->where('tahun', $tahun);
+            })
+
+            // 🔹 SEARCH
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama_pelatihan', 'like', "%{$search}%");
+                    // kalau mau tambah:
+                    // ->orWhere('penyelenggara', 'like', "%{$search}%");
+                });
+            })
+
+            ->orderBy('tahun', 'desc')
+            ->paginate(3)
+            ->withQueryString(); 
+
+        return view('dashboard.tugas-belajar.index', compact('tubel', 'tahunList', 'tahun'));
     }
 
     public function create(Request $request)
     {
         $pegawais = Pegawai::where('status','aktif')->get();
+
+        $tahunList = MasterPelatihan::where('kategori', 'tubel')
+                    ->select('tahun')
+                    ->distinct()
+                    ->orderBy('tahun', 'desc')
+                    ->pluck('tahun');
 
         $tahun = $request->tahun;
         $selectedMaster = $request->master_id;
@@ -43,6 +70,7 @@ class TugasBelajarController extends Controller
             'pegawais',
             'masterTubel',
             'tahun',
+            'tahunList',
             'selectedMaster'
         ));
     }

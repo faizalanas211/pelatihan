@@ -22,9 +22,9 @@ class RiwayatSdmDetailExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new PelatihanSheet($this->pelatihan),
-            new SertifikasiSheet($this->sertifikasi),
-            new TubelSheet($this->tubel),
+            new PelatihanSheet($this->pelatihan, $this->pegawai),
+            new SertifikasiSheet($this->sertifikasi, $this->pegawai),
+            new TubelSheet($this->tubel, $this->pegawai),
         ];
     }
 }

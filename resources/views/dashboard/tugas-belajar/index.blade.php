@@ -44,9 +44,12 @@
                             <label class="form-label fw-bold small text-uppercase">Tahun</label>
                             <select class="form-select border-0 shadow-sm" name="tahun">
                                 <option value="">Semua Tahun</option>
-                                @for ($i = date('Y'); $i >= 2020; $i--)
-                                    <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
+
+                                @foreach($tahunList as $th)
+                                    <option value="{{ $th }}" {{ $tahun == $th ? 'selected' : '' }}>
+                                        {{ $th }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -77,51 +80,57 @@
             <h6 class="fw-bold text-uppercase">
                 <i class="bi bi-list-check me-2 text-orange"></i>Daftar Tugas Belajar
             </h6>
-            <span class="badge px-3 py-2" style="background: #fff3e0;">
-                Total: {{ $tubel->total() }} Program
-            </span>
         </div>
 
         <div class="row g-4">
             @forelse($tubel as $item)
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 h-100" style="border-radius: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                         <div class="card-body d-flex flex-column p-4">
-
-                            <div class="d-flex justify-content-between mb-3">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                     style="width:50px;height:50px;background:#fff3e0;">
-                                    <i class="bi bi-mortarboard-fill text-orange fs-4"></i>
+                            
+                            {{-- TOP SECTION --}}
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: linear-gradient(135deg, #fef5e8, #fff9f0);">
+                                    <i class="bi bi-mortarboard-fill" style="color: #f97316; font-size: 1.4rem;"></i>
                                 </div>
-                                <span class="badge" style="background:#fffbeb;">
+                                <span class="px-3 py-1 rounded-pill" style="background: #f8f9fa; color: #6c757d; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.3px;">
                                     {{ $item->tahun }}
                                 </span>
                             </div>
 
-                            <h5 class="fw-bold mb-2" style="color:#4a3728;">
-                                {{ $item->nama_pelatihan }}
+                            {{-- TITLE --}}
+                            <h5 class="fw-semibold mb-2" style="color: #1a1a1a; line-height: 1.4;">
+                                {{ Str::limit($item->nama_pelatihan, 55) }}
                             </h5>
 
-                            <p class="text-muted small mb-3">
-                                <i class="bi bi-bookmark"></i> Program Tugas Belajar
-                            </p>
+                            {{-- DIVIDER --}}
+                            <div class="my-3" style="height: 1px; background: linear-gradient(90deg, #f0f0f0, #e0e0e0, #f0f0f0);"></div>
 
-                            <div class="mt-auto pt-3 border-top d-flex justify-content-between">
-                                <div class="small text-muted">
-                                    @php
-                                        $jumlahPeserta = DB::table('tubel_peserta')
-                                            ->where('master_pelatihan_id', $item->id)
-                                            ->count();
-                                    @endphp
-                                    <i class="bi bi-people-fill text-orange"></i>
-                                    {{ $jumlahPeserta }} Peserta
+                            {{-- BOTTOM SECTION --}}
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #fef5e8; border-radius: 8px;">
+                                        <i class="bi bi-people-fill" style="color: #f97316; font-size: 0.8rem;"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted" style="font-size: 0.7rem;">Peserta</span>
+                                        <br>
+                                        <strong class="fw-semibold" style="color: #1a1a1a; font-size: 0.9rem;">
+                                            @php
+                                                $jumlahPeserta = DB::table('tubel_peserta')
+                                                    ->where('master_pelatihan_id', $item->id)
+                                                    ->count();
+                                            @endphp
+                                            {{ $jumlahPeserta }}
+                                        </strong>
+                                    </div>
                                 </div>
-
-                                <a href="{{ route('tugas-belajar.show', $item->id) }}" class="text-orange fw-bold small">
-                                    DETAIL →
+                                
+                                <a href="{{ route('tugas-belajar.show', $item->id) }}" class="d-flex align-items-center gap-1 fw-semibold" style="color: #f97316; font-size: 0.85rem; text-decoration: none; transition: all 0.2s;">
+                                    <span>Detail</span>
+                                    <i class="bi bi-arrow-right" style="font-size: 0.8rem; transition: transform 0.2s;"></i>
                                 </a>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -133,10 +142,93 @@
             @endforelse
         </div>
 
-        <div class="d-flex justify-content-center mt-5">
-            {{ $tubel->appends(request()->input())->links() }}
-        </div>
+        {{-- Pagination --}}
+@if($tubel->hasPages())
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-5 pt-3">
+    <div class="mb-3 mb-md-0 text-muted small">
+        Menampilkan {{ $tubel->firstItem() ?? 0 }}
+        sampai {{ $tubel->lastItem() ?? 0 }}
+        dari {{ $tubel->total() }} program
+    </div>
+
+    <nav>
+        <ul class="pagination mb-0" style="gap: 4px;">
+            {{-- First Page --}}
+            <li class="page-item {{ $tubel->onFirstPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $tubel->url(1) }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
+                    <i class="bi bi-chevron-double-left" style="font-size: 0.75rem;"></i>
+                </a>
+            </li>
+
+            {{-- Previous Page --}}
+            <li class="page-item {{ $tubel->onFirstPage() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $tubel->previousPageUrl() }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
+                    <i class="bi bi-chevron-left" style="font-size: 0.75rem;"></i>
+                </a>
+            </li>
+
+            {{-- Page Numbers --}}
+            @foreach($tubel->getUrlRange(
+                max(1, $tubel->currentPage() - 2),
+                min($tubel->lastPage(), $tubel->currentPage() + 2)
+            ) as $page => $url)
+                <li class="page-item {{ $page == $tubel->currentPage() ? 'active' : '' }}">
+                    <a class="page-link" href="{{ $url }}" style="border-radius: 8px; padding: 6px 12px; font-size: 0.85rem; color: {{ $page == $tubel->currentPage() ? 'white' : '#4a3728' }}; background: {{ $page == $tubel->currentPage() ? '#f97316' : 'white' }}; border: 1px solid {{ $page == $tubel->currentPage() ? '#f97316' : '#e9ecef' }};">
+                        {{ $page }}
+                    </a>
+                </li>
+            @endforeach
+
+            {{-- Next Page --}}
+            <li class="page-item {{ !$tubel->hasMorePages() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $tubel->nextPageUrl() }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
+                    <i class="bi bi-chevron-right" style="font-size: 0.75rem;"></i>
+                </a>
+            </li>
+
+            {{-- Last Page --}}
+            <li class="page-item {{ !$tubel->hasMorePages() ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ $tubel->url($tubel->lastPage()) }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
+                    <i class="bi bi-chevron-double-right" style="font-size: 0.75rem;"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+@endif
     </div>
 
 </div>
+
+<style>
+    /* Card Hover Effect */
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.02) !important;
+    }
+    
+    /* Arrow Hover Animation */
+    .card:hover .bi-arrow-right {
+        transform: translateX(3px);
+    }
+    
+    /* Smooth Pagination */
+    .pagination .page-link {
+        transition: all 0.2s;
+        border-radius: 10px;
+        margin: 0 3px;
+        color: #4a3728;
+        border: none;
+    }
+    .pagination .page-link:hover {
+        background: #f97316;
+        color: white;
+    }
+    .pagination .active .page-link {
+        background: #f97316;
+        color: white;
+        box-shadow: 0 2px 6px rgba(249,115,22,0.2);
+    }
+</style>
+
 @endsection

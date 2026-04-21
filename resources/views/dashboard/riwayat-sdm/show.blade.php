@@ -70,7 +70,7 @@
             <div class="col-md-3">
                 <div class="card text-center border-0 shadow-sm rounded-4 p-3">
                     <small class="text-muted">Total JP</small>
-                    <h4 class="fw-bold mb-0">{{ $summary['jp'] }}</h4>
+                    <h4 class="fw-bold mb-0">{{ $summary['jp'] ?? 0 }}</h4>
                 </div>
             </div>
 
@@ -103,8 +103,8 @@
                                 <td>{{ $row->jenis_pelatihan ?? '-' }}</td>
                                 <td>{{ $row->jp }}</td>
                                 <td>
-                                    {{ $row->waktu_pelaksanaan && $row->tanggal_selesai 
-                                        ? $row->waktu_pelaksanaan . ' s/d ' . $row->tanggal_selesai 
+                                    {{ $row->tanggal_mulai && $row->tanggal_selesai 
+                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
                                         : '-' }}
                                 </td>
                             </tr>
@@ -141,7 +141,10 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_sertifikasi ?? '-' }}</td>
-                                <td>{{ $row->tanggal ?? '-' }}</td>
+                                <td>{{ $row->tanggal_mulai && $row->tanggal_selesai 
+                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
+                                        : '-' }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>

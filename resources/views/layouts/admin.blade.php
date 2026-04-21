@@ -14,6 +14,7 @@
     <meta name="description" content="" />
     @include('includes.style')
     @stack('css')
+    @livewireStyles
 </head>
 
 <body>
@@ -87,6 +88,8 @@
             backdrop-filter: blur(2px);
         }
     </style>
+    
+    @livewireScripts
 
 </body>
 
