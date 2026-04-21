@@ -70,7 +70,7 @@
             <div class="col-md-3">
                 <div class="card text-center border-0 shadow-sm rounded-4 p-3">
                     <small class="text-muted">Total JP</small>
-                    <h4 class="fw-bold mb-0">{{ $summary['jp'] }}</h4>
+                    <h4 class="fw-bold mb-0">{{ $summary['jp'] ?? 0 }}</h4>
                 </div>
             </div>
 

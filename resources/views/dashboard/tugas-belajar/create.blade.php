@@ -51,11 +51,11 @@
 
                         <select id="filterTahun" class="form-select">
                             <option value="">-- Semua Tahun --</option>
-                            @for($i = date('Y'); $i >= 2020; $i--)
-                                <option value="{{ $i }}" {{ $tahun == $i ? 'selected' : '' }}>
-                                    {{ $i }}
+                            @foreach($tahunList as $th)
+                                <option value="{{ $th }}" {{ $tahun == $th ? 'selected' : '' }}>
+                                    {{ $th }}
                                 </option>
-                            @endfor
+                            @endforeach
                         </select>
                     </div>
 

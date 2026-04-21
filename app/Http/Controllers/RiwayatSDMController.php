@@ -10,96 +10,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class RiwayatSDMController extends Controller
 {
-    public function index()
+   public function index()
 {
-    $search = request('search');
-    $sort = request('sort', 'jp');
-    $direction = request('direction', 'desc');
-
-    // 🔹 SUBQUERY PELATIHAN
-    $pelatihan = DB::table('pelatihan_peserta')
-        ->select(
-            'nip',
-            DB::raw('COUNT(*) as total_pelatihan'),
-            DB::raw('COALESCE(SUM(jp),0) as total_jp')
-        )
-        ->groupBy('nip');
-
-    // 🔹 SUBQUERY SERTIFIKASI
-    $sertifikasi = DB::table('sertifikasi_peserta')
-        ->select(
-            'nip',
-            DB::raw('COUNT(*) as total_sertifikasi')
-        )
-        ->groupBy('nip');
-
-    // 🔹 SUBQUERY TUBEL
-    $tubel = DB::table('tubel_peserta as t')
-        ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
-        ->select(
-            'p.nip',
-            DB::raw('COUNT(t.id) as total_tubel')
-        )
-        ->groupBy('p.nip');
-
-    // 🔹 QUERY UTAMA
-    $query = DB::table('pegawai as p')
-        ->leftJoinSub($pelatihan, 'pl', function ($join) {
-            $join->on('p.nip', '=', 'pl.nip');
-        })
-        ->leftJoinSub($sertifikasi, 's', function ($join) {
-            $join->on('p.nip', '=', 's.nip');
-        })
-        ->leftJoinSub($tubel, 't', function ($join) {
-            $join->on('p.nip', '=', 't.nip');
-        })
-        ->where('p.status', 'aktif')
-        ->select(
-            'p.id',
-            'p.nama',
-            'p.nip',
-            DB::raw('COALESCE(pl.total_pelatihan,0) as total_pelatihan'),
-            DB::raw('COALESCE(s.total_sertifikasi,0) as total_sertifikasi'),
-            DB::raw('COALESCE(t.total_tubel,0) as total_tubel'),
-            DB::raw('COALESCE(pl.total_jp,0) as total_jp')
-        );
-
-    // 🔍 SEARCH
-    if ($search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('p.nama', 'like', "%$search%")
-              ->orWhere('p.nip', 'like', "%$search%");
-        });
-    }
-
-    // 🔽 SORTING
-    switch ($sort) {
-        case 'jp':
-            $query->orderBy('total_jp', $direction);
-            break;
-
-        case 'pelatihan':
-            $query->orderBy('total_pelatihan', $direction);
-            break;
-
-        case 'sertifikasi':
-            $query->orderBy('total_sertifikasi', $direction);
-            break;
-
-        case 'tubel':
-            $query->orderBy('total_tubel', $direction);
-            break;
-
-        default:
-            $query->orderBy('p.nama', $direction);
-            break;
-    }
-
-    $data = $query->paginate(30)->withQueryString();
-
-    return view('dashboard.riwayat-sdm.index', compact('data'));
+    return view('dashboard.riwayat-sdm.index');
 }
-
     public function show($id)
 {
     try {
