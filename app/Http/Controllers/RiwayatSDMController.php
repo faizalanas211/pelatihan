@@ -13,8 +13,8 @@ class RiwayatSDMController extends Controller
     public function index()
 {
     $search = request('search');
-    $sort = request('sort', 'nama');
-    $direction = request('direction', 'asc');
+    $sort = request('sort', 'jp');
+    $direction = request('direction', 'desc');
 
     // 🔹 SUBQUERY PELATIHAN
     $pelatihan = DB::table('pelatihan_peserta')
@@ -120,8 +120,8 @@ class RiwayatSDMController extends Controller
             ->select(
                 'p.jenis_pelatihan',
                 'pp.jp',
-                'p.waktu_pelaksanaan',
-                'p.tanggal_selesai'
+                'pp.tanggal_mulai',
+                'pp.tanggal_selesai',
             )
             ->get();
 
@@ -136,8 +136,8 @@ class RiwayatSDMController extends Controller
             ->select(
                 's.jenis_sertifikasi',
                 's.instansi_penerbit',
-                's.tgl_terbit',
-                's.tanggal_selesai',
+                'sp.tanggal_mulai',
+                'sp.tanggal_selesai',
                 'sp.masa_berlaku'
             )
             ->get();
@@ -242,9 +242,11 @@ public function exportDetail($id)
     ->where('pp.nip', $pegawai->nip)
     ->select(
         'p.jenis_pelatihan',
+        'p.tahun',
+        'p.instansi_penyelenggara',
         'pp.jp',
-        'p.waktu_pelaksanaan',
-        'p.tanggal_selesai'
+        'pp.tanggal_mulai',
+        'pp.tanggal_selesai'
     )
     ->get();
 
@@ -254,17 +256,21 @@ public function exportDetail($id)
             ->select(
                 's.jenis_sertifikasi',
                 's.instansi_penerbit',
-                's.tgl_terbit',
-                's.tanggal_selesai',
+                'sp.tanggal_mulai',
+                'sp.tanggal_selesai',
                 'sp.masa_berlaku'
             )
             ->get();
 
     $tubel = DB::table('tubel_peserta as t')
-        ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
-        ->where('p.id', $id)
-        ->select('t.*')
-        ->get();
+            ->leftJoin('master_pelatihans as mp', 't.master_pelatihan_id', '=', 'mp.id')
+            ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
+            ->where('p.id', $id)
+            ->select(
+                't.*',
+                'mp.nama_pelatihan'
+            )
+            ->get();
 
     return Excel::download(
         new RiwayatSdmDetailExport($pegawai, $pelatihan, $sertifikasi, $tubel),

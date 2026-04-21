@@ -103,8 +103,8 @@
                                 <td>{{ $row->jenis_pelatihan ?? '-' }}</td>
                                 <td>{{ $row->jp }}</td>
                                 <td>
-                                    {{ $row->waktu_pelaksanaan && $row->tanggal_selesai 
-                                        ? $row->waktu_pelaksanaan . ' s/d ' . $row->tanggal_selesai 
+                                    {{ $row->tanggal_mulai && $row->tanggal_selesai 
+                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
                                         : '-' }}
                                 </td>
                             </tr>
@@ -141,7 +141,10 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_sertifikasi ?? '-' }}</td>
-                                <td>{{ $row->tanggal ?? '-' }}</td>
+                                <td>{{ $row->tanggal_mulai && $row->tanggal_selesai 
+                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
+                                        : '-' }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
