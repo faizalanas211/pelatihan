@@ -16,13 +16,13 @@
     <div class="col-12">
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center;">
-                <i class="bi bi-journal-plus" style="color: #f97316; font-size: 1.8rem;"></i>
+                <i class="bi bi-archive-fill" style="color: #f97316; font-size: 1.8rem;"></i>
             </div>
             <div>
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     Tambah Data Pelatihan
                 </h3>
-                <p class="text-muted mb-0 mt-1">Input data peserta pelatihan berdasarkan master data yang tersedia</p>
+                <p class="text-muted mb-0 mt-1">Input peserta pelatihan berdasarkan master data</p>
             </div>
         </div>
         <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24); border-radius: 2px;"></div>
@@ -33,7 +33,7 @@
             <div class="card-body p-4 p-md-5">
 
                 @if ($errors->any())
-                    <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-4">
+                    <div class="alert alert-danger rounded-4">
                         <ul class="mb-0">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -45,58 +45,62 @@
                 <form action="{{ route('rekap-pelatihan.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    <div class="row">
-                        {{-- FILTER TAHUN --}}
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-bold">FILTER TAHUN MASTER <span class="text-danger">*</span></label>
-                            <select id="filterTahun" class="form-select shadow-sm">
-                                <option value="">-- Semua Tahun --</option>
-                                @foreach($daftarTahun as $th)
-                                    <option value="{{ $th }}">{{ $th }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    {{-- FILTER TAHUN (BUKAN INPUT DATA) --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">FILTER TAHUN</label>
 
-                        {{-- MASTER PELATIHAN --}}
-                        <div class="col-md-8 mb-4">
-                            <label class="form-label fw-bold">JENIS PELATIHAN (MASTER) <span class="text-danger">*</span></label>
-                            <select name="master_pelatihan_id" id="masterPelatihan" class="form-select shadow-sm" required>
-                                <option value="">-- Pilih Jenis Pelatihan --</option>
-                                @foreach($masterPelatihan as $m)
-                                    <option value="{{ $m->id }}" 
-                                        data-tahun="{{ $m->tahun }}"
-                                        {{ old('master_pelatihan_id') == $m->id ? 'selected' : '' }}>
-                                        {{ $m->nama_pelatihan }} ({{ $m->tahun }}) — {{ $m->jp }} JP
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-12 mb-4">
-                            <label class="form-label fw-bold">INSTANSI PENYELENGGARA <span class="text-danger">*</span></label>
-                            <input type="text" name="instansi" class="form-control shadow-sm" placeholder="Masukkan nama instansi penyelenggara" value="{{ old('instansi') }}" required>
-                        </div>
+                        <select id="filterTahun" class="form-select">
+                            <option value="">-- Semua Tahun --</option>
+                            @for($i = date('Y'); $i >= 2020; $i--)
+                                <option value="{{ $i }}" {{ $tahun == $i ? 'selected' : '' }}>
+                                    {{ $i }}
+                                </option>
+                            @endfor
+                        </select>
                     </div>
 
-                    <hr class="my-4 text-muted opacity-25">
+                    {{-- MASTER PELATIHAN --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">MASTER PELATIHAN <span class="text-danger">*</span></label>
+                        
+                        <select name="master_pelatihan_id" id="masterPelatihan" class="form-select" required>
+                            <option value="">-- Pilih Pelatihan --</option>
+
+                            @foreach($masterPelatihan as $m)
+                                <option value="{{ $m->id }}" 
+                                    data-tahun="{{ $m->tahun }}"
+                                    {{ $selectedMaster == $m->id ? 'selected' : '' }}>
+                                    {{ $m->nama_pelatihan }} ({{ $m->tahun }}) — {{ $m->jp }} JP
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- INSTANSI PENYELENGGARA --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">INSTANSI PENYELENGGARA <span class="text-danger">*</span></label>
+                        <input type="text" name="instansi" class="form-control" placeholder="Masukkan instansi penyelenggara" value="{{ old('instansi') }}" required>
+                    </div>
+
+                    <hr>
 
                     {{-- HEADER PESERTA --}}
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <label class="fw-bold mb-0" style="color: #b87a4a;">DATA PESERTA & WAKTU PELAKSANAAN</label>
-                        <button type="button" class="btn btn-sm btn-orange-outline rounded-3" onclick="tambahBaris()">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="fw-bold mb-0">DATA PESERTA</label>
+                        <button type="button" class="btn btn-sm btn-orange-outline" onclick="tambahBaris()">
                             <i class="bi bi-plus-lg me-1"></i> Tambah Peserta
                         </button>
                     </div>
 
                     <div id="container-peserta">
-                        {{-- BARIS INPUT DINAMIS --}}
-                        <div class="card border-0 shadow-sm mb-4 baris-peserta overflow-hidden" style="background: #f8f9fa; border: 1px solid #e9ecef !important; border-radius: 15px;">
-                            <div class="card-body p-4">
-                                
-                                {{-- INPUT PEGAWAI --}}
-                                <div class="mb-4">
-                                    <label class="small fw-bold text-uppercase text-muted mb-2">Pilih Pegawai <span class="text-danger">*</span></label>
-                                    <select name="pegawai_id[]" class="form-select shadow-sm py-2" required>
+
+                        <div class="card border-0 shadow-sm mb-3 baris-peserta">
+                            <div class="card-body p-3">
+
+                                {{-- BARIS 1: PEGAWAI --}}
+                                <div class="mb-3">
+                                    <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
+                                    <select name="pegawai_id[]" class="form-select" required>
                                         <option value="">-- Pilih Pegawai --</option>
                                         @foreach($pegawais as $p)
                                             <option value="{{ $p->nip }}|{{ $p->nama }}">
@@ -106,39 +110,43 @@
                                     </select>
                                 </div>
 
-                                {{-- DETAIL TANGGAL & FILE PER PESERTA --}}
+                                {{-- BARIS 2: DETAIL --}}
                                 <div class="row g-3">
+
                                     <div class="col-md-4">
-                                        <label class="small fw-bold text-uppercase text-muted mb-2">Tanggal Mulai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_mulai[]" class="form-control shadow-sm py-2" required>
+                                        <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_mulai[]" class="form-control" required>
                                     </div>
 
                                     <div class="col-md-4">
-                                        <label class="small fw-bold text-uppercase text-muted mb-2">Tanggal Selesai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_selesai[]" class="form-control shadow-sm py-2" required>
+                                        <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_selesai[]" class="form-control" required>
                                     </div>
 
                                     <div class="col-md-4">
-                                        <label class="small fw-bold text-uppercase text-muted mb-2">Upload Sertifikat</label>
-                                        <input type="file" name="file_sertifikat[]" class="form-control shadow-sm py-2" accept="application/pdf">
+                                        <label class="small fw-semibold text-muted">Upload Sertifikat</label>
+                                        <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf">
                                     </div>
+
                                 </div>
 
-                                {{-- ACTION HAPUS --}}
+                                {{-- ACTION --}}
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-hapus rounded-3 px-3" onclick="hapusBaris(this)">
-                                        <i class="bi bi-trash me-1"></i> Hapus Peserta
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
+                                        <i class="bi bi-trash"></i> Hapus
                                     </button>
                                 </div>
+
                             </div>
                         </div>
+
                     </div>
 
-                    {{-- ACTION BUTTONS --}}
-                    <div class="text-end mt-5">
-                        <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light px-4 rounded-3 border fw-semibold me-2">Batal</a>
-                        <button type="submit" class="btn text-white px-5 shadow-sm rounded-3 fw-bold" style="background: linear-gradient(135deg, #f97316, #f59e0b); border: none;">
-                            <i class="bi bi-save me-2"></i> SIMPAN REKAP
+                    {{-- ACTION --}}
+                    <div class="text-end mt-4">
+                        <a href="{{ route('rekap-pelatihan.index') }}" class="btn btn-light">Batal</a>
+                        <button type="submit" class="btn text-white" style="background: #f97316;">
+                            Simpan
                         </button>
                     </div>
 
@@ -156,22 +164,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function tambahBaris() {
     const container = document.getElementById('container-peserta');
-    const rows = document.querySelectorAll('.baris-peserta');
-    const baris = rows[0].cloneNode(true);
+    const baris = document.querySelector('.baris-peserta').cloneNode(true);
 
-    // Reset semua input di baris baru
     baris.querySelectorAll('input').forEach(i => i.value = '');
     baris.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
 
-    // Tambahkan efek animasi sederhana
-    baris.style.opacity = '0';
     container.appendChild(baris);
-    
-    setTimeout(() => {
-        baris.style.transition = 'opacity 0.3s ease';
-        baris.style.opacity = '1';
-    }, 10);
-
     updateHapusButton();
 }
 
@@ -185,19 +183,19 @@ function hapusBaris(btn) {
 
 function updateHapusButton() {
     const rows = document.querySelectorAll('.baris-peserta');
-    rows.forEach((row) => {
-        const btn = row.querySelector('.btn-hapus');
+    rows.forEach((row, index) => {
+        const btn = row.querySelector('.btn-outline-danger');
         btn.style.display = rows.length === 1 ? 'none' : 'inline-block';
     });
 }
 
-// Logika Filter Tahun
 document.getElementById('filterTahun').addEventListener('change', function () {
     let tahun = this.value;
     let options = document.querySelectorAll('#masterPelatihan option');
 
     options.forEach(option => {
         let optTahun = option.getAttribute('data-tahun');
+
         if (!tahun || optTahun === tahun || option.value === "") {
             option.style.display = 'block';
         } else {
@@ -205,14 +203,33 @@ document.getElementById('filterTahun').addEventListener('change', function () {
         }
     });
 
+    // reset pilihan
     document.getElementById('masterPelatihan').value = '';
 });
 </script>
 
 <style>
-    .btn-orange-outline { border: 1px solid #f97316; color: #f97316; font-weight: 500; transition: all 0.2s; }
-    .btn-orange-outline:hover { background: #f97316; color: white; }
-    .form-control:focus, .form-select:focus { border-color: #f97316; box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1); }
-    .card { transition: transform 0.2s ease; }
+.btn-orange-outline {
+    border: 1px solid #f97316;
+    color: #f97316;
+    background: transparent;
+}
+.btn-orange-outline:hover {
+    background: #f97316;
+    color: white;
+}
+.btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+}
+.btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+}
 </style>
 @endsection

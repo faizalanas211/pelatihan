@@ -5,12 +5,13 @@
     <a href="{{ route('sertifikasi.index') }}" style="color: #f97316; text-decoration: none;">Sertifikasi</a>
 </li>
 <li class="breadcrumb-item active fw-semibold" style="color: #f97316;">
-    Tambah Sertifikasi
+    Tambah Data Sertifikasi
 </li>
 @endsection
 
 @section('content')
 <div class="row g-4">
+
     {{-- HEADER --}}
     <div class="col-12">
         <div class="d-flex align-items-center gap-3">
@@ -18,20 +19,21 @@
                 <i class="bi bi-award-fill" style="color: #f97316; font-size: 1.8rem;"></i>
             </div>
             <div>
-                <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.6rem;">
-                    Tambah Sertifikasi Kolektif
+                <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Tambah Data Sertifikasi
                 </h3>
-                <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">Pilih master sertifikasi dan tentukan jadwal pelaksanaan tiap pegawai</p>
+                <p class="text-muted mb-0 mt-1">Input peserta sertifikasi berdasarkan master data</p>
             </div>
         </div>
-        <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
+        <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24); border-radius: 2px;"></div>
     </div>
 
     <div class="col-12">
-        <div class="card rounded-4 border-0 shadow-sm overflow-hidden">
+        <div class="card rounded-4 border-0 shadow-sm">
             <div class="card-body p-4 p-md-5">
+
                 @if ($errors->any())
-                    <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-4">
+                    <div class="alert alert-danger rounded-4">
                         <ul class="mb-0">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -40,170 +42,202 @@
                     </div>
                 @endif
 
-                <form action="{{ route('sertifikasi.store') }}" method="POST">
+                <form action="{{ route('sertifikasi.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    
-                    <div class="row">
-                        {{-- FILTER TAHUN MASTER --}}
-                        <div class="col-md-4 mb-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">FILTER TAHUN MASTER</label>
-                            <select id="filter-tahun" class="form-select rounded-3 shadow-sm py-2">
-                                <option value="all">-- Semua Tahun --</option>
-                                @foreach($daftarTahun as $th)
-                                    <option value="{{ $th }}">{{ $th }}</option>
-                                @endforeach
-                            </select>
-                        </div>
 
-                        {{-- SEKSI PILIH MASTER SERTIFIKASI --}}
-                        <div class="col-md-8 mb-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">JENIS SERTIFIKASI (MASTER DATA) <span class="text-danger">*</span></label>
-                            <select name="master_pelatihan_id" id="master_pelatihan_id" class="form-select rounded-3 shadow-sm py-2" required>
-                                <option value="" disabled selected>-- Pilih Jenis Sertifikasi --</option>
-                                @foreach($masterSertifikasi as $m)
-                                    <option value="{{ $m->id }}" 
-                                            data-tahun="{{ $m->tahun }}" 
-                                            class="opt-sertifikasi"
-                                            {{ old('master_pelatihan_id') == $m->id ? 'selected' : '' }}>
-                                        {{ $m->nama_pelatihan }} — ({{ $m->tahun }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    {{-- FILTER TAHUN (BUKAN INPUT DATA) --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">FILTER TAHUN</label>
 
-                        <div class="col-12 mb-4">
-                            <label class="form-label fw-bold" style="color: #b87a4a;">INSTANSI PENERBIT <span class="text-danger">*</span></label>
-                            <input type="text" name="instansi" class="form-control rounded-3 shadow-sm py-2" placeholder="Contoh: BNSP / Cisco / Oracle" value="{{ old('instansi') }}" required>
-                        </div>
+                        <select id="filterTahun" class="form-select">
+                            <option value="">-- Semua Tahun --</option>
+                            @for($i = date('Y'); $i >= 2020; $i--)
+                                <option value="{{ $i }}" {{ ($tahun ?? '') == $i ? 'selected' : '' }}>
+                                    {{ $i }}
+                                </option>
+                            @endfor
+                        </select>
                     </div>
 
-                    <hr class="my-4 text-muted opacity-25">
+                    {{-- MASTER SERTIFIKASI --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">MASTER SERTIFIKASI <span class="text-danger">*</span></label>
+                        
+                        <select name="master_pelatihan_id" id="masterSertifikasi" class="form-select" required>
+                            <option value="">-- Pilih Sertifikasi --</option>
+
+                            @foreach($masterSertifikasi as $m)
+                                <option value="{{ $m->id }}" 
+                                    data-tahun="{{ $m->tahun }}"
+                                    {{ ($selectedMaster ?? '') == $m->id ? 'selected' : '' }}>
+                                    {{ $m->nama_pelatihan }} ({{ $m->tahun }}) — {{ $m->jp }} JP
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- INSTANSI PENERBIT --}}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">INSTANSI PENERBIT <span class="text-danger">*</span></label>
+                        <input type="text" name="instansi" class="form-control" placeholder="Masukkan instansi penerbit sertifikat" value="{{ old('instansi') }}" required>
+                    </div>
+
+                    <hr>
 
                     {{-- HEADER PESERTA --}}
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <label class="fw-bold mb-0" style="color: #b87a4a;">DAFTAR PEGAWAI & JADWAL PELAKSANAAN</label>
-                        <button type="button" class="btn btn-sm btn-orange-outline rounded-3" onclick="tambahBaris()">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="fw-bold mb-0">DATA PESERTA</label>
+                        <button type="button" class="btn btn-sm btn-orange-outline" onclick="tambahBaris()">
                             <i class="bi bi-plus-lg me-1"></i> Tambah Peserta
                         </button>
                     </div>
 
                     <div id="container-peserta">
-                        {{-- BARIS INPUT DINAMIS --}}
-                        <div class="card border-0 shadow-sm mb-4 baris-peserta overflow-hidden" style="background: #f8f9fa; border: 1px solid #e9ecef !important; border-radius: 15px;">
-                            <div class="card-body p-4">
-                                {{-- INPUT PEGAWAI --}}
-                                <div class="mb-4">
-                                    <label class="small fw-bold text-uppercase text-muted mb-2">Pilih Nama Pegawai <span class="text-danger">*</span></label>
-                                    <select name="pegawai_id[]" class="form-select shadow-sm py-2" required>
-                                        <option value="" disabled selected>-- Pilih Peserta --</option>
+
+                        <div class="card border-0 shadow-sm mb-3 baris-peserta">
+                            <div class="card-body p-3">
+
+                                {{-- BARIS 1: PEGAWAI --}}
+                                <div class="mb-3">
+                                    <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
+                                    <select name="pegawai_id[]" class="form-select" required>
+                                        <option value="">-- Pilih Pegawai --</option>
                                         @foreach($pegawais as $p)
-                                            <option value="{{ $p->nip }}|{{ $p->nama }}">{{ $p->nama }} ({{ $p->nip }})</option>
+                                            <option value="{{ $p->nip }}|{{ $p->nama }}">
+                                                {{ $p->nama }} ({{ $p->nip }})
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
 
-                                {{-- DETAIL TANGGAL PER PESERTA --}}
+                                {{-- BARIS 2: DETAIL --}}
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="small fw-bold text-uppercase text-muted mb-2">Tanggal Mulai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_mulai[]" class="form-control shadow-sm py-2" required>
+
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_mulai[]" class="form-control" required>
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label class="small fw-bold text-uppercase text-muted mb-2">Tanggal Selesai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_selesai[]" class="form-control shadow-sm py-2" required>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_selesai[]" class="form-control" required>
                                     </div>
+
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Masa Berlaku</label>
+                                        <input type="date" name="masa_berlaku[]" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Upload Sertifikat</label>
+                                        <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf,image/jpeg,image/jpg,image/png">
+                                        <small class="text-muted">PDF, JPG, JPEG, PNG (Max 2MB)</small>
+                                    </div>
+
                                 </div>
 
-                                {{-- ACTION HAPUS --}}
+                                {{-- ACTION --}}
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger btn-hapus rounded-3 px-3" onclick="hapusBaris(this)">
-                                        <i class="bi bi-trash me-1"></i> Hapus Peserta
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-hapus" onclick="hapusBaris(this)">
+                                        <i class="bi bi-trash"></i> Hapus
                                     </button>
                                 </div>
+
                             </div>
                         </div>
+
                     </div>
 
-                    {{-- ACTION BUTTONS --}}
-                    <div class="text-end mt-5">
-                        <a href="{{ route('sertifikasi.index') }}" class="btn btn-light rounded-4 px-4 border fw-semibold" style="color: #5c4a3a;">
-                            Batal
-                        </a>
-                        <button type="submit" class="btn rounded-4 px-5 shadow-sm fw-bold text-white" style="background: linear-gradient(135deg, #f97316, #f59e0b); border: none;">
-                            <i class="bi bi-save me-2"></i> SIMPAN KOLEKTIF
+                    {{-- ACTION --}}
+                    <div class="text-end mt-4">
+                        <a href="{{ route('sertifikasi.index') }}" class="btn btn-light">Batal</a>
+                        <button type="submit" class="btn text-white" style="background: #f97316;">
+                            Simpan
                         </button>
                     </div>
+
                 </form>
+
             </div>
         </div>
     </div>
 </div>
 
-{{-- SCRIPTS --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        updateHapusButton();
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    updateHapusButton();
+});
 
-    // FUNGSI FILTER TAHUN MASTER
-    document.getElementById('filter-tahun').addEventListener('change', function() {
-        const selectedTahun = this.value;
-        const selectSertifikasi = document.getElementById('master_pelatihan_id');
-        const options = selectSertifikasi.querySelectorAll('.opt-sertifikasi');
+function tambahBaris() {
+    const container = document.getElementById('container-peserta');
+    const baris = document.querySelector('.baris-peserta').cloneNode(true);
 
-        selectSertifikasi.value = "";
+    baris.querySelectorAll('input').forEach(i => i.value = '');
+    baris.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
 
-        options.forEach(option => {
-            const tahunOption = option.getAttribute('data-tahun');
-            if (selectedTahun === 'all' || tahunOption === selectedTahun) {
-                option.style.display = 'block';
-            } else {
-                option.style.display = 'none';
-            }
-        });
-    });
+    container.appendChild(baris);
+    updateHapusButton();
+}
 
-    // FUNGSI TAMBAH BARIS PESERTA
-    function tambahBaris() {
-        const container = document.getElementById('container-peserta');
-        const rows = document.querySelectorAll('.baris-peserta');
-        const barisAsli = rows[0];
-        const newRow = barisAsli.cloneNode(true);
-        
-        // Reset values
-        newRow.querySelectorAll('input').forEach(i => i.value = '');
-        newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-        
-        newRow.classList.add('animate__fadeIn');
-        container.appendChild(newRow);
-        updateHapusButton();
+function hapusBaris(btn) {
+    const rows = document.querySelectorAll('.baris-peserta');
+    if(rows.length > 1){
+        btn.closest('.baris-peserta').remove();
     }
+    updateHapusButton();
+}
 
-    function hapusBaris(btn) {
-        const rows = document.querySelectorAll('.baris-peserta');
-        if (rows.length > 1) {
-            btn.closest('.baris-peserta').remove();
-        }
-        updateHapusButton();
-    }
-
-    function updateHapusButton() {
-        const rows = document.querySelectorAll('.baris-peserta');
-        rows.forEach((row) => {
-            const btn = row.querySelector('.btn-hapus');
+function updateHapusButton() {
+    const rows = document.querySelectorAll('.baris-peserta');
+    rows.forEach((row) => {
+        const btn = row.querySelector('.btn-hapus');
+        if(btn) {
             btn.style.display = rows.length === 1 ? 'none' : 'inline-block';
-        });
-    }
+        }
+    });
+}
+
+document.getElementById('filterTahun').addEventListener('change', function () {
+    let tahun = this.value;
+    let options = document.querySelectorAll('#masterSertifikasi option');
+
+    options.forEach(option => {
+        let optTahun = option.getAttribute('data-tahun');
+
+        if (!tahun || optTahun === tahun || option.value === "") {
+            option.style.display = 'block';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+
+    document.getElementById('masterSertifikasi').value = '';
+});
 </script>
 
 <style>
-    #filter-tahun { cursor: pointer; background-color: #fffbeb; }
-    .btn-orange-outline { color: #f97316; border: 1px solid #f97316; background: transparent; transition: all 0.2s ease; }
-    .btn-orange-outline:hover { background: #f97316; color: white; }
-    .form-control:focus, .form-select:focus { border-color: #f97316 !important; box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.1) !important; }
-    .baris-peserta { transition: all 0.3s ease; }
-    .animate__fadeIn { animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.btn-orange-outline {
+    border: 1px solid #f97316;
+    color: #f97316;
+    background: transparent;
+    transition: all 0.2s;
+}
+.btn-orange-outline:hover {
+    background: #f97316;
+    color: white;
+}
+.btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+}
+.btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+}
 </style>
 @endsection

@@ -18,55 +18,52 @@
                         <i class="bi bi-award-fill" style="color: #f97316; font-size: 1.8rem;"></i>
                     </div>
                     <div>
-                        <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.6rem;">
-                            Daftar Sertifikasi
+                        <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            Sertifikasi Pegawai
                         </h3>
                         <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">
-                            <i class="bi bi-check-circle"></i> Daftar sertifikat keahlian yang telah diterbitkan
+                            <i class="bi bi-check-circle"></i> Daftar program sertifikasi pegawai
                         </p>
                     </div>
                 </div>
             </div>
-            <a href="{{ route('sertifikasi.create') }}" class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold" style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white; border: none; font-size: 0.9rem;">
+            <a href="{{ route('sertifikasi.create') }}" class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold" style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
                 <i class="bi bi-plus-circle me-2"></i>Tambah Sertifikasi
             </a>
         </div>
-        <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
+        <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b); border-radius: 2px;"></div>
     </div>
 
-    {{-- FILTER TAHUN & PENCARIAN --}}
-    <div class="col-12">
+    {{-- FILTER --}}
+    <div class="col-12 mb-4">
         <form action="{{ route('sertifikasi.index') }}" method="GET">
             <div class="card border-0 shadow-sm rounded-4" style="background: #fffcf8;">
                 <div class="card-body p-3">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-bold mb-1" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Tahun Input</label>
-                            <select class="form-select rounded-3 shadow-sm border-0" name="tahun" style="background: #ffffff; color: #5c4a3a; font-size: 0.9rem;">
+                            <label class="form-label fw-bold small text-uppercase">Tahun</label>
+                            <select class="form-select border-0 shadow-sm" name="tahun">
                                 <option value="">Semua Tahun</option>
                                 @for ($i = date('Y'); $i >= 2020; $i--)
                                     <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>{{ $i }}</option>
                                 @endfor
                             </select>
                         </div>
+
                         <div class="col-md-7">
-                            <label class="form-label fw-bold mb-1" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Cari Sertifikasi</label>
-                            <div class="input-group rounded-3 overflow-hidden shadow-sm border-0">
-                                <span class="input-group-text bg-white border-0">
-                                    <i class="bi bi-search" style="color: #f97316;"></i>
-                                </span>
-                                <input type="text" name="search" class="form-control border-0" placeholder="Nama sertifikasi atau instansi penerbit..." value="{{ request('search') }}" style="background: #ffffff; font-size: 0.9rem;">
-                            </div>
+                            <label class="form-label fw-bold small text-uppercase">Cari Sertifikasi</label>
+                            <input type="text" name="search" class="form-control border-0 shadow-sm"
+                                   placeholder="Nama sertifikasi..."
+                                   value="{{ request('search') }}">
                         </div>
-                        <div class="col-md-2">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary w-100 rounded-3 shadow-sm fw-bold" style="background: #f97316; border: none; font-size: 0.85rem; padding: 0.6rem;">
-                                    Filter
-                                </button>
-                                <a href="{{ route('sertifikasi.index') }}" class="btn rounded-3 shadow-sm" style="background: #ffffff; color: #f97316; border: 1px solid #fed7aa; padding: 0.6rem;">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                </a>
-                            </div>
+
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn w-100 text-white fw-bold" style="background: #f97316;">
+                                Filter
+                            </button>
+                            <a href="{{ route('sertifikasi.index') }}" class="btn border">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -74,101 +71,94 @@
         </form>
     </div>
 
-    {{-- LIST EVENT SERTIFIKASI --}}
+    {{-- LIST SERTIFIKASI --}}
     <div class="col-12 mt-2">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0 text-uppercase" style="color: #5c4a3a; letter-spacing: 1px;">
-                <i class="bi bi-award me-2" style="color: #f97316;"></i>
-                Daftar Sertifikasi
+        <div class="d-flex justify-content-between mb-3">
+            <h6 class="fw-bold text-uppercase">
+                <i class="bi bi-list-check me-2 text-orange"></i>DAFTAR SERTIFIKASI
             </h6>
-            <span class="badge rounded-pill px-3 py-2" style="background: #fff3e0; color: #e65100; font-size: 0.75rem;">
-                Total: {{ $sertifikasi->total() }} Kelompok
+            <span class="badge px-3 py-2" style="background: #fff3e0; color: #f97316;">
+                Total: {{ $sertifikasi->total() }} Program
             </span>
         </div>
 
-        <div id="sertifikasiList">
-            <div class="row g-4">
-                @forelse($sertifikasi as $item)
-                    @php
-                        // AMBIL DATA DARI TABEL PESERTA KARENA TABEL INDUK TIDAK PUNYA TANGGAL
-                        $infoPeserta = DB::table('sertifikasi_peserta')
-                                        ->where('sertifikasi_id', $item->id)
-                                        ->first();
-                    @endphp
-                    <div class="col-md-4">
-                        <div class="card rounded-4 border-0 shadow-sm pelatihan-card-grid h-100">
-                            <div class="card-body p-4 d-flex flex-column">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #f9731615, #ffedd5);">
-                                        <i class="bi bi-patch-check-fill fs-3" style="color: #f97316;"></i>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="badge" style="background: #fffbeb; color: #f97316; border: 1px solid #fed7aa;">
-                                            {{ \Carbon\Carbon::parse($item->created_at)->format('Y') }}
-                                        </span>
-                                        <br>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle mt-1" style="font-size: 0.65rem;">
-                                            <i class="bi bi-check-all"></i> TERBIT
-                                        </span>
-                                    </div>
-                                </div>
+        <div class="row g-4">
+            @forelse($sertifikasi as $item)
+                @php
+                    // HITUNG JUMLAH PESERTA BERDASARKAN MASTER SERTIFIKASI
+                    // Cari header di tabel sertifikasi berdasarkan master_pelatihan_id
+                    $headerSertifikasi = DB::table('sertifikasi')
+                        ->where('master_pelatihan_id', $item->id)
+                        ->first();
+                    
+                    $jumlahPeserta = 0;
+                    if ($headerSertifikasi) {
+                        $jumlahPeserta = DB::table('sertifikasi_peserta')
+                            ->where('sertifikasi_id', $headerSertifikasi->id)
+                            ->count();
+                    }
+                @endphp
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body d-flex flex-column p-4">
 
-                                <h5 class="fw-bold mb-2" style="color: #4a3728; font-size: 1.1rem;">{{ $item->jenis_sertifikasi }}</h5>
-                                
-                                <p class="text-muted small mb-3">
-                                    <i class="bi bi-building me-1"></i> {{ $item->instansi_penerbit }}<br>
-                                    <i class="bi bi-calendar3 me-1"></i> Pelaksanaan: 
-                                    @if($infoPeserta)
-                                        {{ \Carbon\Carbon::parse($infoPeserta->tanggal_mulai)->format('d/m/Y') }}
-                                    @else
-                                        -
-                                    @endif
-                                </p>
-
-                                <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                                    <div class="text-muted small">
-                                        @php
-                                            $jumlahPeserta = DB::table('sertifikasi_peserta')->where('sertifikasi_id', $item->id)->count();
-                                        @endphp
-                                        <i class="bi bi-people-fill text-orange me-1"></i> {{ $jumlahPeserta }} Pegawai
-                                    </div>
-                                    <a href="{{ route('sertifikasi.show', $item->id) }}" class="text-orange fw-bold small text-decoration-none btn-hover-link">
-                                        DETAIL <i class="bi bi-arrow-right ms-1"></i>
-                                    </a>
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:50px;height:50px;background:#fff3e0;">
+                                    <i class="bi bi-patch-check-fill text-orange fs-4"></i>
                                 </div>
+                                <span class="badge" style="background:#fffbeb; color:#f97316;">
+                                    {{ $item->tahun }}
+                                </span>
                             </div>
+
+                            <h5 class="fw-bold mb-2" style="color:#4a3728; font-size:1rem;">
+                                {{ $item->nama_pelatihan }}
+                            </h5>
+
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-bookmark me-1"></i> Program Sertifikasi
+                            </p>
+
+                            <div class="mt-auto pt-3 border-top d-flex justify-content-between">
+                                <div class="small text-muted">
+                                    <i class="bi bi-people-fill text-orange me-1"></i>
+                                    {{ $jumlahPeserta }} Peserta
+                                </div>
+
+                                <a href="{{ route('sertifikasi.show', $item->id) }}" class="text-orange fw-bold small text-decoration-none">
+                                    DETAIL →
+                                </a>
+                            </div>
+
                         </div>
                     </div>
-                @empty
-                    <div class="col-12 text-center py-5">
-                        <div class="mb-3 rounded-circle d-inline-flex p-4" style="background: #f8f9fa;">
-                            <i class="bi bi-award fs-1 text-muted"></i>
-                        </div>
-                        <h5 class="text-muted fw-bold">Data tidak ditemukan</h5>
-                        <p class="small text-muted">Belum ada data sertifikasi yang diinputkan.</p>
-                    </div>
-                @endforelse
-            </div> 
-            
-            <div class="d-flex justify-content-center mt-5">
-                {{ $sertifikasi->appends(request()->input())->links() }}
-            </div>
+                </div>
+            @empty
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-clipboard-x fs-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">Data tidak ditemukan</h5>
+                </div>
+            @endforelse
+        </div>
+
+        <div class="d-flex justify-content-center mt-5">
+            {{ $sertifikasi->appends(request()->input())->links() }}
         </div>
     </div>
 
 </div>
 
 <style>
-    .pelatihan-card-grid {
-        transition: all 0.3s ease;
+    .text-orange { color: #f97316 !important; }
+    
+    .card {
+        transition: all 0.2s ease;
         background: white;
-        border: 1px solid #fdf2e9;
     }
     
-    .pelatihan-card-grid:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px -10px rgba(249, 115, 22, 0.15) !important;
-        border-color: #fed7aa;
+    .card:hover {
+        background-color: #fefaf5;
     }
 
     .card-body h5 {
@@ -176,15 +166,7 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 2.8rem;
-    }
-
-    .text-orange { color: #f97316 !important; }
-
-    .btn-hover-link:hover {
-        letter-spacing: 0.5px;
-        transition: all 0.2s ease;
-        color: #d9480f !important;
+        line-height: 1.4;
     }
     
     .pagination .page-item .page-link {
@@ -193,11 +175,15 @@
         color: #f97316;
         margin: 0 2px;
         border-radius: 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .pagination .page-item.active .page-link {
         background: #f97316;
         color: #fff;
+    }
+    
+    .border-top {
+        border-top: 1px solid #f0f0f0 !important;
     }
 </style>
 @endsection

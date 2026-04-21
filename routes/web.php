@@ -24,7 +24,7 @@ use App\Http\Controllers\PotonganController;
 use App\Http\Controllers\SlipGajiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TemplateController;
-use App\Http\Controllers\PasswordController; // Pastikan ini diimport jika dipakai
+use App\Http\Controllers\PasswordController;
 use App\Models\PerjalananDinas;
 use Maatwebsite\Excel\Excel;
 
@@ -77,14 +77,16 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::resource('rekap-pelatihan', RekapPelatihanController::class);
     Route::get('rekap-pelatihan/{id}/peserta', [RekapPelatihanController::class, 'peserta'])->name('rekap-pelatihan.peserta');
     Route::post('rekap-pelatihan/upload-sertifikat-peserta/{id}', [RekapPelatihanController::class, 'uploadSertifikatPeserta'])->name('rekap-pelatihan.upload-sertifikat-peserta');
+    Route::put('rekap-pelatihan/peserta/{id}', [RekapPelatihanController::class, 'updatePeserta'])->name('rekap-pelatihan.updatePeserta');
     
     // 2. Jadwal Pelatihan
     Route::resource('jadwal-pelatihan', JadwalPelatihanController::class);
     
     // 3. Sertifikasi (BARU & KOLEKTIF)
     Route::resource('sertifikasi', SertifikasiController::class);
-    // Rute Upload File per Orang di Show Sertifikasi
     Route::post('sertifikasi/upload-file/{id}', [SertifikasiController::class, 'uploadFile'])->name('sertifikasi.upload-file');
+    // ✅ TAMBAHKAN ROUTE UPDATE PESERTA SERTIFIKASI
+    Route::put('sertifikasi/peserta/{id}', [SertifikasiController::class, 'updatePeserta'])->name('sertifikasi.updatePeserta');
     
     // 4. Sertifikat Event
     Route::resource('sertifikat', SertifikatController::class);
@@ -104,21 +106,13 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 
     // 7. Tugas Belajar
     Route::resource('tugas-belajar', TugasBelajarController::class);
-    Route::get('/tugas-belajar/get-tubel', [TugasBelajarController::class, 'getTubelByTahun'])
-    ->name('tugas-belajar.get-tubel');
-    // Route::get('rekap-pelatihan/{id}/peserta', [RekapPelatihanController::class, 'peserta'])->name('rekap-pelatihan.peserta');
-    Route::put('tugas-belajar/peserta/{id}', 
-            [TugasBelajarController::class, 'updatePeserta']
-        )->name('tugas-belajar.updatePeserta');
-    Route::delete('tugas-belajar/{id}/peserta', 
-            [TugasBelajarController::class, 'destroyPeserta']
-        )->name('tugas-belajar.destroyPeserta');
+    Route::get('/tugas-belajar/get-tubel', [TugasBelajarController::class, 'getTubelByTahun'])->name('tugas-belajar.get-tubel');
+    Route::put('tugas-belajar/peserta/{id}', [TugasBelajarController::class, 'updatePeserta'])->name('tugas-belajar.updatePeserta');
+    Route::delete('tugas-belajar/{id}/peserta', [TugasBelajarController::class, 'destroyPeserta'])->name('tugas-belajar.destroyPeserta');
     
     // 8. Riwayat SDM
-    Route::get('/riwayat-sdm/export', [RiwayatSDMController::class, 'export'])
-            ->name('riwayat-sdm.export');
-    Route::get('/riwayat-sdm/{id}/export', [RiwayatSDMController::class, 'exportDetail'])
-    ->name('riwayat-sdm.export.detail');
+    Route::get('/riwayat-sdm/export', [RiwayatSDMController::class, 'export'])->name('riwayat-sdm.export');
+    Route::get('/riwayat-sdm/{id}/export', [RiwayatSDMController::class, 'exportDetail'])->name('riwayat-sdm.export.detail');
     Route::resource('riwayat-sdm', RiwayatSDMController::class);
 
     /*
