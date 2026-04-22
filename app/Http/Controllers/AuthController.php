@@ -21,33 +21,45 @@ class AuthController extends Controller
     public function loginAction(Request $request)
     {
         $request->validate([
-            'login' => 'required', // Bisa email atau nip
-            'password' => 'required',
+            'login' => 'required|string', // Bisa NIP atau name
+            'password' => 'required|string',
         ]);
 
-        // Cek apakah input login berupa email atau nip
-        $loginType = filter_var($request->input('login'), FILTER_VALIDATE_EMAIL) ? 'email' : 'nip';
-
-        // Ambil hanya login dan password
-        $credentials = [
-            $loginType => $request->input('login'),
-            'password' => $request->input('password'),
-        ];
-        // dd($credentials);
-        try {
-            //code...
-            if (!Auth::attempt($credentials)) {
-                return back()->with('error', 'Invalid email, NIP, or password');
-            }
-
-            return redirect()->route('dashboard');
-        } catch (\Throwable $th) {
-            return response()->json([
-                'message' => $th->getMessage()
-            ]);
+        $login = $request->input('login');
+        
+        // Cek apakah login berupa NIP atau name
+        // Prioritaskan login sebagai NIP dulu
+        $credentials = [];
+        
+        // Coba cari user berdasarkan NIP
+        $userByNip = User::where('nip', $login)->first();
+        
+        if ($userByNip) {
+            $credentials = [
+                'nip' => $login,
+                'password' => $request->input('password'),
+            ];
+        } else {
+            // Jika tidak ditemukan, coba berdasarkan name
+            $credentials = [
+                'name' => $login,
+                'password' => $request->input('password'),
+            ];
         }
 
-        // Coba login
+        try {
+            if (!Auth::attempt($credentials)) {
+                return back()->with('error', 'NIP atau Password salah');
+            }
+
+            // Regenerate session untuk keamanan
+            $request->session()->regenerate();
+            
+            return redirect()->route('dashboard')->with('success', 'Selamat datang kembali!');
+            
+        } catch (\Throwable $th) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
 
     public function register()
@@ -59,40 +71,50 @@ class AuthController extends Controller
     public function registerAction(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'nip' => 'required|unique:pegawai',
-            'jabatan' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
+            'name' => 'required|string|max:255',
+            'nip' => 'required|string|max:50|unique:pegawai,nip|unique:users,nip',
+            'jabatan' => 'required|string|max:255',
+            'password' => 'required|min:6',
         ]);
 
-        $pegawai = Pegawai::create([
-            'nama' => $request->name,
-            'nip' => $request->nip,
-            'jabatan' => $request->jabatan,
-            'foto' => null,
-            'tanggal_lahir' => null,
-            'is_pejabat' => 0,
-            'jenis_pejabat' => null,
-        ]);
+        try {
+            // Buat data pegawai
+            $pegawai = Pegawai::create([
+                'nama' => $request->name,
+                'nip' => $request->nip,
+                'jabatan' => $request->jabatan,
+                'foto' => null,
+                'tanggal_lahir' => null,
+                'is_pejabat' => 0,
+                'jenis_pejabat' => null,
+                'status' => 'aktif',
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'nip' => $request->nip,
-            'pegawai_id' => $pegawai->id,
-            'role' => 'admin',
-            'password' => Hash::make($request->password),
-        ]);
+            // Buat user account dengan role ADMIN
+            $user = User::create([
+                'name' => $request->name,
+                'nip' => $request->nip,
+                'pegawai_id' => $pegawai->id,
+                'role' => 'admin', // ✅ DIUBAH JADI ADMIN
+                'password' => Hash::make($request->password),
+            ]);
 
-        Auth::login($user);
+            // Auto login setelah register
+            Auth::login($user);
 
-        return redirect()->route('dashboard');
+            return redirect()->route('dashboard')->with('success', 'Registrasi berhasil! Selamat datang ' . $user->name);
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Registrasi gagal: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function logout(Request $request)
     {
         Auth::logout();
-        return redirect()->route('login');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect()->route('login')->with('success', 'Anda telah logout');
     }
 }

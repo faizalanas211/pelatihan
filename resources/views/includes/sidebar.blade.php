@@ -306,11 +306,11 @@
 
     {{-- DASHBOARD --}}
     <li class="menu-item {{ Request::routeIs('dashboard') ? 'active' : '' }}">
-    <a href="{{ route('dashboard') }}" class="menu-link">
-        <i class="menu-icon bx bxs-dashboard"></i>
-        <div>Dashboard</div>
-    </a>
-</li>
+        <a href="{{ route('dashboard') }}" class="menu-link">
+            <i class="menu-icon bx bxs-dashboard"></i>
+            <div>Dashboard</div>
+        </a>
+    </li>
 
     {{-- MASTER DATA --}}
     <li class="menu-header">
@@ -319,19 +319,17 @@
 
     <li class="menu-item {{ Request::is('dashboard/masterdata*') ? 'active' : '' }}">
         <a href="{{ route('master-pelatihan.index') }}" class="menu-link">
-        <i class="menu-icon bx bx-list-check"></i>
-        <div>Master Data</div>
+            <i class="menu-icon bx bx-list-check"></i>
+            <div>Master Data</div>
         </a>
     </li>
 
     <li class="menu-item {{ Request::is('dashboard/pegawai*') ? 'active' : '' }}">
-    <a href="{{ route('pegawai.index') }}" class="menu-link">
-        <i class="menu-icon bx bx-user"></i>
-        <div>Data Pegawai</div>
-    </a>
-</li>
-    
-
+        <a href="{{ route('pegawai.index') }}" class="menu-link">
+            <i class="menu-icon bx bx-user"></i>
+            <div>Data Pegawai</div>
+        </a>
+    </li>
 
     {{-- PELATIHAN --}}
     <li class="menu-header">
@@ -340,19 +338,10 @@
 
     <li class="menu-item {{ Request::is('dashboard/rekap*') ? 'active' : '' }}">
         <a href="{{ route('rekap-pelatihan.index') }}" class="menu-link">
-        <i class="menu-icon bx bx-list-check"></i>
-        <div>Rekap Pelatihan</div>
+            <i class="menu-icon bx bx-list-check"></i>
+            <div>Rekap Pelatihan</div>
         </a>
     </li>
-
-   {{--
-   <li class="menu-item {{ Request::routeIs('jadwal-pelatihan.index') ? 'active' : '' }}">
-    <a href="{{ route('jadwal-pelatihan.index') }}" class="menu-link">
-        <i class="menu-icon bx bx-calendar-event"></i>
-        <div data-i18n="Jadwal Pelatihan">Jadwal Kegiatan</div>
-    </a>
-</li>
-    --}}
 
     <li class="menu-item {{ Request::routeIs('sertifikasi.*') ? 'active' : '' }}">
         <a href="{{ route('sertifikasi.index') }}" class="menu-link">
@@ -368,18 +357,12 @@
         </a>
     </li>
 
-     <li class="menu-item {{ Request::routeIs('riwayat-sdm.*') ? 'active' : '' }}">
+    <li class="menu-item {{ Request::routeIs('riwayat-sdm.*') ? 'active' : '' }}">
         <a href="{{ route('riwayat-sdm.index') }}" class="menu-link">
             <i class="menu-icon bi bi-mortarboard"></i>
             <div>Riwayat Pengembangan SDM</div>
         </a>
     </li>
-    
-
-    
-
-
-   
 
     {{-- PENGATURAN --}}
     <li class="menu-header">
@@ -393,25 +376,27 @@
         </a>
     </li>
 
-    
-
 </ul>
 
 {{-- SIDEBAR PROFILE --}}
 @php
-$pegawai = auth()->user()->pegawai ?? null;
+$user = auth()->user();
+$pegawai = $user ? $user->pegawai : null;
+$userName = $user ? $user->name : 'Pengguna';
+$userRole = $user ? ucfirst($user->role) : 'Pegawai';
+$userFoto = ($pegawai && $pegawai->foto) ? asset('storage/'.$pegawai->foto) : asset('admin/img/avatars/1.png');
 @endphp
 
 <div class="sidebar-profile">
     <div class="profile-left">
-        <img src="{{ $pegawai && $pegawai->foto ? asset('storage/'.$pegawai->foto) : asset('admin/img/avatars/1.png') }}"
+        <img src="{{ $userFoto }}"
              class="profile-img"
              data-bs-toggle="modal"
              data-bs-target="#profileModal"
              style="cursor: pointer;">
         <div class="profile-info">
-            <div class="profile-name">faizalanas</div>
-            <div class="profile-role">Admin</div>
+            <div class="profile-name">{{ $userName }}</div>
+            <div class="profile-role">{{ $userRole }}</div>
         </div>
     </div>
     <button class="logout-btn" data-bs-toggle="modal" data-bs-target="#profileModal" title="Profil">
@@ -432,22 +417,32 @@ $pegawai = auth()->user()->pegawai ?? null;
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center" style="padding: 32px;">
-                <img src="{{ $pegawai && $pegawai->foto ? asset('storage/'.$pegawai->foto) : asset('admin/img/avatars/1.png') }}"
+                <img src="{{ $userFoto }}"
                      style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fed7aa; margin-bottom: 16px;">
                 
-                <h5 class="fw-bold mb-1" style="color: #4b3a2a;">faizalanas</h5>
-                <p class="text-muted mb-4">Administrator</p>
+                <h5 class="fw-bold mb-1" style="color: #4b3a2a;">{{ $userName }}</h5>
+                <p class="text-muted mb-4">{{ $userRole }}</p>
 
                 <hr style="margin: 24px 0;">
 
-                <div class="alert" style="background: #fffbeb; border: none; color: #f97316; border-radius: 16px;">
-                    <i class="bx bx-info-circle me-2"></i>
-                    Mode Statis - Fungsi akan diaktifkan nanti
+                @if($pegawai)
+                <div class="text-start mb-3">
+                    <p class="mb-1"><strong>NIP:</strong> {{ $pegawai->nip ?? '-' }}</p>
+                    <p class="mb-1"><strong>Jabatan:</strong> {{ $pegawai->jabatan ?? '-' }}</p>
+                    <p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">Aktif</span></p>
                 </div>
+                <hr style="margin: 16px 0;">
+                @endif
 
-                <button class="btn w-100" style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white; border: none; padding: 12px; border-radius: 14px; font-weight: 600;" onclick="alert('Logout akan diaktifkan nanti')">
-                    <i class="bx bx-log-out me-1"></i>Logout
+                <button class="btn w-100" 
+                    style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white; border: none; padding: 12px; border-radius: 14px; font-weight: 600;" 
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="bx bx-log-out me-1"></i> Logout
                 </button>
+
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
             </div>
         </div>
     </div>

@@ -269,7 +269,7 @@ class SertifikasiController extends Controller
     }
 
     /**
-     * UPDATE MASSAL (edit semua peserta) (diperbaiki)
+     * UPDATE MASSAL (edit semua peserta) - DIPERBAIKI UNTUK 0 PESERTA
      */
     public function update(Request $request, $id)
     {
@@ -283,8 +283,34 @@ class SertifikasiController extends Controller
                 return back()->with('error', 'Data header tidak ditemukan');
             }
 
-            // ambil master_pelatihan_id dari tabel master_pelatihans (diperbaiki)
+            // ambil master_pelatihan_id dari tabel master_pelatihans
             $master = MasterPelatihan::where('id', $header->master_pelatihan_id)->first();
+
+            // UPDATE header instansi
+            DB::table('sertifikasi')->where('id', $id)->update([
+                'instansi_penerbit' => $request->instansi,
+                'updated_at' => now(),
+            ]);
+
+            // CEK APAKAH ADA PESERTA YANG DIKIRIM
+            if (empty($request->pegawai_id) || !is_array($request->pegawai_id)) {
+                // JIKA TIDAK ADA PESERTA, HAPUS SEMUA PESERTA YANG ADA
+                $existingPeserta = DB::table('sertifikasi_peserta')
+                    ->where('sertifikasi_id', $id)
+                    ->get();
+                
+                foreach ($existingPeserta as $row) {
+                    if ($row->sertifikat_path) {
+                        Storage::disk('public')->delete($row->sertifikat_path);
+                    }
+                    DB::table('sertifikasi_peserta')->where('id', $row->id)->delete();
+                }
+                
+                DB::commit();
+                return redirect()
+                    ->route('sertifikasi.show', $master->id ?? $id)
+                    ->with('success', 'Data peserta berhasil diperbarui (semua peserta dihapus)');
+            }
 
             // ambil semua ID dari form
             $idDariForm = collect($request->id ?? [])->filter()->toArray();
@@ -294,12 +320,6 @@ class SertifikasiController extends Controller
                 ->where('sertifikasi_id', $id)
                 ->get()
                 ->keyBy('id');
-
-            // UPDATE header instansi
-            DB::table('sertifikasi')->where('id', $id)->update([
-                'instansi_penerbit' => $request->instansi,
-                'updated_at' => now(),
-            ]);
 
             // DELETE yang dihapus di UI + hapus file
             $dataYangDihapus = $dataLamaSemua->except($idDariForm);

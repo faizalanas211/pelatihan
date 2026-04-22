@@ -269,7 +269,7 @@ class RekapPelatihanController extends Controller
     }
 
     /**
-     * UPDATE MASSAL (edit semua peserta)
+     * UPDATE MASSAL (edit semua peserta) - DIPERBAIKI UNTUK 0 PESERTA
      */
     public function update(Request $request, $id)
     {
@@ -288,6 +288,32 @@ class RekapPelatihanController extends Controller
                         ->where('tahun', $header->tahun)
                         ->first();
 
+            // UPDATE header instansi
+            DB::table('pelatihan')->where('id', $id)->update([
+                'instansi_penyelenggara' => $request->instansi,
+                'updated_at' => now(),
+            ]);
+
+            // CEK APAKAH ADA PESERTA YANG DIKIRIM
+            if (empty($request->pegawai_id) || !is_array($request->pegawai_id)) {
+                // JIKA TIDAK ADA PESERTA, HAPUS SEMUA PESERTA YANG ADA
+                $existingPeserta = DB::table('pelatihan_peserta')
+                    ->where('pelatihan_id', $id)
+                    ->get();
+                
+                foreach ($existingPeserta as $row) {
+                    if ($row->sertifikat_path) {
+                        Storage::disk('public')->delete($row->sertifikat_path);
+                    }
+                    DB::table('pelatihan_peserta')->where('id', $row->id)->delete();
+                }
+                
+                DB::commit();
+                return redirect()
+                    ->route('rekap-pelatihan.show', $master->id ?? $id)
+                    ->with('success', 'Data peserta berhasil diperbarui (semua peserta dihapus)');
+            }
+
             // ambil semua ID dari form
             $idDariForm = collect($request->id ?? [])->filter()->toArray();
 
@@ -296,12 +322,6 @@ class RekapPelatihanController extends Controller
                 ->where('pelatihan_id', $id)
                 ->get()
                 ->keyBy('id');
-
-            // UPDATE header instansi
-            DB::table('pelatihan')->where('id', $id)->update([
-                'instansi_penyelenggara' => $request->instansi,
-                'updated_at' => now(),
-            ]);
 
             // DELETE yang dihapus di UI + hapus file
             $dataYangDihapus = $dataLamaSemua->except($idDariForm);
@@ -369,7 +389,7 @@ class RekapPelatihanController extends Controller
 
             DB::commit();
 
-            // ✅ PERBAIKAN: Redirect ke show dengan id master yang benar
+            // Redirect ke show dengan id master yang benar
             $redirectId = $master->id ?? $request->master_pelatihan_id ?? $id;
             
             return redirect()

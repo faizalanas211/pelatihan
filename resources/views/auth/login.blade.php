@@ -4,16 +4,16 @@
 <style>
     /* ===== VARIABLES & THEME ===== */
     :root {
-        --emerald-50: #ecfdf5;
-        --emerald-100: #d1fae5;
-        --emerald-200: #a7f3d0;
-        --emerald-300: #6ee7b7;
-        --emerald-400: #34d399;
-        --emerald-500: #10b981;
-        --emerald-600: #059669;
-        --emerald-700: #047857;
-        --emerald-800: #065f46;
-        --emerald-900: #064e3b;
+        --orange-50: #fff7ed;
+        --orange-100: #ffedd5;
+        --orange-200: #fed7aa;
+        --orange-300: #fdba74;
+        --orange-400: #fb923c;
+        --orange-500: #f97316;
+        --orange-600: #ea580c;
+        --orange-700: #c2410c;
+        --orange-800: #9a3412;
+        --orange-900: #7c2d12;
         --gold-500: #d4af37;
         --gold-600: #b8941f;
         --cream: #fdf6e3;
@@ -22,7 +22,7 @@
 
     /* ===== BASE STYLES ===== */
     body {
-        background: linear-gradient(145deg, var(--emerald-900), var(--charcoal));
+        background: linear-gradient(145deg, var(--orange-900), var(--charcoal));
         min-height: 100vh;
         margin: 0;
         font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -49,7 +49,7 @@
         width: 0;
         height: 0;
         border-width: 0 200px 346px 200px;
-        border-color: transparent transparent var(--emerald-400) transparent;
+        border-color: transparent transparent var(--orange-400) transparent;
         top: -100px;
         left: -100px;
         transform: rotate(45deg);
@@ -59,7 +59,7 @@
         width: 0;
         height: 0;
         border-width: 0 150px 260px 150px;
-        border-color: transparent transparent var(--emerald-300) transparent;
+        border-color: transparent transparent var(--orange-300) transparent;
         bottom: -100px;
         right: -80px;
         transform: rotate(135deg);
@@ -74,7 +74,7 @@
     .circle-1 {
         width: 300px;
         height: 300px;
-        background: var(--emerald-300);
+        background: var(--orange-300);
         top: 50%;
         left: 10%;
     }
@@ -82,7 +82,7 @@
     .circle-2 {
         width: 200px;
         height: 200px;
-        background: var(--emerald-400);
+        background: var(--orange-400);
         bottom: 20%;
         right: 15%;
     }
@@ -128,7 +128,7 @@
 
     /* ===== LEFT PANEL - ELEGANT ===== */
     .elegant-left {
-        background: linear-gradient(145deg, var(--emerald-800), var(--emerald-900));
+        background: linear-gradient(145deg, var(--orange-800), var(--orange-900));
         color: white;
         padding: 4rem 3rem;
         position: relative;
@@ -144,7 +144,7 @@
         bottom: 0;
         background: 
             radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
-            radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 40%);
     }
 
     .prestige-badge {
@@ -170,13 +170,13 @@
     .logo-icon {
         width: 70px;
         height: 70px;
-        background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+        background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
         border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1.5rem;
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
         position: relative;
         overflow: hidden;
     }
@@ -208,7 +208,7 @@
         font-size: 2.75rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #fff, var(--emerald-200));
+        background: linear-gradient(135deg, #fff, var(--orange-200));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -249,12 +249,12 @@
     }
 
     .feature-icon i {
-        color: var(--emerald-300);
+        color: var(--orange-300);
         font-size: 1.25rem;
     }
 
     .feature-content h5 {
-        color: #6cbf98;
+        color: #fdba74;
         margin: 0 0 0.25rem 0;
         font-size: 1rem;
         font-weight: 600;
@@ -285,7 +285,7 @@
     }
 
     .security-note i {
-        color: var(--emerald-300);
+        color: var(--orange-300);
         font-size: 1.25rem;
     }
 
@@ -304,13 +304,13 @@
         font-family: 'Playfair Display', serif;
         font-size: 2.25rem;
         font-weight: 700;
-        color: var(--emerald-800);
+        color: var(--orange-800);
         margin-bottom: 0.5rem;
         letter-spacing: -0.5px;
     }
 
     .login-header p {
-        color: var(--emerald-600);
+        color: var(--orange-600);
         font-size: 1rem;
         opacity: 0.9;
         margin: 0;
@@ -328,7 +328,7 @@
 
     .input-label {
         display: block;
-        color: var(--emerald-800);
+        color: var(--orange-800);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -340,7 +340,7 @@
         width: 100%;
         padding: 1rem 1.25rem;
         background: white;
-        border: 2px solid rgba(6, 95, 70, 0.1);
+        border: 2px solid rgba(154, 52, 18, 0.1);
         border-radius: 12px;
         font-size: 1rem;
         color: var(--charcoal);
@@ -350,9 +350,9 @@
     }
 
     .elegant-input:focus {
-        border-color: var(--emerald-500);
+        border-color: var(--orange-500);
         box-shadow: 
-            0 0 0 4px rgba(16, 185, 129, 0.1),
+            0 0 0 4px rgba(249, 115, 22, 0.1),
             0 10px 15px -3px rgba(0, 0, 0, 0.08);
         transform: translateY(-1px);
     }
@@ -366,7 +366,7 @@
         left: 1.25rem;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--emerald-500);
+        color: var(--orange-500);
         font-size: 1.25rem;
         pointer-events: none;
     }
@@ -382,7 +382,7 @@
         transform: translateY(-50%);
         background: none;
         border: none;
-        color: var(--emerald-500);
+        color: var(--orange-500);
         cursor: pointer;
         font-size: 1.25rem;
         padding: 0;
@@ -390,14 +390,14 @@
     }
 
     .password-toggle:hover {
-        color: var(--emerald-700);
+        color: var(--orange-700);
     }
 
     /* ===== ELEGANT BUTTON ===== */
     .elegant-btn {
         width: 100%;
         padding: 1.25rem;
-        background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+        background: linear-gradient(135deg, var(--orange-600), var(--orange-700));
         color: white;
         border: none;
         border-radius: 12px;
@@ -408,16 +408,16 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
         text-transform: uppercase;
     }
 
     .elegant-btn:hover {
         transform: translateY(-2px);
         box-shadow: 
-            0 15px 30px rgba(16, 185, 129, 0.3),
+            0 15px 30px rgba(249, 115, 22, 0.3),
             0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-        background: linear-gradient(135deg, var(--emerald-700), var(--emerald-800));
+        background: linear-gradient(135deg, var(--orange-700), var(--orange-800));
     }
 
     .elegant-btn:active {
@@ -426,6 +426,44 @@
 
     .elegant-btn i {
         margin-right: 0.75rem;
+    }
+
+    /* ===== REGISTER BUTTON ===== */
+    .register-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(154, 52, 18, 0.1);
+    }
+
+    .register-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        background: transparent;
+        border: 2px solid var(--orange-500);
+        color: var(--orange-600);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        width: 100%;
+    }
+
+    .register-btn:hover {
+        background: var(--orange-500);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(249, 115, 22, 0.2);
+    }
+
+    .register-btn i {
+        font-size: 1.25rem;
     }
 
     /* ===== FLASH MESSAGES ===== */
@@ -453,7 +491,7 @@
     }
 
     .alert-success {
-        background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+        background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
         color: white;
     }
 
@@ -469,22 +507,52 @@
 
     /* ===== FOOTER ===== */
     .login-footer {
-        margin-top: 1rem;
+        margin-top: 2rem;
         text-align: center;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(6, 95, 70, 0.1);
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(154, 52, 18, 0.1);
     }
 
     .copyright {
         font-size: 0.875rem;
-        color: var(--emerald-600);
+        color: var(--orange-600);
         opacity: 0.8;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--orange-600);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        background: rgba(249, 115, 22, 0.1);
+    }
+
+    .social-link:hover {
+        background: var(--orange-500);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .social-link i {
+        font-size: 1rem;
     }
 
     .version {
         display: block;
         font-size: 0.75rem;
-        color: var(--emerald-500);
+        color: var(--orange-500);
         margin-top: 0.5rem;
         letter-spacing: 0.5px;
     }
@@ -535,44 +603,44 @@
                     
                     <div class="logo-container">
                         <div class="logo-icon">
-                            <i class="bx bx-wallet"></i>
+                            <i class="bx bxs-graduation"></i>
                         </div>
                         <h1 class="brand-name">
-                            Sistem Distribusi<br>
-                            Slip Gaji</h1>
+                            Sistem Manajemen<br>
+                            Pelatihan & Sertifikasi</h1>
                         <p class="brand-tagline">
-                            Aplikasi yang membantu pegawai melihat dan mencetak slip gaji secara mandiri dan lebih privat.
+                            Aplikasi yang membantu pegawai mengelola pelatihan, sertifikasi, dan tugas belajar secara terintegrasi.
                         </p>
                     </div>
                     
                     <div class="feature-grid">
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-user-check"></i>
+                                <i class="bx bx-certification"></i>
                             </div>
                             <div class="feature-content">
-                                <h5>Akses Mandiri</h5>
-                                <p>Pegawai dapat login menggunakan akun masing-masing.</p>
+                                <h5>Rekap Pelatihan</h5>
+                                <p>Kelola data pelatihan pegawai dengan mudah dan terstruktur.</p>
                             </div>
                         </div>
                         
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-printer"></i>
+                                <i class="bx bx-award"></i>
                             </div>
                             <div class="feature-content">
-                                <h5>Cetak Slip Gaji</h5>
-                                <p>Slip gaji dapat dilihat dan dicetak langsung melalui sistem.</p>
+                                <h5>Sertifikasi & Tubel</h5>
+                                <p>Pantau sertifikasi dan tugas belajar pegawai secara realtime.</p>
                             </div>
                         </div>
                         
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-lock"></i>
+                                <i class="bx bx-lock-alt"></i>
                             </div>
                             <div class="feature-content">
-                                <h5>Lebih Privat</h5>
-                                <p>Mengurangi risiko slip gaji terlihat oleh pegawai lain.</p>
+                                <h5>Akses Terintegrasi</h5>
+                                <p>Setiap pegawai memiliki akun untuk mengakses riwayat pengembangan SDM.</p>
                             </div>
                         </div>
                     </div>
@@ -586,7 +654,7 @@
                 <div class="elegant-right">
                     <div class="login-header">
                         <h3>Masuk Sistem</h3>
-                        <p>Masuk untuk melihat dan mencetak slip gaji Anda</p>
+                        <p>Masuk untuk mengelola pelatihan, sertifikasi, dan tugas belajar</p>
                     </div>
                     
                     <!-- Flash Messages -->
@@ -615,7 +683,7 @@
                                     <input type="text" 
                                            class="elegant-input" 
                                            name="login" 
-                                           placeholder="Masukkan username / email / NIP"
+                                           placeholder="Masukkan username / NIP"
                                            required 
                                            autocomplete="off"
                                            autofocus>
@@ -644,11 +712,28 @@
                             </button>
                         </form>
                         
+                        <!-- TOMBOL REGISTER -->
+                        <div class="register-link">
+                            <a href="{{ route('register') }}" class="register-btn">
+                                <i class="bx bx-user-plus"></i>
+                                Belum punya akun? Daftar di sini
+                            </a>
+                        </div>
+                        
                         <div class="login-footer">
+                            <div class="social-links">
+                                <a href="https://instagram.com/fzlns21" target="_blank" class="social-link">
+                                    <i class="bx bxl-instagram"></i> @fzlns21
+                                </a>
+                                <span style="color: var(--orange-300);">|</span>
+                                <a href="https://instagram.com/dhiyain" target="_blank" class="social-link">
+                                    <i class="bx bxl-instagram"></i> @dhiyain
+                                </a>
+                            </div>
                             <p class="copyright">
-                                © 2026 Magang Kemnaker • @fzlns21 | @dhiyaind
-                                <!-- <span class="version">Sistem Distribusi Slip Gaji</span> -->
+                                © 2026 Magang Kemnaker
                             </p>
+                            <span class="version">Sistem Manajemen Pelatihan & Sertifikasi v1.0</span>
                         </div>
                     </div>
                 </div>

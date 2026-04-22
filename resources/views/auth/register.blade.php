@@ -4,16 +4,16 @@
 <style>
     /* ===== VARIABLES & THEME ===== */
     :root {
-        --emerald-50: #ecfdf5;
-        --emerald-100: #d1fae5;
-        --emerald-200: #a7f3d0;
-        --emerald-300: #6ee7b7;
-        --emerald-400: #34d399;
-        --emerald-500: #10b981;
-        --emerald-600: #059669;
-        --emerald-700: #047857;
-        --emerald-800: #065f46;
-        --emerald-900: #064e3b;
+        --orange-50: #fff7ed;
+        --orange-100: #ffedd5;
+        --orange-200: #fed7aa;
+        --orange-300: #fdba74;
+        --orange-400: #fb923c;
+        --orange-500: #f97316;
+        --orange-600: #ea580c;
+        --orange-700: #c2410c;
+        --orange-800: #9a3412;
+        --orange-900: #7c2d12;
         --gold-500: #d4af37;
         --gold-600: #b8941f;
         --cream: #fdf6e3;
@@ -22,7 +22,7 @@
 
     /* ===== BASE STYLES ===== */
     body {
-        background: linear-gradient(145deg, var(--emerald-900), var(--charcoal));
+        background: linear-gradient(145deg, var(--orange-900), var(--charcoal));
         min-height: 100vh;
         margin: 0;
         font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -49,7 +49,7 @@
         width: 0;
         height: 0;
         border-width: 0 200px 346px 200px;
-        border-color: transparent transparent var(--emerald-400) transparent;
+        border-color: transparent transparent var(--orange-400) transparent;
         top: -100px;
         left: -100px;
         transform: rotate(45deg);
@@ -59,7 +59,7 @@
         width: 0;
         height: 0;
         border-width: 0 150px 260px 150px;
-        border-color: transparent transparent var(--emerald-300) transparent;
+        border-color: transparent transparent var(--orange-300) transparent;
         bottom: -100px;
         right: -80px;
         transform: rotate(135deg);
@@ -74,7 +74,7 @@
     .circle-1 {
         width: 300px;
         height: 300px;
-        background: var(--emerald-300);
+        background: var(--orange-300);
         top: 50%;
         left: 10%;
     }
@@ -82,7 +82,7 @@
     .circle-2 {
         width: 200px;
         height: 200px;
-        background: var(--emerald-400);
+        background: var(--orange-400);
         bottom: 20%;
         right: 15%;
     }
@@ -128,7 +128,7 @@
 
     /* ===== LEFT PANEL - ELEGANT ===== */
     .elegant-left {
-        background: linear-gradient(145deg, var(--emerald-800), var(--emerald-900));
+        background: linear-gradient(145deg, var(--orange-800), var(--orange-900));
         color: white;
         padding: 4rem 3rem;
         position: relative;
@@ -144,7 +144,7 @@
         bottom: 0;
         background: 
             radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
-            radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            radial-gradient(circle at 90% 80%, rgba(249, 115, 22, 0.05) 0%, transparent 40%);
     }
 
     .prestige-badge {
@@ -170,13 +170,13 @@
     .logo-icon {
         width: 70px;
         height: 70px;
-        background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+        background: linear-gradient(135deg, var(--orange-500), var(--orange-600));
         border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1.5rem;
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
         position: relative;
         overflow: hidden;
     }
@@ -208,7 +208,7 @@
         font-size: 2.75rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #fff, var(--emerald-200));
+        background: linear-gradient(135deg, #fff, var(--orange-200));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -249,12 +249,12 @@
     }
 
     .feature-icon i {
-        color: var(--emerald-300);
+        color: var(--orange-300);
         font-size: 1.25rem;
     }
 
     .feature-content h5 {
-        color: #6cbf98;
+        color: #fdba74;
         margin: 0 0 0.25rem 0;
         font-size: 1rem;
         font-weight: 600;
@@ -285,7 +285,7 @@
     }
 
     .security-note i {
-        color: var(--emerald-300);
+        color: var(--orange-300);
         font-size: 1.25rem;
     }
 
@@ -304,13 +304,13 @@
         font-family: 'Playfair Display', serif;
         font-size: 1.7rem;
         font-weight: 700;
-        color: var(--emerald-800);
+        color: var(--orange-800);
         margin-bottom: 0.5rem;
         letter-spacing: -0.5px;
     }
 
     .register-header p {
-        color: var(--emerald-600);
+        color: var(--orange-600);
         font-size: 1rem;
         opacity: 0.9;
         margin: 0;
@@ -333,6 +333,7 @@
     .form-group:nth-child(3) { animation-delay: 0.3s; }
     .form-group:nth-child(4) { animation-delay: 0.4s; }
     .form-group:nth-child(5) { animation-delay: 0.5s; }
+    .form-group:nth-child(6) { animation-delay: 0.6s; }
 
     @keyframes fadeInUp {
         from {
@@ -347,7 +348,7 @@
 
     .input-label {
         display: block;
-        color: var(--emerald-800);
+        color: var(--orange-800);
         font-size: 0.9rem;
         font-weight: 600;
         margin-bottom: 0.75rem;
@@ -360,7 +361,7 @@
         padding: 0.75rem 1rem;
         font-size: 0.9rem;
         background: white;
-        border: 2px solid rgba(6, 95, 70, 0.1);
+        border: 2px solid rgba(154, 52, 18, 0.1);
         border-radius: 12px;
         font-size: 1rem;
         color: var(--charcoal);
@@ -370,9 +371,9 @@
     }
 
     .elegant-input:focus {
-        border-color: var(--emerald-500);
+        border-color: var(--orange-500);
         box-shadow: 
-            0 0 0 4px rgba(16, 185, 129, 0.1),
+            0 0 0 4px rgba(249, 115, 22, 0.1),
             0 10px 15px -3px rgba(0, 0, 0, 0.08);
         transform: translateY(-1px);
     }
@@ -426,7 +427,7 @@
         left: 1.25rem;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--emerald-500);
+        color: var(--orange-500);
         font-size: 1.25rem;
         pointer-events: none;
     }
@@ -442,7 +443,7 @@
         transform: translateY(-50%);
         background: none;
         border: none;
-        color: var(--emerald-500);
+        color: var(--orange-500);
         cursor: pointer;
         font-size: 1.25rem;
         padding: 0;
@@ -451,14 +452,14 @@
     }
 
     .password-toggle:hover {
-        color: var(--emerald-700);
+        color: var(--orange-700);
     }
 
     /* ===== ELEGANT BUTTON ===== */
     .elegant-btn {
         width: 100%;
         padding: 1rem;
-        background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+        background: linear-gradient(135deg, var(--orange-600), var(--orange-700));
         color: white;
         border: none;
         border-radius: 12px;
@@ -469,7 +470,7 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
         text-transform: uppercase;
         margin-top: 1rem;
     }
@@ -477,9 +478,9 @@
     .elegant-btn:hover {
         transform: translateY(-2px);
         box-shadow: 
-            0 15px 30px rgba(16, 185, 129, 0.3),
+            0 15px 30px rgba(249, 115, 22, 0.3),
             0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-        background: linear-gradient(135deg, var(--emerald-700), var(--emerald-800));
+        background: linear-gradient(135deg, var(--orange-700), var(--orange-800));
     }
 
     .elegant-btn:active {
@@ -493,10 +494,10 @@
     /* ===== TERMS & CONDITIONS ===== */
     .terms-agreement {
         margin: 2rem 0;
-        padding: 1.5rem;
-        background: rgba(6, 95, 70, 0.03);
+        padding: 1rem;
+        background: rgba(249, 115, 22, 0.03);
         border-radius: 12px;
-        border: 1px solid rgba(6, 95, 70, 0.1);
+        border: 1px solid rgba(249, 115, 22, 0.1);
     }
 
     .form-check {
@@ -510,30 +511,30 @@
         width: 1.25rem;
         height: 1.25rem;
         margin-top: 0.25rem;
-        border: 2px solid rgba(6, 95, 70, 0.3);
+        border: 2px solid rgba(154, 52, 18, 0.3);
         border-radius: 4px;
         cursor: pointer;
         flex-shrink: 0;
     }
 
     .form-check-input:checked {
-        background-color: var(--emerald-600);
-        border-color: var(--emerald-600);
+        background-color: var(--orange-600);
+        border-color: var(--orange-600);
     }
 
     .form-check-input:focus {
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
     }
 
     .form-check-label {
         font-size: 0.9rem;
-        color: var(--emerald-700);
+        color: var(--orange-700);
         line-height: 1.5;
         cursor: pointer;
     }
 
     .form-check-label a {
-        color: var(--emerald-600);
+        color: var(--orange-600);
         text-decoration: none;
         font-weight: 600;
         transition: color 0.3s ease;
@@ -541,7 +542,7 @@
     }
 
     .form-check-label a:hover {
-        color: var(--emerald-800);
+        color: var(--orange-800);
         text-decoration: underline;
     }
 
@@ -550,18 +551,18 @@
         text-align: center;
         margin-top: 1rem;
         padding-top: 1.5rem;
-        border-top: 1px solid rgba(6, 95, 70, 0.1);
+        border-top: 1px solid rgba(154, 52, 18, 0.1);
         animation: fadeInUp 0.6s ease-out 0.8s both;
     }
 
     .login-link p {
         margin: 0;
-        color: var(--emerald-600);
+        color: var(--orange-600);
         font-size: 0.95rem;
     }
 
     .login-link a {
-        color: var(--emerald-600);
+        color: var(--orange-600);
         text-decoration: none;
         font-weight: 600;
         margin-left: 0.5rem;
@@ -570,7 +571,7 @@
     }
 
     .login-link a:hover {
-        color: var(--emerald-800);
+        color: var(--orange-800);
     }
 
     .login-link a::after {
@@ -580,7 +581,7 @@
         height: 2px;
         bottom: -2px;
         left: 0;
-        background: var(--emerald-600);
+        background: var(--orange-600);
         transition: width 0.3s ease;
     }
 
@@ -593,19 +594,49 @@
         margin-top: 1rem;
         text-align: center;
         padding-top: 2rem;
-        border-top: 1px solid rgba(6, 95, 70, 0.1);
+        border-top: 1px solid rgba(154, 52, 18, 0.1);
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--orange-600);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        background: rgba(249, 115, 22, 0.1);
+    }
+
+    .social-link:hover {
+        background: var(--orange-500);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .social-link i {
+        font-size: 1rem;
     }
 
     .copyright {
         font-size: 0.875rem;
-        color: var(--emerald-300);
+        color: var(--orange-600);
         opacity: 0.8;
     }
 
     .version {
         display: block;
         font-size: 0.75rem;
-        color: var(--emerald-500);
+        color: var(--orange-500);
         margin-top: 0.5rem;
         letter-spacing: 0.5px;
     }
@@ -641,7 +672,7 @@
     .password-strength {
         margin-top: 0.5rem;
         height: 6px;
-        background: rgba(6, 95, 70, 0.1);
+        background: rgba(154, 52, 18, 0.1);
         border-radius: 3px;
         overflow: hidden;
         position: relative;
@@ -656,13 +687,13 @@
 
     .strength-weak { background: #ef4444; }
     .strength-medium { background: #f59e0b; }
-    .strength-strong { background: #10b981; }
+    .strength-strong { background: #f97316; }
 
     .strength-text {
         font-size: 0.75rem;
         margin-top: 0.25rem;
         text-align: right;
-        color: var(--emerald-600);
+        color: var(--orange-600);
         font-weight: 500;
     }
 </style>
@@ -671,6 +702,7 @@
 <div class="geometric-bg">
     <div class="triangle triangle-1"></div>
     <div class="triangle triangle-2"></div>
+div>
     <div class="circle circle-1"></div>
     <div class="circle circle-2"></div>
 </div>
@@ -685,61 +717,72 @@
                     
                     <div class="logo-container">
                         <div class="logo-icon">
-                            <i class="bx bx-user-circle"></i>
+                            <i class="bx bxs-graduation"></i>
                         </div>
                         <h1 class="brand-name">
-                            Sistem Distribusi<br>
-                            Slip Gaji
+                            Sistem Manajemen<br>
+                            Pelatihan & Sertifikasi
                         </h1>
                         <p class="brand-tagline">
-                            Aktifkan akun Anda untuk mengakses dan mencetak slip gaji secara mandiri melalui sistem.
-                            
+                            Daftarkan akun Anda untuk mengakses pelatihan, sertifikasi, dan tugas belajar secara terintegrasi.
                         </p>
                     </div>
                     
                     <div class="feature-grid">
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-shield"></i>
+                                <i class="bx bx-certification"></i>
                             </div>
                             <div class="feature-content">
-                                <h5>Akses Pribadi</h5>
-                                <p>Slip gaji hanya dapat diakses oleh masing-masing pegawai</p>
+                                <h5>Rekap Pelatihan</h5>
+                                <p>Kelola data pelatihan pegawai dengan mudah dan terstruktur.</p>
                             </div>
                         </div>
                         
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-history"></i>
+                                <i class="bx bx-award"></i>
                             </div>
-                            <div class="feature-content"><h5>Riwayat Slip</h5>
-                            <p>Lihat dan unduh slip gaji periode sebelumnya kapan saja</p>
+                            <div class="feature-content">
+                                <h5>Sertifikasi & Tubel</h5>
+                                <p>Pantau sertifikasi dan tugas belajar pegawai secara realtime.</p>
                             </div>
                         </div>
                         
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="bx bx-download"></i>
+                                <i class="bx bx-lock-alt"></i>
                             </div>
-                            <div class="feature-content"><h5>Cetak Mandiri</h5>
-                            <p>Unduh dan cetak slip gaji langsung dari sistem</p>
+                            <div class="feature-content">
+                                <h5>Akses Terintegrasi</h5>
+                                <p>Setiap pegawai memiliki akun untuk mengakses riwayat pengembangan SDM.</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="security-note">
                         <p>
-                            <i class="bx bx-lock-alt"></i>
+                            <i class="bx bx-shield"></i>
                             <span>
-                            Sistem ini dirancang untuk memastikan distribusi slip gaji lebih aman dan tidak dapat diakses oleh pihak lain.
+                                Sistem ini dirancang untuk memastikan data pelatihan, sertifikasi, dan tugas belajar terdokumentasi dengan aman.
                             </span>
                         </p>
                     </div>
 
                     <div class="register-footer">
+                        <div class="social-links">
+                            <a href="https://instagram.com/fzlns21" target="_blank" class="social-link">
+                                <i class="bx bxl-instagram"></i> @fzlns21
+                            </a>
+                            <span style="color: var(--orange-300);">|</span>
+                            <a href="https://instagram.com/dhiyain" target="_blank" class="social-link">
+                                <i class="bx bxl-instagram"></i> @dhiyain
+                            </a>
+                        </div>
                         <p class="copyright">
-                            © 2026 Magang Kemnaker • @fzlns21 | @dhiyaind
+                            © 2026 Magang Kemnaker
                         </p>
+                        <span class="version">Sistem Manajemen Pelatihan & Sertifikasi v1.0</span>
                     </div>
                 </div>
             </div>
@@ -749,7 +792,7 @@
                 <div class="elegant-right">
                     <div class="register-header">
                         <h3>Registrasi Akun</h3>
-                        <p>Isilah detail berikut untuk registrasi akun</p>
+                        <p>Isilah detail berikut untuk mendaftar</p>
                     </div>
                     
                     <div class="form-container">
@@ -800,28 +843,6 @@
                                 @enderror
                             </div>
                             
-                            <!-- Email -->
-                            <div class="form-group">
-                                <label class="input-label">Email</label>
-                                <div class="input-with-icon">
-                                    <i class="bx bx-envelope input-icon"></i>
-                                    <input type="email" 
-                                           class="elegant-input @error('email') is-invalid @enderror"
-                                           id="email" 
-                                           name="email" 
-                                           value="{{ old('email') }}"
-                                           placeholder="contoh@emailanda.com"
-                                           required 
-                                           autocomplete="off">
-                                </div>
-                                @error('email')
-                                    <div class="invalid-feedback">
-                                        <i class="bx bx-error-circle me-1"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            
                             <!-- Jabatan -->
                             <div class="form-group">
                                 <label class="input-label">Jabatan</label>
@@ -863,7 +884,7 @@
                                 <div class="password-strength">
                                     <div class="strength-meter" id="strengthMeter"></div>
                                 </div>
-                                <div class="strength-text" id="strengthText">Password strength</div>
+                                <div class="strength-text" id="strengthText">Kekuatan password</div>
                                 @error('password')
                                     <div class="invalid-feedback">
                                         <i class="bx bx-error-circle me-1"></i>
@@ -872,9 +893,23 @@
                                 @enderror
                             </div>
                             
+                           
+                            
+                            
+                            <!-- Terms & Conditions -->
+                            <div class="terms-agreement">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        Saya menyetujui <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Syarat & Ketentuan</a> dan 
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Kebijakan Privasi</a>
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <button type="submit" class="elegant-btn" id="registerBtn">
                                 <i class="bx bx-user-plus"></i>
-                                Buat Akun
+                                Daftar Sekarang
                             </button>
                         </form>
                         
@@ -887,12 +922,6 @@
                                 </a>
                             </p>
                         </div>
-                        
-                        <!-- <div class="register-footer">
-                            <p class="copyright">
-                                © 2026 Magang Kemnaker • @fzlns21 | @dhiyaind
-                            </p>
-                        </div> -->
                     </div>
                 </div>
             </div>
@@ -907,62 +936,64 @@
         const password = document.getElementById(fieldId);
         const icon = document.getElementById(fieldId + 'Icon');
         
-        if (password.type === "password") {
-            password.type = "text";
-            icon.classList.remove("bx-hide");
-            icon.classList.add("bx-show");
-        } else {
-            password.type = "password";
-            icon.classList.remove("bx-show");
-            icon.classList.add("bx-hide");
+        if (password && icon) {
+            if (password.type === "password") {
+                password.type = "text";
+                icon.classList.remove("bx-hide");
+                icon.classList.add("bx-show");
+            } else {
+                password.type = "password";
+                icon.classList.remove("bx-show");
+                icon.classList.add("bx-hide");
+            }
         }
     }
     
     // Password Strength Checker
-    document.getElementById('password').addEventListener('input', function(e) {
-        const password = e.target.value;
-        const meter = document.getElementById('strengthMeter');
-        const text = document.getElementById('strengthText');
-        
-        let strength = 0;
-        
-        // Check password length
-        if (password.length >= 8) strength += 20;
-        if (password.length >= 12) strength += 20;
-        
-        // Check for uppercase letters
-        if (/[A-Z]/.test(password)) strength += 20;
-        
-        // Check for lowercase letters
-        if (/[a-z]/.test(password)) strength += 20;
-        
-        // Check for numbers
-        if (/[0-9]/.test(password)) strength += 20;
-        
-        // Check for special characters
-        if (/[^A-Za-z0-9]/.test(password)) strength += 20;
-        
-        // Cap at 100
-        strength = Math.min(strength, 100);
-        
-        // Update meter
-        meter.style.width = strength + '%';
-        
-        // Update text and color
-        if (strength < 40) {
-            meter.className = 'strength-meter strength-weak';
-            text.textContent = 'Lemah';
-            text.style.color = '#ef4444';
-        } else if (strength < 70) {
-            meter.className = 'strength-meter strength-medium';
-            text.textContent = 'Cukup';
-            text.style.color = '#f59e0b';
-        } else {
-            meter.className = 'strength-meter strength-strong';
-            text.textContent = 'Kuat';
-            text.style.color = '#10b981';
-        }
-    });
+    const passwordInput = document.getElementById('password');
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function(e) {
+            const password = e.target.value;
+            const meter = document.getElementById('strengthMeter');
+            const text = document.getElementById('strengthText');
+            
+            let strength = 0;
+            
+            // Check password length
+            if (password.length >= 8) strength += 25;
+            if (password.length >= 12) strength += 25;
+            
+            // Check for uppercase letters
+            if (/[A-Z]/.test(password)) strength += 20;
+            
+            // Check for numbers
+            if (/[0-9]/.test(password)) strength += 15;
+            
+            // Check for special characters
+            if (/[^A-Za-z0-9]/.test(password)) strength += 15;
+            
+            // Cap at 100
+            strength = Math.min(strength, 100);
+            
+            // Update meter
+            meter.style.width = strength + '%';
+            
+            // Update text and color
+            if (strength < 40) {
+                meter.className = 'strength-meter strength-weak';
+                text.textContent = 'Lemah';
+                text.style.color = '#ef4444';
+            } else if (strength < 70) {
+                meter.className = 'strength-meter strength-medium';
+                text.textContent = 'Cukup';
+                text.style.color = '#f59e0b';
+            } else {
+                meter.className = 'strength-meter strength-strong';
+                text.textContent = 'Kuat';
+                text.style.color = '#f97316';
+            }
+        });
+    }
     
     // Form submission with elegant loading state
     document.getElementById('formAuthentication').addEventListener('submit', function(e) {
@@ -975,34 +1006,15 @@
             return;
         }
         
-        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Memproses...';
         btn.disabled = true;
         btn.style.opacity = '0.8';
         
-        // Revert after 5 seconds (fallback)
         setTimeout(() => {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
             btn.style.opacity = '1';
         }, 5000);
-    });
-    
-    // Add animation to form groups on scroll
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animationPlayState = 'running';
-            }
-        });
-    }, observerOptions);
-    
-    document.querySelectorAll('.form-group').forEach((group) => {
-        observer.observe(group);
     });
     
     // Auto focus first input
@@ -1013,20 +1025,6 @@
                 firstInput.focus();
             }, 300);
         }
-    });
-    
-    // Terms modal (simplified version)
-    document.addEventListener('DOMContentLoaded', function() {
-        const termsLinks = document.querySelectorAll('a[data-bs-target="#termsModal"], a[data-bs-target="#privacyModal"]');
-        termsLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                if (!document.getElementById('termsModal') && !document.getElementById('privacyModal')) {
-                    e.preventDefault();
-                    const modalType = this.getAttribute('data-bs-target').includes('terms') ? 'Syarat & Ketentuan' : 'Kebijakan Privasi';
-                    alert(`${modalType} akan ditampilkan di sini. Untuk versi lengkap, hubungi administrator sistem.`);
-                }
-            });
-        });
     });
 </script>
 

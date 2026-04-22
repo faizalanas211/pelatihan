@@ -190,19 +190,18 @@ function tambahBaris() {
 }
 
 function hapusBaris(btn) {
-    const rows = document.querySelectorAll('.baris-peserta');
-    if(rows.length > 1){
-        btn.closest('.baris-peserta').remove();
-    }
+    // LANGSUNG HAPUS, TANPA BATASAN MINIMAL
+    btn.closest('.baris-peserta').remove();
     updateHapusButton();
 }
 
 function updateHapusButton() {
     const rows = document.querySelectorAll('.baris-peserta');
+    // TOMBOL HAPUS TETAP MUNCUL, TIDAK DISEMBUNYIKAN
     rows.forEach((row) => {
         const btn = row.querySelector('.btn-outline-danger');
         if(btn) {
-            btn.style.display = rows.length === 1 ? 'none' : 'inline-block';
+            btn.style.display = 'inline-block'; // SELALU TAMPIL
         }
     });
 }

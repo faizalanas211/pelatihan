@@ -19,7 +19,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
         'password',
         'nip',
         'pegawai_id',
@@ -50,6 +49,9 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Relasi ke model Pegawai
+     */
     public function pegawai()
     {
         return $this->belongsTo(Pegawai::class);

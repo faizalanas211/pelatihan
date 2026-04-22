@@ -16,7 +16,7 @@ class DashboardController extends Controller
         
         // Pagination manual untuk 10 data per halaman
         $currentPage = $request->page ?? 1;
-        $perPage = 10; // DIUBAH JADI 10
+        $perPage = 10;
         $offset = ($currentPage - 1) * $perPage;
         $totalData = count($rekapitulasiJP);
         $totalPages = ceil($totalData / $perPage);
@@ -31,15 +31,16 @@ class DashboardController extends Controller
         // 3. 5 KEGIATAN TERBARU
         $kegiatanTerbaru = $this->getKegiatanTerbaru();
         
-        // 4. TOTAL KESELURUHAN (tetap dihitung tapi tidak ditampilkan di card)
+        // 4. TOTAL KESELURUHAN
         $totalPelatihan = DB::table('pelatihan_peserta')->count();
         $totalSertifikasi = DB::table('sertifikasi_peserta')->count();
         $totalTubel = DB::table('tubel_peserta')->count();
         
-        // 5. UNTUK ROLE PEGAWAI
+        // 5. UNTUK ROLE PEGAWAI (DIPERBAIKI)
         $jpPegawai = 0;
         if (auth()->user()->role !== 'admin' && auth()->user()->role !== 'Admin') {
-            $pegawai = Pegawai::where('user_id', auth()->user()->id)->first();
+            // Cari pegawai berdasarkan NIP (karena users punya kolom nip)
+            $pegawai = Pegawai::where('nip', auth()->user()->nip)->first();
             if ($pegawai) {
                 $jpPelatihan = DB::table('pelatihan_peserta')
                     ->where('nip', $pegawai->nip)
