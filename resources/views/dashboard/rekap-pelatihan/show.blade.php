@@ -32,7 +32,7 @@
                         <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Pelatihan
                     </a>
 
-                    @if($peserta->count() > 0)
+                    @if(!empty($peserta) && count($peserta) > 0)
                     <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" 
                     class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white ms-2">
                         <i class="bi bi-pencil-square me-2"></i>Edit
