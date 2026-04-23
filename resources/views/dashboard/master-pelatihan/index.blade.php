@@ -70,12 +70,11 @@
                             <tr>
                                 <td class="ps-4 fw-bold text-muted">{{ $masterPelatihan->firstItem() + $index }}</td>
                                 <td>
-                                    {{-- FIX: BADGE DINAMIS BERDASARKAN KATEGORI --}}
                                     @php
                                         $badgeStyle = match($item->kategori) {
-                                            'pelatihan' => 'background: #e0f2fe; color: #0369a1;', // Biru
-                                            'sertifikasi' => 'background: #f0fdf4; color: #166534;', // Hijau
-                                            'tubel' => 'background: #faf5ff; color: #6b21a8;', // Ungu
+                                            'pelatihan' => 'background: #e0f2fe; color: #0369a1;',
+                                            'sertifikasi' => 'background: #f0fdf4; color: #166534;',
+                                            'tubel' => 'background: #faf5ff; color: #6b21a8;',
                                             default => 'background: #f1f5f9; color: #475569;'
                                         };
                                     @endphp
@@ -85,9 +84,14 @@
                                 </td>
                                 <td class="fw-semibold text-dark">{{ $item->nama_pelatihan }}</td>
                                 <td class="text-center">
-                                    <span class="badge rounded-pill px-3 py-2" style="{{ $item->jp ? 'background: #fff3e0; color: #e65100;' : 'background: #f8f9fa; color: #adb5bd;' }} font-size: 0.8rem;">
-                                        {{ $item->jp ? $item->jp . ' JP' : '-' }}
-                                    </span>
+                                    {{-- JP HANYA TAMPIL UNTUK KATEGORI 'pelatihan' --}}
+                                    @if($item->kategori == 'pelatihan')
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #fff3e0; color: #e65100; font-size: 0.8rem;">
+                                            {{ $item->jp ? $item->jp . ' JP' : '-' }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
                                 </td>
                                 <td class="text-center text-muted small fw-bold">{{ $item->tahun }}</td>
                                 <td class="text-center">
@@ -118,7 +122,7 @@
                                             <div class="modal-body p-4">
                                                 <div class="mb-3">
                                                     <label class="form-label small fw-bold text-uppercase text-muted">Kategori</label>
-                                                    <select name="kategori" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
+                                                    <select name="kategori" class="form-select rounded-3 border-0 shadow-sm p-3 kategori-select" style="background: #f8f9fa;" data-item-id="{{ $item->id }}">
                                                         <option value="pelatihan" {{ $item->kategori == 'pelatihan' ? 'selected' : '' }}>Pelatihan</option>
                                                         <option value="sertifikasi" {{ $item->kategori == 'sertifikasi' ? 'selected' : '' }}>Sertifikasi</option>
                                                         <option value="tubel" {{ $item->kategori == 'tubel' ? 'selected' : '' }}>Tugas Belajar</option>
@@ -129,9 +133,9 @@
                                                     <input type="text" name="nama_pelatihan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->nama_pelatihan }}" required>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="col-6 mb-3">
+                                                    <div class="col-6 mb-3 area-jp-edit" id="areaJPEdit{{ $item->id }}" style="{{ $item->kategori == 'pelatihan' ? '' : 'display: none;' }}">
                                                         <label class="form-label small fw-bold text-uppercase text-muted">Jumlah JP</label>
-                                                        <input type="number" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jp }}">
+                                                        <input type="number" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jp }}" placeholder="0">
                                                     </div>
                                                     <div class="col-6 mb-3">
                                                         <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
@@ -254,11 +258,13 @@
         } else if(kat === 'sertifikasi') {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Sertifikasi';
             document.getElementById('labelNama').innerText = 'Nama Sertifikasi / Sertifikat';
-            document.getElementById('areaJP').style.display = 'block';
+            document.getElementById('areaJP').style.display = 'none';
+            document.querySelector('#modalTambahData input[name="jp"]').value = '';
         } else {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Tugas Belajar';
             document.getElementById('labelNama').innerText = 'Nama Universitas / Jenjang';
             document.getElementById('areaJP').style.display = 'none';
+            document.querySelector('#modalTambahData input[name="jp"]').value = '';
         }
         formModal.show();
     }
@@ -267,6 +273,21 @@
         bootstrap.Modal.getInstance(document.getElementById('modalTambahData')).hide();
         new bootstrap.Modal(document.getElementById('modalPilihKategori')).show();
     }
+
+    // Untuk modal edit: sembunyikan field JP jika kategori bukan pelatihan
+    document.querySelectorAll('.kategori-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const itemId = this.getAttribute('data-item-id');
+            const areaJP = document.getElementById('areaJPEdit' + itemId);
+            if (this.value === 'pelatihan') {
+                areaJP.style.display = 'block';
+            } else {
+                areaJP.style.display = 'none';
+                // Kosongkan nilai JP jika kategori bukan pelatihan
+                areaJP.querySelector('input[name="jp"]').value = '';
+            }
+        });
+    });
 </script>
 
 <style>

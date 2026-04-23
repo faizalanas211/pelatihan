@@ -292,6 +292,21 @@
     margin-left: auto;
     box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
 }
+
+/* MODAL CLOSE BUTTON FIX */
+.modal-header .btn-close {
+    background-color: white;
+    opacity: 0.8;
+    border-radius: 50%;
+    padding: 8px;
+    margin: -8px -8px -8px auto;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+    background-color: white;
+    transform: scale(1.1);
+}
 </style>
 
 {{-- APP BRAND --}}
@@ -364,6 +379,7 @@
         </a>
     </li>
 
+<!--  
     {{-- PENGATURAN --}}
     <li class="menu-header">
         <span class="menu-header-text">⚙️ PENGATURAN</span>
@@ -375,7 +391,7 @@
             <div>Pengaturan Sistem</div>
         </a>
     </li>
-
+-->
 </ul>
 
 {{-- SIDEBAR PROFILE --}}
@@ -414,7 +430,7 @@ $userFoto = ($pegawai && $pegawai->foto) ? asset('storage/'.$pegawai->foto) : as
                 <h5 class="modal-title fw-bold text-white">
                     <i class="bx bx-user-circle me-2"></i>Profil Akun
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center" style="padding: 32px;">
                 <img src="{{ $userFoto }}"

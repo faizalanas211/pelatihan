@@ -55,15 +55,6 @@
 
                     <div class="col-md-4">
                         <div class="p-3 rounded-4 bg-light border">
-                            <label class="small text-muted text-uppercase fw-bold">JP</label>
-                            <div class="fw-bold fs-5 text-orange">
-                                {{ $sertifikasi->jp }} JP
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-light border">
                             <label class="small text-muted text-uppercase fw-bold">Instansi Penerbit</label>
                             <div class="fw-bold">
                                 {{ $header->instansi_penerbit ?? '-' }}
@@ -86,7 +77,6 @@
                                 <th>NIP</th>
                                 <th>NAMA</th>
                                 <th class="text-center">TANGGAL PELAKSANAAN</th>
-                                <th class="text-center">JP</th>
                                 <th class="text-center">MASA BERLAKU</th>
                                 <th class="text-center">FILE SERTIFIKAT</th>
                                 <th class="text-center">AKSI</th>
@@ -109,12 +99,6 @@
                                     <small class="text-muted">s/d</small>
                                     <br>
                                     {{ \Carbon\Carbon::parse($p->tanggal_selesai)->format('d M Y') }}
-                                </td>
-
-                                <td class="text-center">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.85rem;">
-                                        <i class="bi bi-stopwatch"></i> {{ $sertifikasi->jp }} JP
-                                    </span>
                                 </td>
 
                                 <td class="text-center">
@@ -239,7 +223,7 @@
 
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted">
+                                <td colspan="7" class="text-center text-muted">
                                     Belum ada peserta
                                 </td>
                             </tr>
@@ -277,9 +261,6 @@
 .btn-info:hover {
     background: #0bb5d8;
     color: white;
-}
-.bg-success-subtle {
-    background-color: #e8f5e9 !important;
 }
 </style>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MasterPelatihan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MasterPelatihanController extends Controller
@@ -37,20 +38,28 @@ class MasterPelatihanController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input
-        $request->validate([
+        // Validasi input (JP hanya wajib untuk kategori 'pelatihan')
+        $rules = [
             'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
-            'jp'             => 'nullable|numeric',
             'tahun'          => 'required|digits:4',
-        ]);
+        ];
+
+        // Jika kategori 'pelatihan', JP wajib diisi
+        if ($request->kategori == 'pelatihan') {
+            $rules['jp'] = 'required|numeric|min:1';
+        } else {
+            $rules['jp'] = 'nullable|numeric';
+        }
+
+        $request->validate($rules);
 
         try {
             // Simpan secara eksplisit agar kategori tidak tertukar
             MasterPelatihan::create([
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
-                'jp'             => $request->jp,
+                'jp'             => $request->jp ?? null,
                 'tahun'          => $request->tahun,
             ]);
 
@@ -67,22 +76,52 @@ class MasterPelatihanController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        // Validasi input (JP hanya wajib untuk kategori 'pelatihan')
+        $rules = [
             'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
-            'jp'             => 'nullable|numeric',
             'tahun'          => 'required|digits:4',
-        ]);
+        ];
+
+        // Jika kategori 'pelatihan', JP wajib diisi
+        if ($request->kategori == 'pelatihan') {
+            $rules['jp'] = 'required|numeric|min:1';
+        } else {
+            $rules['jp'] = 'nullable|numeric';
+        }
+
+        $request->validate($rules);
 
         try {
             $data = MasterPelatihan::findOrFail($id);
             
+            // Simpan nilai JP lama untuk perbandingan
+            $oldJp = $data->jp;
+            $newJp = $request->jp ?? null;
+            
             $data->update([
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
-                'jp'             => $request->jp,
+                'jp'             => $newJp,
                 'tahun'          => $request->tahun,
             ]);
+
+            // ✅ TAMBAHKAN: Jika JP berubah dan kategori adalah 'pelatihan', update JP di semua peserta terkait
+            if ($request->kategori == 'pelatihan' && $oldJp != $newJp) {
+                // Cari semua header pelatihan yang terkait dengan master ini
+                $headers = DB::table('pelatihan')->where('master_pelatihan_id', $data->id)->get();
+                
+                foreach ($headers as $header) {
+                    // Update JP semua peserta di pelatihan tersebut
+                    $affected = DB::table('pelatihan_peserta')
+                        ->where('pelatihan_id', $header->id)
+                        ->update(['jp' => $newJp]);
+                    
+                    Log::info('Update JP peserta untuk pelatihan_id ' . $header->id . ', affected: ' . $affected);
+                }
+                
+                Log::info('JP Master diubah dari ' . $oldJp . ' ke ' . $newJp . ', semua peserta terkait diupdate');
+            }
 
             return redirect()->route('master-pelatihan.index')
                              ->with('success', 'Data Master berhasil diperbarui!');

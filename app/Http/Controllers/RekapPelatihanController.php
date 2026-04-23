@@ -76,8 +76,7 @@ class RekapPelatihanController extends Controller
 
             // 1. CEK APAKAH SUDAH ADA HEADER DI TABEL pelatihan
             $existingHeader = DB::table('pelatihan')
-                ->where('jenis_pelatihan', $master->nama_pelatihan)
-                ->where('tahun', $master->tahun)
+                ->where('master_pelatihan_id', $master->id)
                 ->first();
 
             if ($existingHeader) {
@@ -93,6 +92,7 @@ class RekapPelatihanController extends Controller
             } else {
                 // BUAT HEADER BARU
                 $pelatihanId = DB::table('pelatihan')->insertGetId([
+                    'master_pelatihan_id'    => $master->id,
                     'jenis_pelatihan'        => $master->nama_pelatihan,
                     'tahun'                  => $master->tahun,
                     'jp'                     => $master->jp,
@@ -103,12 +103,26 @@ class RekapPelatihanController extends Controller
                 ]);
             }
 
-            // 2. LOOPING UNTUK SETIAP PESERTA
+            // 2. LOOPING UNTUK SETIAP PESERTA (DENGAN CEK DUPLIKAT)
+            $pesertaDitambahkan = 0;
+            $pesertaDuplikat = 0;
+
             foreach ($request->pegawai_id as $index => $value) {
                 // Parse NIP dan NAMA (format: "nip|nama" dari view)
                 $parts = explode('|', $value);
                 $nip = $parts[0];
                 $nama = $parts[1];
+
+                // ✅ CEK APAKAH PESERTA SUDAH ADA DI PELATIHAN INI
+                $existingPeserta = DB::table('pelatihan_peserta')
+                    ->where('pelatihan_id', $pelatihanId)
+                    ->where('nip', $nip)
+                    ->first();
+
+                if ($existingPeserta) {
+                    $pesertaDuplikat++;
+                    continue; // SKIP, TIDAK TAMBAH LAGI
+                }
 
                 $filePath = null;
 
@@ -134,12 +148,22 @@ class RekapPelatihanController extends Controller
                     'created_at'      => now(),
                     'updated_at'      => now(),
                 ]);
+
+                $pesertaDitambahkan++;
             }
 
             DB::commit();
 
+            $message = 'Data pelatihan berhasil disimpan!';
+            if ($pesertaDitambahkan > 0) {
+                $message .= ' (' . $pesertaDitambahkan . ' peserta baru)';
+            }
+            if ($pesertaDuplikat > 0) {
+                $message .= ' (' . $pesertaDuplikat . ' peserta duplikat diabaikan)';
+            }
+
             return redirect()->route('rekap-pelatihan.index')
-                ->with('success', 'Data pelatihan berhasil disimpan! (' . count($request->pegawai_id) . ' peserta)');
+                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -162,10 +186,9 @@ class RekapPelatihanController extends Controller
                         ->where('id', $id)
                         ->firstOrFail();
 
-            // ambil header dari tabel pelatihan
+            // ambil header dari tabel pelatihan berdasarkan master_pelatihan_id
             $header = DB::table('pelatihan')
-                        ->where('jenis_pelatihan', $pelatihan->nama_pelatihan)
-                        ->where('tahun', $pelatihan->tahun)
+                        ->where('master_pelatihan_id', $pelatihan->id)
                         ->first();
 
             // ambil peserta berdasarkan pelatihan_id
@@ -195,10 +218,9 @@ class RekapPelatihanController extends Controller
                     ->where('id', $id)
                     ->firstOrFail();
 
-        // ambil header dari tabel pelatihan
+        // ambil header dari tabel pelatihan berdasarkan master_pelatihan_id
         $header = DB::table('pelatihan')
-                    ->where('jenis_pelatihan', $pelatihan->nama_pelatihan)
-                    ->where('tahun', $pelatihan->tahun)
+                    ->where('master_pelatihan_id', $pelatihan->id)
                     ->first();
 
         // ambil peserta yang sudah ada
@@ -284,9 +306,7 @@ class RekapPelatihanController extends Controller
             }
 
             // ambil master_pelatihan_id dari tabel master_pelatihans
-            $master = MasterPelatihan::where('nama_pelatihan', $header->jenis_pelatihan)
-                        ->where('tahun', $header->tahun)
-                        ->first();
+            $master = MasterPelatihan::where('id', $header->master_pelatihan_id)->first();
 
             // UPDATE header instansi
             DB::table('pelatihan')->where('id', $id)->update([
