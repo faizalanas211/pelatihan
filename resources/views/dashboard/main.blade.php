@@ -12,169 +12,7 @@
     {{-- ADMIN --}}
     @if(auth()->user()->role === 'admin' || auth()->user()->role === 'Admin')
 
-    {{-- HEADER SECTION --}}
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-            <div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-3 p-3" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%);">
-                        <i class="bi bi-bar-chart-steps fs-1" style="color: #f97316;"></i>
-                    </div>
-                    <div>
-                        <h1 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                            Dashboard
-                        </h1>
-                        <p class="text-muted mb-0 mt-1">
-                            <i class="bi bi-graph-up"></i> Ringkasan data pengembangan SDM pegawai
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="text-end" style="background: #fffbeb; padding: 10px 18px; border-radius: 20px;">
-                <p class="mb-0 small" style="color: #f59e0b;">
-                    <i class="bi bi-calendar3"></i> {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
-                </p>
-                <p class="small mb-0" style="color: #b87a4a;">
-                    <i class="bi bi-person-circle"></i> Admin: {{ auth()->user()->name ?? 'Administrator' }}
-                </p>
-            </div>
-        </div>
-        <div class="mt-2 mb-4" style="height: 4px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24, #fef3c7); border-radius: 2px;"></div>
-    </div>
-
-    {{-- TABEL REKAPITULASI JP PEGAWAI --}}
-    <div class="col-12">
-        <div class="card border-0 rounded-4 overflow-hidden shadow-sm">
-            <div class="card-header bg-white border-0 pt-4 pb-0">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h5 class="fw-bold mb-0" style="color: #5c4a3a;">
-                            <i class="bi bi-table me-2" style="color: #f97316;"></i>
-                            Rekapitulasi JP Pegawai
-                        </h5>
-                        <p class="text-muted small mb-0">Data Jam Pelatihan (JP) seluruh pegawai - Maksimal 30 JP</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <form method="GET" action="{{ route('dashboard') }}" class="d-flex gap-2">
-                            <input type="hidden" name="tahun" value="{{ $tahun ?? '' }}">
-                            <input type="hidden" name="jenis" value="{{ $jenis ?? 'semua' }}">
-                            <select name="sort" class="form-select rounded-4 shadow-sm fw-bold" style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white; border: none; width: auto; cursor: pointer;">
-                                <option value="desc" {{ ($sort ?? 'desc') == 'desc' ? 'selected' : '' }} style="background: white; color: #f97316;">🏆 JP Terbanyak</option>
-                                <option value="asc" {{ ($sort ?? 'desc') == 'asc' ? 'selected' : '' }} style="background: white; color: #f97316;">📉 JP Tersedikit</option>
-                            </select>
-                            <button type="submit" class="btn btn-orange">
-                                <i class="bi bi-arrow-repeat me-1"></i> Urutkan
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead style="background: #fffbeb;">
-                            <tr>
-                                <th class="ps-4 py-3" style="width: 50px;">NO</th>
-                                <th>NIP</th>
-                                <th>Nama Pegawai</th>
-                                <th>JP (Jam Pelatihan)</th>
-                                <th class="pe-4">Status JP</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($rekapitulasiJPPaginated ?? [] as $index => $item)
-                            <tr class="border-bottom" style="border-color: #fef3c7;">
-                                <td class="ps-4 fw-bold" style="color: #b87a4a;">{{ (($currentPage ?? 1) - 1) * ($perPage ?? 10) + $index + 1 }}</td>
-                                <td class="font-monospace small" style="color: #5c4a3a;">{{ $item->nip }}</td>
-                                <td class="fw-semibold" style="color: #5c4a3a;">{{ $item->nama }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="fw-bold" style="color: #f97316;">{{ $item->jp }}</span>
-                                        <span class="text-muted small">/ {{ $item->max_jp }} JP</span>
-                                        <div class="progress" style="height: 5px; width: 80px; background: #fed7aa;">
-                                            <div class="progress-bar" style="width: {{ $item->persen }}%; background: #f97316;"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="pe-4">
-                                    @if(str_contains($item->status, 'Maksimal'))
-                                        <span class="badge rounded-pill" style="background: #d1fae5; color: #059669;">
-                                            <i class="bi bi-check-circle-fill me-1 small"></i> {{ $item->status }}
-                                        </span>
-                                    @elseif(str_contains($item->status, 'Kurang'))
-                                        <span class="badge rounded-pill" style="background: #fef3c7; color: #d97706;">
-                                            <i class="bi bi-exclamation-triangle-fill me-1 small"></i> {{ $item->status }}
-                                        </span>
-                                    @else
-                                        <span class="badge rounded-pill" style="background: #fee2e2; color: #dc2626;">
-                                            <i class="bi bi-x-circle-fill me-1 small"></i> {{ $item->status }}
-                                        </span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">Belum ada data pegawai</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                        <tfoot style="background: #fffbeb;">
-                            <tr>
-                                <td colspan="4" class="ps-4 py-3 fw-semibold" style="color: #5c4a3a;">Total Pegawai</td>
-                                <td class="pe-4 fw-semibold" style="color: #f97316;">{{ count($rekapitulasiJP ?? []) }} Orang</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                
-                {{-- PAGINATION --}}
-                @if(($totalPages ?? 1) > 1)
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 pt-3 border-top px-4 pb-4">
-                    <div class="mb-3 mb-md-0 text-muted small">
-                        Menampilkan {{ (($currentPage ?? 1) - 1) * ($perPage ?? 10) + 1 }} 
-                        sampai {{ min(($currentPage ?? 1) * ($perPage ?? 10), $totalData ?? 0) }} 
-                        dari {{ $totalData ?? 0 }} pegawai
-                    </div>
-                    <nav>
-                        <ul class="pagination mb-0">
-                            <li class="page-item {{ ($currentPage ?? 1) == 1 ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ route('dashboard', array_merge(request()->all(), ['page' => 1])) }}">
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item {{ ($currentPage ?? 1) == 1 ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ route('dashboard', array_merge(request()->all(), ['page' => ($currentPage ?? 1) - 1])) }}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            </li>
-                            
-                            @php
-                                $start = max(1, ($currentPage ?? 1) - 2);
-                                $end = min($totalPages ?? 1, ($currentPage ?? 1) + 2);
-                            @endphp
-                            @for($i = $start; $i <= $end; $i++)
-                                <li class="page-item {{ $i == ($currentPage ?? 1) ? 'active' : '' }}">
-                                    <a class="page-link" href="{{ route('dashboard', array_merge(request()->all(), ['page' => $i])) }}">{{ $i }}</a>
-                                </li>
-                            @endfor
-                            
-                            <li class="page-item {{ ($currentPage ?? 1) == ($totalPages ?? 1) ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ route('dashboard', array_merge(request()->all(), ['page' => ($currentPage ?? 1) + 1])) }}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item {{ ($currentPage ?? 1) == ($totalPages ?? 1) ? 'disabled' : '' }}">
-                                <a class="page-link" href="{{ route('dashboard', array_merge(request()->all(), ['page' => $totalPages ?? 1])) }}">
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
+    <livewire:dashboard.main />
 
     {{-- GRAFIK STATISTIK KEGIATAN --}}
     <div class="col-12 mt-4">
@@ -320,7 +158,7 @@
             data: {
                 labels: {!! json_encode($statistik['labels'] ?? ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']) !!},
                 datasets: [{
-                    label: 'Jumlah Kegiatan',
+                    label: 'Jumlah Peserta',
                     data: dataValues,
                     backgroundColor: 'rgba(249, 115, 22, 0.7)',
                     borderRadius: 8,
@@ -341,7 +179,7 @@
                         min: 0,
                         ticks: { stepSize: 1, callback: function(value) { return Number.isInteger(value) ? value : null; } },
                         grid: { color: '#fef3c7' },
-                        title: { display: true, text: 'Jumlah Kegiatan', color: '#b87a4a' }
+                        title: { display: true, text: 'Jumlah Peserta', color: '#b87a4a' }
                     },
                     x: {
                         grid: { display: false },
