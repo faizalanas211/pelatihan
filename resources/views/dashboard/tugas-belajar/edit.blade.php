@@ -84,91 +84,89 @@
 
                     <div id="container-peserta">
 
-                        <div id="container-peserta">
-@foreach($peserta as $row)
+                        @foreach($peserta as $row)
 
-<div class="card border-0 shadow-sm mb-3 baris-peserta">
-    <div class="card-body p-3">
-        <input type="hidden" name="id[]" value="{{ $row->id }}">
+                        <div class="card border-0 shadow-sm mb-3 baris-peserta">
+                            <div class="card-body p-3">
+                                <input type="hidden" name="id[]" value="{{ $row->id }}">
 
-        {{-- Pegawai --}}
-        <div class="mb-3">
-            <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
-            <select name="pegawai_id[]" class="form-select" required>
-                <option value="">-- Pilih Pegawai --</option>
-                @foreach($pegawais as $p)
-                    <option value="{{ $p->id }}" {{ $p->id == $row->pegawai_id ? 'selected' : '' }}>
-                        {{ $p->nama }} ({{ $p->nip }})
-                    </option>
-                @endforeach
-            </select>
-        </div>
+                                {{-- Pegawai --}}
+                                <div class="mb-3">
+                                    <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
+                                    <select name="pegawai_id[]" class="form-select" required>
+                                        <option value="">-- Pilih Pegawai --</option>
+                                        @foreach($pegawais as $p)
+                                            <option value="{{ $p->id }}" {{ $p->id == $row->pegawai_id ? 'selected' : '' }}>
+                                                {{ $p->nama }} ({{ $p->nip }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-        {{-- Detail --}}
-        <div class="row g-3">
+                                {{-- Detail --}}
+                                <div class="row g-3">
 
-            <div class="col-md-3">
-                <label class="small">Tanggal Mulai <span class="text-danger">*</span></label>
-                <input type="date" name="tanggal_mulai[]" 
-                       class="form-control"
-                       value="{{ $row->tanggal_mulai }}" required>
-            </div>
+                                    <div class="col-md-3">
+                                        <label class="small">Tanggal Mulai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_mulai[]" 
+                                               class="form-control"
+                                               value="{{ $row->tanggal_mulai }}" required>
+                                    </div>
 
-            <div class="col-md-3">
-                <label class="small">Tanggal Selesai <span class="text-danger">*</span></label>
-                <input type="date" name="tanggal_selesai[]" 
-                       class="form-control"
-                       value="{{ $row->tanggal_selesai }}" required>
-            </div>
+                                    <div class="col-md-3">
+                                        <label class="small">Tanggal Selesai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_selesai[]" 
+                                               class="form-control"
+                                               value="{{ $row->tanggal_selesai }}" required>
+                                    </div>
 
-            <div class="col-md-3">
-                <label class="small">No SK</label>
-                <input type="text" name="no_sk[]" 
-                       class="form-control"
-                       value="{{ $row->no_sk_tubel }}">
-            </div>
+                                    <div class="col-md-3">
+                                        <label class="small">No SK</label>
+                                        <input type="text" name="no_sk[]" 
+                                               class="form-control"
+                                               value="{{ $row->no_sk_tubel }}">
+                                    </div>
 
-            <div class="col-md-3">
-                <label class="small">Upload SK</label>
-                <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
+                                    <div class="col-md-3">
+                                        <label class="small">Upload SK</label>
+                                        <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
 
-                @if($row->file_sk_tubel)
-                    <div class="mt-2 file-existing d-flex align-items-center gap-3">
-                        <a href="{{ asset('storage/'.$row->file_sk_tubel) }}" 
-                        target="_blank" 
-                        class="text-decoration-none fw-semibold"
-                        style="color:#16a34a;">
-                            Lihat file
-                        </a>
+                                        @if($row->file_sk_tubel)
+                                            <div class="mt-2 file-existing d-flex align-items-center gap-3">
+                                                <a href="{{ asset('storage/'.$row->file_sk_tubel) }}" 
+                                                target="_blank" 
+                                                class="text-decoration-none fw-semibold"
+                                                style="color:#16a34a;">
+                                                    Lihat file
+                                                </a>
 
-                        {{-- ✅ checkbox hapus --}}
-                        <div class="form-check">
-                            <input class="form-check-input" 
-                                type="checkbox" 
-                                name="hapus_file[]" 
-                                value="{{ $row->id }}" 
-                                id="hapus{{ $row->id }}">
-                            <label class="form-check-label text-danger small" for="hapus{{ $row->id }}">
-                                Hapus file
-                            </label>
+                                                {{-- ✅ checkbox hapus --}}
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                        type="checkbox" 
+                                                        name="hapus_file[]" 
+                                                        value="{{ $row->id }}" 
+                                                        id="hapus{{ $row->id }}">
+                                                    <label class="form-check-label text-danger small" for="hapus{{ $row->id }}">
+                                                        Hapus file
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
+                                        Hapus
+                                    </button>
+                                </div>
+
+                            </div>
                         </div>
-                    </div>
-                @endif
-            </div>
 
-        </div>
-
-        <div class="d-flex justify-content-end mt-3">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
-                Hapus
-            </button>
-        </div>
-
-    </div>
-</div>
-
-@endforeach
-</div>
+                        @endforeach
 
                     </div>
 
@@ -208,10 +206,9 @@ function tambahBaris() {
 }
 
 function hapusBaris(btn) {
-    const rows = document.querySelectorAll('.baris-peserta');
-    if(rows.length > 1){
-        btn.closest('.baris-peserta').remove();
-    }
+    // ✅ PERUBAHAN: HAPUS LANGSUNG TANPA CEK JUMLAH BARIS
+    // BISA HAPUS SEMUA PESERTA TERMASUK YANG TERAKHIR
+    btn.closest('.baris-peserta').remove();
     updateHapusButton();
 }
 
@@ -219,7 +216,10 @@ function updateHapusButton() {
     const rows = document.querySelectorAll('.baris-peserta');
     rows.forEach((row, index) => {
         const btn = row.querySelector('.btn-outline-danger');
-        btn.style.display = rows.length === 1 ? 'none' : 'inline-block';
+        // ✅ Tombol hapus selalu muncul
+        if(btn) {
+            btn.style.display = 'inline-block';
+        }
     });
 }
 

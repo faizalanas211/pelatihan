@@ -42,6 +42,18 @@
                     </div>
                 @endif
 
+                @if (session('success'))
+                    <div class="alert alert-success rounded-4">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger rounded-4">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <form action="{{ route('rekap-pelatihan.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
@@ -80,6 +92,17 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">INSTANSI PENYELENGGARA <span class="text-danger">*</span></label>
                         <input type="text" name="instansi" class="form-control" placeholder="Masukkan instansi penyelenggara" value="{{ old('instansi') }}" required>
+                    </div>
+
+                    {{-- TOMBOL IMPORT EXCEL --}}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="fw-bold">IMPORT EXCEL</label>
+                            <button type="button" class="btn btn-sm" style="background: #f97316; color: white;" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                                <i class="bi bi-file-excel me-1"></i> Import Excel
+                            </button>
+                        </div>
+                        <small class="text-muted">Gunakan tombol di bawah untuk menambah peserta secara manual</small>
                     </div>
 
                     <hr>
@@ -157,6 +180,57 @@
     </div>
 </div>
 
+{{-- MODAL IMPORT EXCEL --}}
+<div class="modal fade" id="modalImportExcel" tabindex="-1" aria-labelledby="modalImportExcelLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <form action="{{ route('rekap-pelatihan.import-excel') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="master_pelatihan_id" id="import_master_id">
+                <input type="hidden" name="instansi" id="import_instansi">
+
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%);">
+                    <h5 class="modal-title fw-bold" id="modalImportExcelLabel">
+                        <i class="bi bi-file-excel me-2" style="color: #f97316;"></i>
+                        Import Peserta dari Excel
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-info rounded-3 small">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Pastikan Anda sudah memilih MASTER PELATIHAN dan INSTANSI terlebih dahulu.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Download Template Excel</label>
+                        <div>
+                            <a href="{{ route('rekap-pelatihan.download-template') }}" class="btn btn-sm btn-outline-success" target="_blank">
+    <i class="bi bi-download me-1"></i> Download Template
+</a>
+                        </div>
+                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih File Excel</label>
+                        <input type="file" name="file_excel" class="form-control" accept=".xlsx,.xls" required>
+                        <small class="text-muted">Maksimal 5MB, format .xlsx atau .xls</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn" style="background: #f97316; color: white;">
+                        <i class="bi bi-upload me-1"></i> Import Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     updateHapusButton();
@@ -205,6 +279,30 @@ document.getElementById('filterTahun').addEventListener('change', function () {
 
     // reset pilihan
     document.getElementById('masterPelatihan').value = '';
+});
+
+// Saat modal akan dibuka, isi hidden field dengan data dari form utama
+document.getElementById('modalImportExcel').addEventListener('show.bs.modal', function () {
+    const masterId = document.querySelector('[name="master_pelatihan_id"]').value;
+    const instansi = document.querySelector('[name="instansi"]').value;
+    
+    document.getElementById('import_master_id').value = masterId || '';
+    document.getElementById('import_instansi').value = instansi || '';
+    
+    // Validasi jika belum dipilih
+    if (!masterId) {
+        alert('Silakan pilih MASTER PELATIHAN terlebih dahulu!');
+        // Prevent modal from showing? Bootstrap doesn't have direct cancel, but we can hide
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'));
+        if (modal) modal.hide();
+        return;
+    }
+    if (!instansi) {
+        alert('Silakan isi INSTANSI PENYELENGGARA terlebih dahulu!');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'));
+        if (modal) modal.hide();
+        return;
+    }
 });
 </script>
 

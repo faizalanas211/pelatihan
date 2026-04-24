@@ -115,9 +115,9 @@
                                     <div class="modal-content border-0 rounded-4">
                                         <div class="modal-header border-0 pb-0 ps-4 pt-4">
                                             <h5 class="fw-bold">Edit Master Data</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1;"></button>
                                         </div>
-                                        <form action="{{ route('master-pelatihan.update', $item->id) }}" method="POST">
+                                        <form action="{{ route('master-pelatihan.update', $item->id) }}" method="POST" class="form-edit-master">
                                             @csrf @method('PUT')
                                             <div class="modal-body p-4">
                                                 <div class="mb-3">
@@ -149,7 +149,10 @@
                                             </div>
                                             <div class="modal-footer border-0 pb-4 pe-4">
                                                 <button type="button" class="btn btn-light rounded-4 px-4" data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn rounded-4 px-4 text-white fw-bold shadow-sm" style="background: #f97316; border: none;">Simpan</button>
+                                                <button type="submit" class="btn rounded-4 px-4 text-white fw-bold shadow-sm btn-simpan-edit" style="background: #f97316; border: none;" data-item-id="{{ $item->id }}">
+                                                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                                                    Simpan
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
@@ -173,9 +176,9 @@
 <div class="modal fade" id="modalPilihKategori" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow">
-            <div class="modal-header border-0 pb-0 ps-4 pt-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <h5 class="fw-bold" style="color: #4a3728;">Pilih Kategori Data Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin: 0;"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="row g-3">
@@ -207,11 +210,11 @@
 <div class="modal fade" id="modalTambahData" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 rounded-4 shadow">
-            <div class="modal-header border-0 pb-0 mt-2 ps-4 pt-4">
+            <div class="modal-header border-0 pb-0 mt-2 ps-4 pt-4 pe-4">
                 <h5 class="fw-bold" id="judulModalTambah">Tambah Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="opacity: 1; margin: 0;"></button>
             </div>
-            <form action="{{ route('master-pelatihan.store') }}" method="POST">
+            <form action="{{ route('master-pelatihan.store') }}" method="POST" id="formTambahMaster">
                 @csrf
                 <input type="hidden" name="kategori" id="inputKategori">
                 <div class="modal-body p-4">
@@ -236,7 +239,10 @@
                 </div>
                 <div class="modal-footer border-0 pb-4 pe-4">
                     <button type="button" class="btn btn-light rounded-4 px-4" onclick="kembaliPilih()">Kembali</button>
-                    <button type="submit" class="btn rounded-4 px-5 text-white fw-bold shadow-sm" style="background: #f97316; border: none;">Simpan</button>
+                    <button type="submit" class="btn rounded-4 px-5 text-white fw-bold shadow-sm" style="background: #f97316; border: none;" id="btnSimpanTambah">
+                        <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true" id="spinnerTambah"></span>
+                        Simpan
+                    </button>
                 </div>
             </form>
         </div>
@@ -266,6 +272,15 @@
             document.getElementById('areaJP').style.display = 'none';
             document.querySelector('#modalTambahData input[name="jp"]').value = '';
         }
+        
+        // Reset button state saat modal dibuka
+        const btn = document.getElementById('btnSimpanTambah');
+        const spinner = document.getElementById('spinnerTambah');
+        if (btn) {
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+        }
+        
         formModal.show();
     }
 
@@ -288,9 +303,50 @@
             }
         });
     });
+
+    // ✅ LOADING STATE UNTUK FORM TAMBAH (CEGAH KLIK GANDA)
+    const formTambah = document.getElementById('formTambahMaster');
+    if (formTambah) {
+        formTambah.addEventListener('submit', function(e) {
+            const btn = document.getElementById('btnSimpanTambah');
+            const spinner = document.getElementById('spinnerTambah');
+            if (btn) {
+                btn.disabled = true;
+                spinner.classList.remove('d-none');
+            }
+        });
+    }
+
+    // ✅ LOADING STATE UNTUK SEMUA FORM EDIT (CEGAH KLIK GANDA)
+    document.querySelectorAll('.form-edit-master').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = this.querySelector('.btn-simpan-edit');
+            if (btn) {
+                const spinner = btn.querySelector('.spinner-border');
+                btn.disabled = true;
+                if (spinner) spinner.classList.remove('d-none');
+            }
+        });
+    });
 </script>
 
 <style>
     .kategori-item:hover { background: #fff7ed !important; border-color: #f97316 !important; transform: scale(1.02); transition: 0.2s; }
+    
+    /* ✅ PERBAIKI POSISI TOMBOL CLOSE */
+    .modal-header {
+        position: relative;
+        align-items: center;
+    }
+    .btn-close {
+        opacity: 1;
+        transition: none;
+        margin: 0 !important;
+    }
+    .btn-close:hover {
+        opacity: 1;
+        background-color: transparent;
+        transform: none;
+    }
 </style>
 @endsection

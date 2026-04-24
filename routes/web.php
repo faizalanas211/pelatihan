@@ -47,6 +47,21 @@ use App\Http\Controllers\TugasBelajarController;
 
 /*
 |--------------------------------------------------------------------------
+| ROUTE DI LUAR MIDDLEWARE (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+
+// ✅ TEMPLATE DOWNLOAD PELATIHAN - DI LUAR MIDDLEWARE
+Route::get('/download-template-pelatihan', [RekapPelatihanController::class, 'downloadTemplate'])->name('rekap-pelatihan.download-template');
+
+// ✅ TEMPLATE DOWNLOAD SERTIFIKASI - DI LUAR MIDDLEWARE
+Route::get('/download-template-sertifikasi', [SertifikasiController::class, 'downloadTemplate'])->name('sertifikasi.download-template');
+
+// ✅ TEMPLATE DOWNLOAD TUGAS BELAJAR - DI LUAR MIDDLEWARE
+Route::get('/download-template-tugas-belajar', [TugasBelajarController::class, 'downloadTemplate'])->name('tugas-belajar.download-template');
+
+/*
+|--------------------------------------------------------------------------
 | Guest Routes (BELUM LOGIN)
 |--------------------------------------------------------------------------
 */
@@ -79,14 +94,19 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::post('rekap-pelatihan/upload-sertifikat-peserta/{id}', [RekapPelatihanController::class, 'uploadSertifikatPeserta'])->name('rekap-pelatihan.upload-sertifikat-peserta');
     Route::put('rekap-pelatihan/peserta/{id}', [RekapPelatihanController::class, 'updatePeserta'])->name('rekap-pelatihan.updatePeserta');
     
+    // ✅ ROUTE IMPORT EXCEL PELATIHAN
+    Route::post('rekap-pelatihan/import-excel', [RekapPelatihanController::class, 'importExcel'])->name('rekap-pelatihan.import-excel');
+    
     // 2. Jadwal Pelatihan
     Route::resource('jadwal-pelatihan', JadwalPelatihanController::class);
     
     // 3. Sertifikasi (BARU & KOLEKTIF)
     Route::resource('sertifikasi', SertifikasiController::class);
     Route::post('sertifikasi/upload-file/{id}', [SertifikasiController::class, 'uploadFile'])->name('sertifikasi.upload-file');
-    // ✅ TAMBAHKAN ROUTE UPDATE PESERTA SERTIFIKASI
     Route::put('sertifikasi/peserta/{id}', [SertifikasiController::class, 'updatePeserta'])->name('sertifikasi.updatePeserta');
+    
+    // ✅ TAMBAH: ROUTE IMPORT EXCEL SERTIFIKASI
+    Route::post('sertifikasi/import-excel', [SertifikasiController::class, 'importExcel'])->name('sertifikasi.import-excel');
     
     // 4. Sertifikat Event
     Route::resource('sertifikat', SertifikatController::class);
@@ -109,6 +129,9 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/tugas-belajar/get-tubel', [TugasBelajarController::class, 'getTubelByTahun'])->name('tugas-belajar.get-tubel');
     Route::put('tugas-belajar/peserta/{id}', [TugasBelajarController::class, 'updatePeserta'])->name('tugas-belajar.updatePeserta');
     Route::delete('tugas-belajar/{id}/peserta', [TugasBelajarController::class, 'destroyPeserta'])->name('tugas-belajar.destroyPeserta');
+    
+    // ✅ ROUTE IMPORT EXCEL TUGAS BELAJAR (POST SAJA, GET SUDAH DIPINDAHKAN KE LUAR)
+    Route::post('tugas-belajar/import-excel', [TugasBelajarController::class, 'importExcel'])->name('tugas-belajar.import-excel');
     
     // 8. Riwayat SDM
     Route::get('/riwayat-sdm/export', [RiwayatSDMController::class, 'export'])->name('riwayat-sdm.export');

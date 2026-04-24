@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class RekapPelatihanController extends Controller
 {
@@ -468,4 +470,266 @@ class RekapPelatihanController extends Controller
             return back()->with('error', 'Gagal hapus: ' . $e->getMessage());
         }
     }
+
+/**
+ * IMPORT EXCEL: Import peserta dari file Excel
+ */
+public function importExcel(Request $request)
+{
+    $request->validate([
+        'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
+        'instansi' => 'required|string',
+        'file_excel' => 'required|file|mimes:xlsx,xls|max:5120',
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
+
+        // 1. CEK ATAU BUAT HEADER DI TABEL pelatihan
+        $existingHeader = DB::table('pelatihan')
+            ->where('master_pelatihan_id', $master->id)
+            ->first();
+
+        if ($existingHeader) {
+            $pelatihanId = $existingHeader->id;
+            // ✅ JANGAN HAPUS DULU, NANTI HAPUS SETELAH VALIDASI BERHASIL
+        } else {
+            $pelatihanId = DB::table('pelatihan')->insertGetId([
+                'master_pelatihan_id'    => $master->id,
+                'jenis_pelatihan'        => $master->nama_pelatihan,
+                'tahun'                  => $master->tahun,
+                'jp'                     => $master->jp,
+                'instansi_penyelenggara' => $request->instansi,
+                'status'                 => 'selesai',
+                'created_at'             => now(),
+                'updated_at'             => now(),
+            ]);
+        }
+
+        // 2. BACA FILE EXCEL
+        $file = $request->file('file_excel');
+        $spreadsheet = IOFactory::load($file->getPathname());
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray();
+
+        // Hapus header (baris pertama)
+        array_shift($rows);
+        
+        // Hapus baris kosong
+        $rows = array_values(array_filter($rows, function($row) {
+            return !(empty($row[0]) && empty($row[1]));
+        }));
+
+        $pesertaValid = [];
+        $errors = [];
+
+        // Fungsi bantu konversi tanggal
+        $parseDate = function($dateString) {
+            if (empty($dateString)) return null;
+            $dateString = trim($dateString);
+            
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {
+                return $dateString;
+            }
+            
+            if (is_numeric($dateString)) {
+                return ExcelDate::excelToDateTimeObject($dateString)->format('Y-m-d');
+            }
+            
+            if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $dateString, $matches)) {
+                $day = $matches[1];
+                $month = $matches[2];
+                $year = $matches[3];
+                if (checkdate($month, $day, $year)) {
+                    return sprintf('%04d-%02d-%02d', $year, $month, $day);
+                }
+            }
+            
+            if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $dateString, $matches)) {
+                $day = $matches[1];
+                $month = $matches[2];
+                $year = $matches[3];
+                if (checkdate($month, $day, $year)) {
+                    return sprintf('%04d-%02d-%02d', $year, $month, $day);
+                }
+            }
+            
+            $timestamp = strtotime($dateString);
+            if ($timestamp !== false) {
+                $result = date('Y-m-d', $timestamp);
+                if ($result && $result != '1970-01-01') {
+                    return $result;
+                }
+            }
+            
+            return null;
+        };
+
+        // ✅ VALIDASI SEMUA BARIS TERLEBIH DAHULU (TANPA INSERT)
+        foreach ($rows as $rowIndex => $row) {
+            $nip = trim($row[0] ?? '');
+            $nama = trim($row[1] ?? '');
+            $tanggalMulaiRaw = $row[2] ?? null;
+            $tanggalSelesaiRaw = $row[3] ?? null;
+
+            if (empty($nip)) {
+                $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
+                continue;
+            }
+            
+            if (empty($nama)) {
+                $errors[] = "Baris " . ($rowIndex + 2) . ": Nama kosong";
+                continue;
+            }
+
+            // Cek apakah pegawai ada di database
+            $pegawai = DB::table('pegawai')->where('nip', $nip)->first();
+            if (!$pegawai) {
+                $errors[] = "Baris " . ($rowIndex + 2) . ": NIP '$nip' tidak ditemukan di database pegawai";
+                continue;
+            }
+
+            $tanggalMulai = $parseDate($tanggalMulaiRaw);
+            $tanggalSelesai = $parseDate($tanggalSelesaiRaw);
+
+            if (!$tanggalMulai) {
+                $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal mulai tidak valid ('{$tanggalMulaiRaw}')";
+                continue;
+            }
+            
+            if (!$tanggalSelesai) {
+                $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal selesai tidak valid ('{$tanggalSelesaiRaw}')";
+                continue;
+            }
+
+            // ✅ DATA VALID, TAMPUNG DULU
+            $pesertaValid[] = [
+                'nip' => $nip,
+                'nama' => $nama,
+                'tanggal_mulai' => $tanggalMulai,
+                'tanggal_selesai' => $tanggalSelesai,
+            ];
+        }
+
+        // ✅ JIKA ADA ERROR, BATALKAN DAN KEMBALI (TANPA HAPUS DATA LAMA)
+        if (!empty($errors)) {
+            DB::rollBack();
+            $errorMessage = "Import gagal! Terdapat " . count($errors) . " error.\n";
+            $errorMessage .= implode(', ', array_slice($errors, 0, 5));
+            if (count($errors) > 5) {
+                $errorMessage .= ", dan " . (count($errors) - 5) . " error lainnya.";
+            }
+            return redirect()->back()->withInput()->with('error', $errorMessage);
+        }
+
+        // ✅ JIKA SEMUA VALID, BARU HAPUS DATA LAMA
+        if ($existingHeader) {
+            // Hapus semua peserta lama
+            $oldPeserta = DB::table('pelatihan_peserta')
+                ->where('pelatihan_id', $pelatihanId)
+                ->get();
+            
+            foreach ($oldPeserta as $row) {
+                if ($row->sertifikat_path) {
+                    Storage::disk('public')->delete($row->sertifikat_path);
+                }
+            }
+            
+            DB::table('pelatihan_peserta')
+                ->where('pelatihan_id', $pelatihanId)
+                ->delete();
+            
+            // Update header instansi
+            DB::table('pelatihan')
+                ->where('id', $pelatihanId)
+                ->update([
+                    'instansi_penyelenggara' => $request->instansi,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        // ✅ INSERT SEMUA DATA VALID
+        foreach ($pesertaValid as $peserta) {
+            DB::table('pelatihan_peserta')->insert([
+                'pelatihan_id'    => $pelatihanId,
+                'nip'             => $peserta['nip'],
+                'nama_peserta'    => $peserta['nama'],
+                'tanggal_mulai'   => $peserta['tanggal_mulai'],
+                'tanggal_selesai' => $peserta['tanggal_selesai'],
+                'jp'              => $master->jp,
+                'sertifikat_path' => null,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+        }
+
+        DB::commit();
+
+        $message = "Import selesai! " . count($pesertaValid) . " peserta berhasil ditambahkan.";
+
+        return redirect()->route('rekap-pelatihan.show', $master->id)
+            ->with('success', $message);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Import Excel gagal: ' . $e->getMessage());
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Gagal import Excel: ' . $e->getMessage());
+    }
+}
+
+    /**
+ * DOWNLOAD TEMPLATE EXCEL
+ */
+public function downloadTemplate()
+{
+    try {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header kolom
+        $sheet->setCellValue('A1', 'NIP');
+        $sheet->setCellValue('B1', 'NAMA PESERTA');
+        $sheet->setCellValue('C1', 'TANGGAL MULAI');
+        $sheet->setCellValue('D1', 'TANGGAL SELESAI');
+
+        // Contoh data
+        $sheet->setCellValue('A2', '123456789012345678');
+        $sheet->setCellValue('B2', 'Contoh Pegawai');
+        $sheet->setCellValue('C2', '2024-01-01');
+        $sheet->setCellValue('D2', '2024-01-05');
+
+        // Style header
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:D1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFF97316');
+
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Buat writer dan output
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        
+        // Set response headers
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="template_import_peserta.xlsx"');
+        header('Cache-Control: max-age=0');
+        header('Expires: Mon, 01 Jan 1990 00:00:00 GMT');
+        header('Pragma: public');
+        
+        $writer->save('php://output');
+        exit;
+        
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Download template gagal: ' . $e->getMessage());
+        
+        // Redirect back dengan pesan error
+        return redirect()->back()->with('error', 'Gagal download template: ' . $e->getMessage());
+    }
+}
 }

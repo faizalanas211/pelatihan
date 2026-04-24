@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class SertifikasiController extends Controller
 {
@@ -76,7 +78,7 @@ class SertifikasiController extends Controller
         try {
             $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
 
-            // 1. CEK APAKAH SUDAH ADA HEADER DI TABEL sertifikasi (diperbaiki)
+            // 1. CEK APAKAH SUDAH ADA HEADER DI TABEL sertifikasi
             $existingHeader = DB::table('sertifikasi')
                 ->where('master_pelatihan_id', $master->id)
                 ->first();
@@ -152,7 +154,7 @@ class SertifikasiController extends Controller
     }
 
     /**
-     * SHOW: Menampilkan detail sertifikasi dan peserta (diperbaiki)
+     * SHOW: Menampilkan detail sertifikasi dan peserta
      */
     public function show($id)
     {
@@ -185,7 +187,7 @@ class SertifikasiController extends Controller
     }
 
     /**
-     * EDIT: Menampilkan form edit peserta sertifikasi (diperbaiki)
+     * EDIT: Menampilkan form edit peserta sertifikasi
      */
     public function edit($id)
     {
@@ -269,7 +271,7 @@ class SertifikasiController extends Controller
     }
 
     /**
-     * UPDATE MASSAL (edit semua peserta) - DIPERBAIKI UNTUK 0 PESERTA
+     * UPDATE MASSAL (edit semua peserta)
      */
     public function update(Request $request, $id)
     {
@@ -444,6 +446,266 @@ class SertifikasiController extends Controller
             DB::rollBack();
             Log::error('Gagal hapus: ' . $e->getMessage());
             return back()->with('error', 'Gagal hapus: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * IMPORT EXCEL: Import peserta dari file Excel
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
+            'instansi' => 'required|string',
+            'file_excel' => 'required|file|mimes:xlsx,xls|max:5120',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $master = MasterPelatihan::findOrFail($request->master_pelatihan_id);
+
+            // 1. CEK ATAU BUAT HEADER DI TABEL sertifikasi
+            $existingHeader = DB::table('sertifikasi')
+                ->where('master_pelatihan_id', $master->id)
+                ->first();
+
+            if ($existingHeader) {
+                $sertifikasiId = $existingHeader->id;
+            } else {
+                $sertifikasiId = DB::table('sertifikasi')->insertGetId([
+                    'master_pelatihan_id' => $master->id,
+                    'jenis_sertifikasi'   => $master->nama_pelatihan,
+                    'instansi_penerbit'   => $request->instansi,
+                    'status'              => 'selesai',
+                    'created_at'          => now(),
+                    'updated_at'          => now(),
+                ]);
+            }
+
+            // 2. BACA FILE EXCEL
+            $file = $request->file('file_excel');
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            // Hapus header (baris pertama)
+            array_shift($rows);
+            
+            // Hapus baris kosong
+            $rows = array_values(array_filter($rows, function($row) {
+                return !(empty($row[0]) && empty($row[1]));
+            }));
+
+            $pesertaValid = [];
+            $errors = [];
+
+            // Fungsi bantu konversi tanggal
+            $parseDate = function($dateString) {
+                if (empty($dateString)) return null;
+                $dateString = trim($dateString);
+                
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateString)) {
+                    return $dateString;
+                }
+                
+                if (is_numeric($dateString)) {
+                    return ExcelDate::excelToDateTimeObject($dateString)->format('Y-m-d');
+                }
+                
+                if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $dateString, $matches)) {
+                    $day = $matches[1];
+                    $month = $matches[2];
+                    $year = $matches[3];
+                    if (checkdate($month, $day, $year)) {
+                        return sprintf('%04d-%02d-%02d', $year, $month, $day);
+                    }
+                }
+                
+                if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $dateString, $matches)) {
+                    $day = $matches[1];
+                    $month = $matches[2];
+                    $year = $matches[3];
+                    if (checkdate($month, $day, $year)) {
+                        return sprintf('%04d-%02d-%02d', $year, $month, $day);
+                    }
+                }
+                
+                $timestamp = strtotime($dateString);
+                if ($timestamp !== false) {
+                    $result = date('Y-m-d', $timestamp);
+                    if ($result && $result != '1970-01-01') {
+                        return $result;
+                    }
+                }
+                
+                return null;
+            };
+
+            // ✅ VALIDASI SEMUA BARIS TERLEBIH DAHULU
+            foreach ($rows as $rowIndex => $row) {
+                $nip = trim($row[0] ?? '');
+                $nama = trim($row[1] ?? '');
+                $tanggalMulaiRaw = $row[2] ?? null;
+                $tanggalSelesaiRaw = $row[3] ?? null;
+                $masaBerlakuRaw = $row[4] ?? null;
+
+                if (empty($nip)) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
+                    continue;
+                }
+                
+                if (empty($nama)) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": Nama kosong";
+                    continue;
+                }
+
+                // Cek apakah pegawai ada di database
+                $pegawai = DB::table('pegawai')->where('nip', $nip)->first();
+                if (!$pegawai) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": NIP '$nip' tidak ditemukan di database pegawai";
+                    continue;
+                }
+
+                $tanggalMulai = $parseDate($tanggalMulaiRaw);
+                $tanggalSelesai = $parseDate($tanggalSelesaiRaw);
+                $masaBerlaku = $parseDate($masaBerlakuRaw);
+
+                if (!$tanggalMulai) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal mulai tidak valid ('{$tanggalMulaiRaw}')";
+                    continue;
+                }
+                
+                if (!$tanggalSelesai) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal selesai tidak valid ('{$tanggalSelesaiRaw}')";
+                    continue;
+                }
+
+                // ✅ DATA VALID, TAMPUNG DULU
+                $pesertaValid[] = [
+                    'nip'             => $nip,
+                    'nama'            => $nama,
+                    'tanggal_mulai'   => $tanggalMulai,
+                    'tanggal_selesai' => $tanggalSelesai,
+                    'masa_berlaku'    => $masaBerlaku,
+                ];
+            }
+
+            // ✅ JIKA ADA ERROR, BATALKAN
+            if (!empty($errors)) {
+                DB::rollBack();
+                $errorMessage = "Import gagal! Terdapat " . count($errors) . " error.\n";
+                $errorMessage .= implode(', ', array_slice($errors, 0, 5));
+                if (count($errors) > 5) {
+                    $errorMessage .= ", dan " . (count($errors) - 5) . " error lainnya.";
+                }
+                return redirect()->back()->withInput()->with('error', $errorMessage);
+            }
+
+            // ✅ JIKA SEMUA VALID, HAPUS DATA LAMA
+            if ($existingHeader) {
+                // Hapus semua peserta lama
+                $oldPeserta = DB::table('sertifikasi_peserta')
+                    ->where('sertifikasi_id', $sertifikasiId)
+                    ->get();
+                
+                foreach ($oldPeserta as $row) {
+                    if ($row->sertifikat_path) {
+                        Storage::disk('public')->delete($row->sertifikat_path);
+                    }
+                }
+                
+                DB::table('sertifikasi_peserta')
+                    ->where('sertifikasi_id', $sertifikasiId)
+                    ->delete();
+                
+                // Update header instansi
+                DB::table('sertifikasi')
+                    ->where('id', $sertifikasiId)
+                    ->update([
+                        'instansi_penerbit' => $request->instansi,
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            // ✅ INSERT SEMUA DATA VALID
+            foreach ($pesertaValid as $peserta) {
+                DB::table('sertifikasi_peserta')->insert([
+                    'sertifikasi_id'  => $sertifikasiId,
+                    'nip'             => $peserta['nip'],
+                    'nama_peserta'    => $peserta['nama'],
+                    'tanggal_mulai'   => $peserta['tanggal_mulai'],
+                    'tanggal_selesai' => $peserta['tanggal_selesai'],
+                    'masa_berlaku'    => $peserta['masa_berlaku'],
+                    'sertifikat_path' => null,
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            $message = "Import selesai! " . count($pesertaValid) . " peserta berhasil ditambahkan.";
+
+            return redirect()->route('sertifikasi.show', $master->id)
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Import Excel sertifikasi gagal: ' . $e->getMessage());
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal import Excel: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * DOWNLOAD TEMPLATE EXCEL
+     */
+    public function downloadTemplate()
+    {
+        try {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Header kolom (5 kolom untuk sertifikasi)
+            $sheet->setCellValue('A1', 'NIP');
+            $sheet->setCellValue('B1', 'NAMA PESERTA');
+            $sheet->setCellValue('C1', 'TANGGAL MULAI');
+            $sheet->setCellValue('D1', 'TANGGAL SELESAI');
+            $sheet->setCellValue('E1', 'MASA BERLAKU (Opsional)');
+
+            // Contoh data
+            $sheet->setCellValue('A2', '123456789012345678');
+            $sheet->setCellValue('B2', 'Contoh Pegawai');
+            $sheet->setCellValue('C2', '2024-01-01');
+            $sheet->setCellValue('D2', '2024-01-05');
+            $sheet->setCellValue('E2', '2025-01-01');
+
+            // Style header
+            $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:E1')->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFF97316');
+
+            foreach (range('A', 'E') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            // Set response headers
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="template_import_sertifikasi.xlsx"');
+            header('Cache-Control: max-age=0');
+            header('Expires: Mon, 01 Jan 1990 00:00:00 GMT');
+            header('Pragma: public');
+            
+            $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->save('php://output');
+            exit;
+            
+        } catch (\Exception $e) {
+            Log::error('Download template sertifikasi gagal: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal download template: ' . $e->getMessage());
         }
     }
 }

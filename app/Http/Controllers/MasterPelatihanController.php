@@ -52,9 +52,24 @@ class MasterPelatihanController extends Controller
             $rules['jp'] = 'nullable|numeric';
         }
 
-        $request->validate($rules);
+        // ✅ TAMBAHKAN VALIDASI UNIQUE
+        $rules['nama_pelatihan'] .= '|unique:master_pelatihans,nama_pelatihan,NULL,id,kategori,' . $request->kategori . ',tahun,' . $request->tahun;
+
+        $request->validate($rules, [
+            'nama_pelatihan.unique' => 'Data dengan nama "' . $request->nama_pelatihan . '", tahun ' . $request->tahun . ', dan kategori ' . $request->kategori . ' sudah ada!'
+        ]);
 
         try {
+            // ✅ CEK LAGI SEBELUM INSERT (ANTI DUPLIKAT)
+            $exists = MasterPelatihan::where('kategori', $request->kategori)
+                ->where('nama_pelatihan', $request->nama_pelatihan)
+                ->where('tahun', $request->tahun)
+                ->exists();
+
+            if ($exists) {
+                return redirect()->back()->withInput()->with('error', 'Data sudah ada! Tidak boleh duplikat.');
+            }
+
             // Simpan secara eksplisit agar kategori tidak tertukar
             MasterPelatihan::create([
                 'kategori'       => $request->kategori,
@@ -67,7 +82,7 @@ class MasterPelatihanController extends Controller
                              ->with('success', 'Data Master berhasil ditambahkan!');
         } catch (\Exception $e) {
             Log::error('Gagal simpan master: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data.');
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
@@ -90,10 +105,26 @@ class MasterPelatihanController extends Controller
             $rules['jp'] = 'nullable|numeric';
         }
 
-        $request->validate($rules);
+        // ✅ TAMBAHKAN VALIDASI UNIQUE (kecuali dirinya sendiri)
+        $rules['nama_pelatihan'] .= '|unique:master_pelatihans,nama_pelatihan,' . $id . ',id,kategori,' . $request->kategori . ',tahun,' . $request->tahun;
+
+        $request->validate($rules, [
+            'nama_pelatihan.unique' => 'Data dengan nama "' . $request->nama_pelatihan . '", tahun ' . $request->tahun . ', dan kategori ' . $request->kategori . ' sudah ada!'
+        ]);
 
         try {
             $data = MasterPelatihan::findOrFail($id);
+            
+            // ✅ CEK LAGI APAKAH DATA SAMA (ANTI DUPLIKAT)
+            $exists = MasterPelatihan::where('kategori', $request->kategori)
+                ->where('nama_pelatihan', $request->nama_pelatihan)
+                ->where('tahun', $request->tahun)
+                ->where('id', '!=', $id)
+                ->exists();
+
+            if ($exists) {
+                return redirect()->back()->withInput()->with('error', 'Data sudah ada! Tidak boleh duplikat.');
+            }
             
             // Simpan nilai JP lama untuk perbandingan
             $oldJp = $data->jp;
@@ -127,7 +158,7 @@ class MasterPelatihanController extends Controller
                              ->with('success', 'Data Master berhasil diperbarui!');
         } catch (\Exception $e) {
             Log::error('Gagal update master: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal memperbarui data.');
+            return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
     }
 

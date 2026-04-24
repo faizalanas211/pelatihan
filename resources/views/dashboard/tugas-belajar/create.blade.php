@@ -5,7 +5,7 @@
     <a href="{{ route('tugas-belajar.index') }}" style="color: #f97316; text-decoration: none;">Rekap Tugas Belajar</a>
 </li>
 <li class="breadcrumb-item active fw-semibold" style="color: #f97316;">
-    Edit Data Tugas Belajar
+    Tambah Data Tugas Belajar
 </li>
 @endsection
 
@@ -20,7 +20,7 @@
             </div>
             <div>
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Edit Data Tugas Belajar
+                    Tambah Data Tugas Belajar
                 </h3>
                 <p class="text-muted mb-0 mt-1">Input peserta tugas belajar berdasarkan master data</p>
             </div>
@@ -42,17 +42,29 @@
                     </div>
                 @endif
 
+                @if (session('success'))
+                    <div class="alert alert-success rounded-4">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger rounded-4">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <form action="{{ route('tugas-belajar.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     {{-- FILTER TAHUN (BUKAN INPUT DATA) --}}
                     <div class="mb-4">
-                        <label class="form-label fw-bold">FILTER TAHUN <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold">FILTER TAHUN</label>
 
                         <select id="filterTahun" class="form-select">
                             <option value="">-- Semua Tahun --</option>
                             @foreach($tahunList as $th)
-                                <option value="{{ $th }}" {{ $tahun == $th ? 'selected' : '' }}>
+                                <option value="{{ $th }}" {{ ($tahun ?? '') == $th ? 'selected' : '' }}>
                                     {{ $th }}
                                 </option>
                             @endforeach
@@ -69,11 +81,22 @@
                             @foreach($masterTubel as $m)
                                 <option value="{{ $m->id }}" 
                                     data-tahun="{{ $m->tahun }}"
-                                    {{ $selectedMaster == $m->id ? 'selected' : '' }}>
+                                    {{ ($selectedMaster ?? '') == $m->id ? 'selected' : '' }}>
                                     {{ $m->nama_pelatihan }} ({{ $m->tahun }})
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    {{-- TOMBOL IMPORT EXCEL --}}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="fw-bold">IMPORT EXCEL</label>
+                            <button type="button" class="btn btn-sm" style="background: #f97316; color: white;" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                                <i class="bi bi-file-excel me-1"></i> Import Excel
+                            </button>
+                        </div>
+                        <small class="text-muted">Gunakan tombol di bawah untuk menambah peserta secara manual</small>
                     </div>
 
                     <hr>
@@ -88,58 +111,58 @@
 
                     <div id="container-peserta">
 
-    <div class="card border-0 shadow-sm mb-3 baris-peserta">
-        <div class="card-body p-3">
+                        <div class="card border-0 shadow-sm mb-3 baris-peserta">
+                            <div class="card-body p-3">
 
-            {{-- BARIS 1: PEGAWAI --}}
-            <div class="mb-3">
-                <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
-                <select name="pegawai_id[]" class="form-select" required>
-                    <option value="">-- Pilih Pegawai --</option>
-                    @foreach($pegawais as $p)
-                        <option value="{{ $p->id }}">
-                            {{ $p->nama }} ({{ $p->nip }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+                                {{-- BARIS 1: PEGAWAI --}}
+                                <div class="mb-3">
+                                    <label class="small fw-semibold text-muted">Pegawai <span class="text-danger">*</span></label>
+                                    <select name="pegawai_id[]" class="form-select" required>
+                                        <option value="">-- Pilih Pegawai --</option>
+                                        @foreach($pegawais as $p)
+                                            <option value="{{ $p->id }}">
+                                                {{ $p->nama }} ({{ $p->nip }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-            {{-- BARIS 2: DETAIL --}}
-            <div class="row g-3">
+                                {{-- BARIS 2: DETAIL --}}
+                                <div class="row g-3">
 
-                <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
-                    <input type="date" name="tanggal_mulai[]" class="form-control" required>
-                </div>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_mulai[]" class="form-control" required>
+                                    </div>
 
-                <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
-                    <input type="date" name="tanggal_selesai[]" class="form-control" required>
-                </div>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_selesai[]" class="form-control" required>
+                                    </div>
 
-                <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">No SK</label>
-                    <input type="text" name="no_sk[]" class="form-control" placeholder="Nomor SK">
-                </div>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">No SK</label>
+                                        <input type="text" name="no_sk[]" class="form-control" placeholder="Nomor SK">
+                                    </div>
 
-                <div class="col-md-3">
-                    <label class="small fw-semibold text-muted">Upload SK</label>
-                    <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
-                </div>
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Upload SK</label>
+                                        <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
+                                    </div>
 
-            </div>
+                                </div>
 
-            {{-- ACTION --}}
-            <div class="d-flex justify-content-end mt-3">
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
-                    <i class="bi bi-trash"></i> Hapus
-                </button>
-            </div>
+                                {{-- ACTION --}}
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
+                                        <i class="bi bi-trash"></i> Hapus
+                                    </button>
+                                </div>
 
-        </div>
-    </div>
+                            </div>
+                        </div>
 
-</div>
+                    </div>
 
                     {{-- ACTION --}}
                     <div class="text-end mt-4">
@@ -152,6 +175,56 @@
                 </form>
 
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL IMPORT EXCEL --}}
+<div class="modal fade" id="modalImportExcel" tabindex="-1" aria-labelledby="modalImportExcelLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <form action="{{ route('tugas-belajar.import-excel') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="master_pelatihan_id" id="import_master_id">
+
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%);">
+                    <h5 class="modal-title fw-bold" id="modalImportExcelLabel">
+                        <i class="bi bi-file-excel me-2" style="color: #f97316;"></i>
+                        Import Peserta dari Excel
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="opacity: 1; margin: 0;"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-info rounded-3 small">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Pastikan Anda sudah memilih MASTER TUGAS BELAJAR terlebih dahulu.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Download Template Excel</label>
+                        <div>
+                            <a href="{{ route('tugas-belajar.download-template') }}" class="btn btn-sm btn-outline-success" target="_blank">
+                                <i class="bi bi-download me-1"></i> Download Template
+                            </a>
+                        </div>
+                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai | No SK (Opsional)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih File Excel</label>
+                        <input type="file" name="file_excel" class="form-control" accept=".xlsx,.xls" required>
+                        <small class="text-muted">Maksimal 5MB, format .xlsx atau .xls</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn" style="background: #f97316; color: white;">
+                        <i class="bi bi-upload me-1"></i> Import Sekarang
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -195,7 +268,7 @@ document.getElementById('filterTahun').addEventListener('change', function () {
     options.forEach(option => {
         let optTahun = option.getAttribute('data-tahun');
 
-        if (!tahun || optTahun === tahun) {
+        if (!tahun || optTahun === tahun || option.value === "") {
             option.style.display = 'block';
         } else {
             option.style.display = 'none';
@@ -205,16 +278,58 @@ document.getElementById('filterTahun').addEventListener('change', function () {
     // reset pilihan
     document.getElementById('masterTubel').value = '';
 });
+
+// Saat modal akan dibuka, isi hidden field dengan data dari form utama
+document.getElementById('modalImportExcel').addEventListener('show.bs.modal', function () {
+    const masterId = document.querySelector('[name="master_pelatihan_id"]').value;
+    
+    document.getElementById('import_master_id').value = masterId || '';
+    
+    // Validasi jika belum dipilih
+    if (!masterId) {
+        alert('Silakan pilih MASTER TUGAS BELAJAR terlebih dahulu!');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'));
+        if (modal) modal.hide();
+        return;
+    }
+});
 </script>
 
 <style>
 .btn-orange-outline {
     border: 1px solid #f97316;
     color: #f97316;
+    background: transparent;
+    transition: all 0.2s;
 }
 .btn-orange-outline:hover {
     background: #f97316;
     color: white;
+}
+.btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+}
+.btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+}
+
+/* Hilangkan efek hover pada tombol close */
+.btn-close {
+    opacity: 1;
+    transition: none;
+    margin: 0 !important;
+}
+.btn-close:hover {
+    opacity: 1;
+    background-color: transparent;
+    transform: none;
 }
 </style>
 @endsection
