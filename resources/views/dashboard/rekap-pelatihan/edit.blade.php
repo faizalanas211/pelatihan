@@ -66,12 +66,6 @@
                         <input type="hidden" name="master_pelatihan_id" value="{{ $pelatihan->id }}">
                     </div>
 
-                    {{-- INSTANSI PENYELENGGARA --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">INSTANSI PENYELENGGARA <span class="text-danger">*</span></label>
-                        <input type="text" name="instansi" class="form-control" value="{{ $header->instansi_penyelenggara ?? '' }}" required>
-                    </div>
-
                     <hr>
 
                     {{-- HEADER PESERTA --}}

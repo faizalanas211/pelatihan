@@ -95,12 +95,6 @@
                         </select>
                     </div>
 
-                    {{-- INSTANSI PENERBIT --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">INSTANSI PENERBIT <span class="text-danger">*</span></label>
-                        <input type="text" name="instansi" class="form-control" placeholder="Masukkan instansi penerbit sertifikat" value="{{ old('instansi') }}" required>
-                    </div>
-
                     {{-- TOMBOL IMPORT EXCEL --}}
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center">
@@ -200,7 +194,6 @@
             <form action="{{ route('sertifikasi.import-excel') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="master_pelatihan_id" id="import_master_id">
-                <input type="hidden" name="instansi" id="import_instansi">
 
                 <div class="modal-header border-0" style="background: linear-gradient(135deg, #f9731620 0%, #ffedd5 100%);">
                     <h5 class="modal-title fw-bold" id="modalImportExcelLabel">
@@ -213,7 +206,7 @@
                 <div class="modal-body">
                     <div class="alert alert-info rounded-3 small">
                         <i class="bi bi-info-circle-fill me-2"></i>
-                        Pastikan Anda sudah memilih MASTER SERTIFIKASI dan INSTANSI PENERBIT terlebih dahulu.
+                        Pastikan Anda sudah memilih MASTER SERTIFIKASI terlebih dahulu.
                     </div>
 
                     <div class="mb-3">
@@ -298,20 +291,12 @@ document.getElementById('filterTahun').addEventListener('change', function () {
 // Saat modal akan dibuka, isi hidden field dengan data dari form utama
 document.getElementById('modalImportExcel').addEventListener('show.bs.modal', function () {
     const masterId = document.querySelector('[name="master_pelatihan_id"]').value;
-    const instansi = document.querySelector('[name="instansi"]').value;
     
     document.getElementById('import_master_id').value = masterId || '';
-    document.getElementById('import_instansi').value = instansi || '';
     
     // Validasi jika belum dipilih
     if (!masterId) {
         alert('Silakan pilih MASTER SERTIFIKASI terlebih dahulu!');
-        var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'));
-        if (modal) modal.hide();
-        return;
-    }
-    if (!instansi) {
-        alert('Silakan isi INSTANSI PENERBIT terlebih dahulu!');
         var modal = bootstrap.Modal.getInstance(document.getElementById('modalImportExcel'));
         if (modal) modal.hide();
         return;

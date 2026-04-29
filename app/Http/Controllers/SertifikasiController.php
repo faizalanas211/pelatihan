@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class SertifikasiController extends Controller
 {
@@ -61,7 +62,6 @@ class SertifikasiController extends Controller
     {
         $request->validate([
             'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
-            'instansi'            => 'required|string',
             'pegawai_id'          => 'required|array',
             'pegawai_id.*'        => 'required|string',
             'tanggal_mulai'       => 'required|array',
@@ -84,21 +84,19 @@ class SertifikasiController extends Controller
                 ->first();
 
             if ($existingHeader) {
-                // UPDATE HEADER YANG SUDAH ADA
+                // UPDATE HEADER YANG SUDAH ADA (tanpa instansi)
                 DB::table('sertifikasi')
                     ->where('id', $existingHeader->id)
                     ->update([
-                        'instansi_penerbit' => $request->instansi,
-                        'status'            => 'selesai',
-                        'updated_at'        => now(),
+                        'status'        => 'selesai',
+                        'updated_at'    => now(),
                     ]);
                 $sertifikasiId = $existingHeader->id;
             } else {
-                // BUAT HEADER BARU
+                // BUAT HEADER BARU (tanpa instansi)
                 $sertifikasiId = DB::table('sertifikasi')->insertGetId([
                     'master_pelatihan_id' => $master->id,
                     'jenis_sertifikasi'   => $master->nama_pelatihan,
-                    'instansi_penerbit'   => $request->instansi,
                     'status'              => 'selesai',
                     'created_at'          => now(),
                     'updated_at'          => now(),
@@ -288,12 +286,6 @@ class SertifikasiController extends Controller
             // ambil master_pelatihan_id dari tabel master_pelatihans
             $master = MasterPelatihan::where('id', $header->master_pelatihan_id)->first();
 
-            // UPDATE header instansi
-            DB::table('sertifikasi')->where('id', $id)->update([
-                'instansi_penerbit' => $request->instansi,
-                'updated_at' => now(),
-            ]);
-
             // CEK APAKAH ADA PESERTA YANG DIKIRIM
             if (empty($request->pegawai_id) || !is_array($request->pegawai_id)) {
                 // JIKA TIDAK ADA PESERTA, HAPUS SEMUA PESERTA YANG ADA
@@ -451,12 +443,13 @@ class SertifikasiController extends Controller
 
     /**
      * IMPORT EXCEL: Import peserta dari file Excel
+     * ✅ NAMA dari Excel diabaikan, nama diambil dari database berdasarkan NIP
+     * ✅ Instansi diambil dari master (tidak perlu input)
      */
     public function importExcel(Request $request)
     {
         $request->validate([
             'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
-            'instansi' => 'required|string',
             'file_excel' => 'required|file|mimes:xlsx,xls|max:5120',
         ]);
 
@@ -475,7 +468,6 @@ class SertifikasiController extends Controller
                 $sertifikasiId = DB::table('sertifikasi')->insertGetId([
                     'master_pelatihan_id' => $master->id,
                     'jenis_sertifikasi'   => $master->nama_pelatihan,
-                    'instansi_penerbit'   => $request->instansi,
                     'status'              => 'selesai',
                     'created_at'          => now(),
                     'updated_at'          => now(),
@@ -544,18 +536,13 @@ class SertifikasiController extends Controller
             // ✅ VALIDASI SEMUA BARIS TERLEBIH DAHULU
             foreach ($rows as $rowIndex => $row) {
                 $nip = trim($row[0] ?? '');
-                $nama = trim($row[1] ?? '');
+                $namaExcel = trim($row[1] ?? ''); // NAMA dari Excel, tidak dipakai
                 $tanggalMulaiRaw = $row[2] ?? null;
                 $tanggalSelesaiRaw = $row[3] ?? null;
                 $masaBerlakuRaw = $row[4] ?? null;
 
                 if (empty($nip)) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
-                    continue;
-                }
-                
-                if (empty($nama)) {
-                    $errors[] = "Baris " . ($rowIndex + 2) . ": Nama kosong";
                     continue;
                 }
 
@@ -580,10 +567,10 @@ class SertifikasiController extends Controller
                     continue;
                 }
 
-                // ✅ DATA VALID, TAMPUNG DULU
+                // ✅ DATA VALID, TAMPUNG DULU (NAMA DIAMBIL DARI DATABASE)
                 $pesertaValid[] = [
                     'nip'             => $nip,
-                    'nama'            => $nama,
+                    'nama'            => $pegawai->nama, // ✅ NAMA dari database, bukan dari Excel
                     'tanggal_mulai'   => $tanggalMulai,
                     'tanggal_selesai' => $tanggalSelesai,
                     'masa_berlaku'    => $masaBerlaku,
@@ -601,8 +588,34 @@ class SertifikasiController extends Controller
                 return redirect()->back()->withInput()->with('error', $errorMessage);
             }
 
-            // ✅ JIKA SEMUA VALID, HAPUS DATA LAMA
-            if ($existingHeader) {
+            // ✅ CEK NIP YANG SUDAH ADA DI DATABASE (UNTUK DETEKSI DUPLIKAT)
+            $existingNips = DB::table('sertifikasi_peserta')
+                ->where('sertifikasi_id', $sertifikasiId)
+                ->pluck('nip')
+                ->map(fn($nip) => trim($nip))
+                ->toArray();
+
+            // ✅ PISAHKAN DATA BARU VS DUPLIKAT
+            $dataBaru = [];
+            $dataDuplikat = [];
+
+            foreach ($pesertaValid as $peserta) {
+                if (in_array($peserta['nip'], $existingNips)) {
+                    $dataDuplikat[] = $peserta;
+                } else {
+                    $dataBaru[] = $peserta;
+                }
+            }
+
+            // ✅ JIKA SEMUA DATA DUPLIKAT (TIDAK ADA DATA BARU)
+            if (empty($dataBaru) && !empty($dataDuplikat)) {
+                DB::commit();
+                return redirect()->route('sertifikasi.show', $master->id)
+                    ->with('warning', 'Tidak ada data baru! Semua data (' . count($dataDuplikat) . ' peserta) sudah terdaftar sebelumnya.');
+            }
+
+            // ✅ HAPUS DATA LAMA HANYA JIKA ADA DATA BARU
+            if ($existingHeader && !empty($dataBaru)) {
                 // Hapus semua peserta lama
                 $oldPeserta = DB::table('sertifikasi_peserta')
                     ->where('sertifikasi_id', $sertifikasiId)
@@ -617,18 +630,10 @@ class SertifikasiController extends Controller
                 DB::table('sertifikasi_peserta')
                     ->where('sertifikasi_id', $sertifikasiId)
                     ->delete();
-                
-                // Update header instansi
-                DB::table('sertifikasi')
-                    ->where('id', $sertifikasiId)
-                    ->update([
-                        'instansi_penerbit' => $request->instansi,
-                        'updated_at' => now(),
-                    ]);
             }
 
-            // ✅ INSERT SEMUA DATA VALID
-            foreach ($pesertaValid as $peserta) {
+            // ✅ INSERT HANYA DATA BARU (YANG TIDAK DUPLIKAT)
+            foreach ($dataBaru as $peserta) {
                 DB::table('sertifikasi_peserta')->insert([
                     'sertifikasi_id'  => $sertifikasiId,
                     'nip'             => $peserta['nip'],
@@ -644,7 +649,11 @@ class SertifikasiController extends Controller
 
             DB::commit();
 
-            $message = "Import selesai! " . count($pesertaValid) . " peserta berhasil ditambahkan.";
+            // ✅ BUAT PESAN SUKSES + WARNING DUPLIKAT
+            $message = "Import selesai! " . count($dataBaru) . " peserta berhasil ditambahkan.";
+            if (!empty($dataDuplikat)) {
+                $message .= " " . count($dataDuplikat) . " peserta duplikat diabaikan.";
+            }
 
             return redirect()->route('sertifikasi.show', $master->id)
                 ->with('success', $message);
@@ -675,12 +684,12 @@ class SertifikasiController extends Controller
             $sheet->setCellValue('D1', 'TANGGAL SELESAI');
             $sheet->setCellValue('E1', 'MASA BERLAKU (Opsional)');
 
-            // Contoh data
-            $sheet->setCellValue('A2', '123456789012345678');
-            $sheet->setCellValue('B2', 'Contoh Pegawai');
-            $sheet->setCellValue('C2', '2024-01-01');
-            $sheet->setCellValue('D2', '2024-01-05');
-            $sheet->setCellValue('E2', '2025-01-01');
+            // Contoh data - NIP sebagai STRING agar tidak jadi scientific
+            $sheet->setCellValueExplicit('A2', '197912212005012004', DataType::TYPE_STRING);
+            $sheet->setCellValue('B2', 'Citra Aniendita Sari');
+            $sheet->setCellValue('C2', '19/05/2025');
+            $sheet->setCellValue('D2', '13/06/2025');
+            $sheet->setCellValue('E2', '19/05/2026');
 
             // Style header
             $sheet->getStyle('A1:E1')->getFont()->setBold(true);

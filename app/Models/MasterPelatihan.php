@@ -24,6 +24,7 @@ class MasterPelatihan extends Model
         'kategori', 
         'nama_pelatihan', 
         'jp', 
+        'instansi',  // ✅ TAMBAHKAN INI
         'tahun'
     ];
 

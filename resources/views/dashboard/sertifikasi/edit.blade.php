@@ -66,12 +66,6 @@
                         <input type="hidden" name="master_pelatihan_id" value="{{ $sertifikasi->id }}">
                     </div>
 
-                    {{-- INSTANSI PENERBIT --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">INSTANSI PENERBIT <span class="text-danger">*</span></label>
-                        <input type="text" name="instansi" class="form-control" value="{{ $header->instansi_penerbit ?? '' }}" required>
-                    </div>
-
                     <hr>
 
                     {{-- HEADER PESERTA --}}
