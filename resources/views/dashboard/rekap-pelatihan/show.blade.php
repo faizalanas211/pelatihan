@@ -67,7 +67,7 @@
                         <div class="p-3 rounded-4 bg-light border">
                             <label class="small text-muted text-uppercase fw-bold">Instansi Penyelenggara</label>
                             <div class="fw-bold">
-                                {{ $header->instansi_penyelenggara ?? '-' }}
+                                {{ $pelatihan->instansi ?: '-' }}
                             </div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
 
                                 <td class="text-center">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.85rem;">
-                                        <i class="bi bi-stopwatch"></i> {{ $pelatihan->jp }} JP
+                                        <i class="bi bi-stopwatch"></i> {{ $p->jp ?? $pelatihan->jp }} JP
                                     </span>
                                 </td>
 

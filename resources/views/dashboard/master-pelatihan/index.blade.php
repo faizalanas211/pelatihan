@@ -60,9 +60,10 @@
                                 <th class="ps-4 py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 50px;">No</th>
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 140px;">Kategori</th>
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase;">Nama Item</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 100px;">JP</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 100px;">Tahun</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 120px;">Aksi</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 80px;">JP</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 220px;">Instansi</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 90px;">Tahun</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 110px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,6 +89,16 @@
                                     @if($item->kategori == 'pelatihan')
                                         <span class="badge rounded-pill px-3 py-2" style="background: #fff3e0; color: #e65100; font-size: 0.8rem;">
                                             {{ $item->jp ? $item->jp . ' JP' : '-' }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+                                {{-- INSTANSI HANYA TAMPIL UNTUK PELATIHAN DAN SERTIFIKASI (TIDAK UNTUK TUBEL) --}}
+                                <td class="text-center instansi-cell">
+                                    @if(in_array($item->kategori, ['pelatihan', 'sertifikasi']) && $item->instansi)
+                                        <span class="badge rounded-pill px-3 py-2 instansi-badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem;" title="{{ $item->instansi }}">
+                                            {{ Str::limit($item->instansi, 30) }}
                                         </span>
                                     @else
                                         <span class="text-muted small">-</span>
@@ -146,6 +157,11 @@
                                                         </select>
                                                     </div>
                                                 </div>
+                                                {{-- FIELD INSTANSI HANYA TAMPIL UNTUK PELATIHAN DAN SERTIFIKASI --}}
+                                                <div class="mb-3" id="areaInstansiEdit{{ $item->id }}" style="{{ in_array($item->kategori, ['pelatihan', 'sertifikasi']) ? '' : 'display: none;' }}">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted">Instansi</label>
+                                                    <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->instansi }}" placeholder="Masukkan instansi">
+                                                </div>
                                             </div>
                                             <div class="modal-footer border-0 pb-4 pe-4">
                                                 <button type="button" class="btn btn-light rounded-4 px-4" data-bs-dismiss="modal">Batal</button>
@@ -159,10 +175,25 @@
                                 </div>
                             </div>
                             @empty
-                            <tr><td colspan="6" class="text-center py-5">Data tidak ditemukan.</td></tr>
+                            <tr><td colspan="7" class="text-center py-5">Data tidak ditemukan.上页1 2 3 4 5 ... 27 28 下页
+                                <nav>
+                                    <ul class="pagination">
+                                        <li class="page-item disabled"><span class="page-link">«</span></li>
+                                        <li class="page-item active"><span class="page-link">1</span></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">4</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">5</a></li>
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                        <li class="page-item"><a class="page-link" href="#">27</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">28</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">»</a></li>
+                                    </ul>
+                                </nav>
+                            </td>
                             @endforelse
                         </tbody>
-                    </table>
+                    <tr>
                 </div>
             </div>
         </div>
@@ -225,7 +256,7 @@
                     <div class="row">
                         <div class="col-6 mb-3" id="areaJP">
                             <label class="form-label small fw-bold text-uppercase text-muted">Jumlah JP</label>
-                            <input type="number" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="0">
+                            <input type="text" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="0" value="0">
                         </div>
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
@@ -235,6 +266,10 @@
                                 @endfor
                             </select>
                         </div>
+                    </div>
+                    <div class="mb-3" id="areaInstansiTambah" style="display: none;">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Instansi</label>
+                        <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan instansi" value="{{ old('instansi') }}">
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4 pe-4">
@@ -257,20 +292,30 @@
         const formModal = new bootstrap.Modal(document.getElementById('modalTambahData'));
         document.getElementById('inputKategori').value = kat;
         
+        // Ambil elemen area instansi di modal tambah
+        const areaInstansiTambah = document.getElementById('areaInstansiTambah');
+        
         if(kat === 'pelatihan') {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Pelatihan';
             document.getElementById('labelNama').innerText = 'Nama Pelatihan';
             document.getElementById('areaJP').style.display = 'block';
+            // Tampilkan field instansi untuk pelatihan
+            areaInstansiTambah.style.display = 'block';
         } else if(kat === 'sertifikasi') {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Sertifikasi';
             document.getElementById('labelNama').innerText = 'Nama Sertifikasi / Sertifikat';
             document.getElementById('areaJP').style.display = 'none';
             document.querySelector('#modalTambahData input[name="jp"]').value = '';
+            // Tampilkan field instansi untuk sertifikasi
+            areaInstansiTambah.style.display = 'block';
         } else {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Tugas Belajar';
             document.getElementById('labelNama').innerText = 'Nama Universitas / Jenjang';
             document.getElementById('areaJP').style.display = 'none';
             document.querySelector('#modalTambahData input[name="jp"]').value = '';
+            // Sembunyikan field instansi untuk tubel (tugas belajar)
+            areaInstansiTambah.style.display = 'none';
+            document.querySelector('#modalTambahData input[name="instansi"]').value = '';
         }
         
         // Reset button state saat modal dibuka
@@ -294,12 +339,21 @@
         select.addEventListener('change', function() {
             const itemId = this.getAttribute('data-item-id');
             const areaJP = document.getElementById('areaJPEdit' + itemId);
+            const areaInstansi = document.getElementById('areaInstansiEdit' + itemId);
+            
             if (this.value === 'pelatihan') {
                 areaJP.style.display = 'block';
-            } else {
+                if (areaInstansi) areaInstansi.style.display = 'block';
+            } else if (this.value === 'sertifikasi') {
                 areaJP.style.display = 'none';
+                if (areaInstansi) areaInstansi.style.display = 'block';
                 // Kosongkan nilai JP jika kategori bukan pelatihan
                 areaJP.querySelector('input[name="jp"]').value = '';
+            } else {
+                areaJP.style.display = 'none';
+                if (areaInstansi) areaInstansi.style.display = 'none';
+                areaJP.querySelector('input[name="jp"]').value = '';
+                if (areaInstansi) areaInstansi.querySelector('input[name="instansi"]').value = '';
             }
         });
     });
@@ -347,6 +401,23 @@
         opacity: 1;
         background-color: transparent;
         transform: none;
+    }
+
+    /* ✅ PERBAIKI TAMPILAN KOLOM INSTANSI */
+    .instansi-cell {
+        max-width: 220px;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+    
+    .instansi-badge {
+        display: inline-block;
+        max-width: 200px;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.3;
+        text-align: left;
+        cursor: help;
     }
 </style>
 @endsection

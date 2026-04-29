@@ -49,21 +49,21 @@
             <div class="col-md-3">
                 <div class="card text-center border-0 shadow-sm rounded-4 p-3">
                     <small class="text-muted">Pelatihan</small>
-                    <h4 class="fw-bold text-primary mb-0">{{ $summary['pelatihan'] }}</h4>
+                    <h4 class="fw-bold" style="color: #f97316;">{{ $summary['pelatihan'] }}</h4>
                 </div>
             </div>
 
             <div class="col-md-3">
                 <div class="card text-center border-0 shadow-sm rounded-4 p-3">
                     <small class="text-muted">Sertifikasi</small>
-                    <h4 class="fw-bold text-success mb-0">{{ $summary['sertifikasi'] }}</h4>
+                    <h4 class="fw-bold" style="color: #f97316;">{{ $summary['sertifikasi'] }}</h4>
                 </div>
             </div>
 
             <div class="col-md-3">
                 <div class="card text-center border-0 shadow-sm rounded-4 p-3">
                     <small class="text-muted">Tubel</small>
-                    <h4 class="fw-bold text-warning mb-0">{{ $summary['tubel'] }}</h4>
+                    <h4 class="fw-bold" style="color: #f97316;">{{ $summary['tubel'] }}</h4>
                 </div>
             </div>
 
@@ -93,6 +93,7 @@
                                 <th>No</th>
                                 <th>Nama Pelatihan</th>
                                 <th>JP</th>
+                                <th>Instansi</th>
                                 <th>Tanggal</th>
                             </tr>
                         </thead>
@@ -102,9 +103,10 @@
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_pelatihan ?? '-' }}</td>
                                 <td>{{ $row->jp }}</td>
+                                <td>{{ $row->instansi_penyelenggara ?? '-' }}</td>
                                 <td>
                                     {{ $row->tanggal_mulai && $row->tanggal_selesai 
-                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
+                                        ? date('d M Y', strtotime($row->tanggal_mulai)) . ' s/d ' . date('d M Y', strtotime($row->tanggal_selesai))
                                         : '-' }}
                                 </td>
                             </tr>
@@ -133,7 +135,9 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Sertifikasi</th>
+                                <th>Instansi</th>
                                 <th>Tanggal</th>
+                                <th>Masa Berlaku</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,9 +145,14 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_sertifikasi ?? '-' }}</td>
-                                <td>{{ $row->tanggal_mulai && $row->tanggal_selesai 
-                                        ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
+                                <td>{{ $row->instansi_penerbit ?? '-' }}</td>
+                                <td>
+                                    {{ $row->tanggal_mulai && $row->tanggal_selesai 
+                                        ? date('d M Y', strtotime($row->tanggal_mulai)) . ' s/d ' . date('d M Y', strtotime($row->tanggal_selesai))
                                         : '-' }}
+                                </td>
+                                <td>
+                                    {{ $row->masa_berlaku ? date('d M Y', strtotime($row->masa_berlaku)) : '-' }}
                                 </td>
                             </tr>
                             @endforeach
@@ -180,8 +189,8 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->nama_pelatihan ?? '-' }}</td>
-                                <td>{{ $row->tanggal_mulai }}</td>
-                                <td>{{ $row->tanggal_selesai }}</td>
+                                <td>{{ $row->tanggal_mulai ? date('d M Y', strtotime($row->tanggal_mulai)) : '-' }}</td>
+                                <td>{{ $row->tanggal_selesai ? date('d M Y', strtotime($row->tanggal_selesai)) : '-' }}</td>
                             </tr>
                             @endforeach
                         </tbody>

@@ -6,7 +6,7 @@
     background: #ffffff;
     border-radius: 18px;
     padding: 14px 22px;
-    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12);
+    box-shadow: 0 12px 32px rgba(249, 115, 22, 0.12);
 }
 
 .navbar-flex {
@@ -18,21 +18,37 @@
 
 /* tanggal */
 .nav-date{
-    color:#166534;
-    font-weight:600;
-    font-size:15px;
+    color: #f97316;
+    font-weight: 600;
+    font-size: 15px;
 }
 
 /* watermark */
 .nav-watermark{
-    text-align:right;
-    font-size:12px;
-    color:#166534;
-    line-height:1.3;
+    text-align: right;
+    font-size: 12px;
+    color: #f97316;
+    line-height: 1.3;
 }
 .nav-watermark a{
-    color:#166534;
-    text-decoration:none;
+    color: #f97316;
+    text-decoration: none;
+}
+.nav-watermark a:hover {
+    color: #ea580c;
+    text-decoration: underline;
+}
+
+/* alert styling */
+.alert-success {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    border: none !important;
+}
+.alert-danger {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border: none !important;
 }
 </style>
 
@@ -54,7 +70,7 @@
             class="alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3 px-4 py-2 shadow"
             role="alert"
             style="min-width:260px; z-index:1050; border-radius:8px; opacity:1; transition:opacity .6s;">
-            {{ session('success') }}
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
         </div>
 
         <script>
@@ -73,7 +89,7 @@
             class="alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-3 px-4 py-2 shadow"
             role="alert"
             style="min-width:260px; z-index:1050; border-radius:8px; opacity:1; transition:opacity .6s;">
-            {{ session('error') }}
+            <i class="bi bi-exclamation-circle-fill me-2"></i> {{ session('error') }}
         </div>
 
         <script>
@@ -84,6 +100,25 @@
                     setTimeout(() => alertBox.remove(), 600); 
                 }
             }, 2500); 
+        </script>
+        @endif
+
+        @if(session('warning'))
+        <div id="flash-warning"
+            class="alert alert-warning position-fixed top-0 start-50 translate-middle-x mt-3 px-4 py-2 shadow"
+            role="alert"
+            style="min-width:260px; z-index:1050; border-radius:8px; opacity:1; transition:opacity .6s; background: #fffbeb; color: #92400e; border: none;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('warning') }}
+        </div>
+
+        <script>
+            setTimeout(function() {
+                const alertBox = document.getElementById('flash-warning');
+                if (alertBox) {
+                    alertBox.style.opacity = "0";   
+                    setTimeout(() => alertBox.remove(), 600); 
+                }
+            }, 4000); 
         </script>
         @endif
     </div>

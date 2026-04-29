@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 class TugasBelajarController extends Controller
 {
@@ -632,12 +633,12 @@ class TugasBelajarController extends Controller
             $sheet->setCellValue('D1', 'TANGGAL SELESAI');
             $sheet->setCellValue('E1', 'NO SK TUGAS BELAJAR (Opsional)');
 
-            // Contoh data
-            $sheet->setCellValue('A2', '123456789012345678');
-            $sheet->setCellValue('B2', 'Contoh Pegawai');
-            $sheet->setCellValue('C2', '2024-01-01');
-            $sheet->setCellValue('D2', '2024-12-31');
-            $sheet->setCellValue('E2', 'SK.001/2024');
+            // Contoh data - NIP sebagai STRING agar tidak jadi scientific
+            $sheet->setCellValueExplicit('A2', '197912212005012004', DataType::TYPE_STRING);
+            $sheet->setCellValue('B2', 'Citra Aniendita Sari');
+            $sheet->setCellValue('C2', '19/05/2025');
+            $sheet->setCellValue('D2', '13/06/2025');
+            $sheet->setCellValue('E2', 'SK.001/2025');
 
             // Style header
             $sheet->getStyle('A1:E1')->getFont()->setBold(true);

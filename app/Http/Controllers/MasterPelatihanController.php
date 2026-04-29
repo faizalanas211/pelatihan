@@ -38,21 +38,28 @@ class MasterPelatihanController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input (JP hanya wajib untuk kategori 'pelatihan')
+        // Validasi input
         $rules = [
             'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
             'tahun'          => 'required|digits:4',
         ];
 
-        // Jika kategori 'pelatihan', JP wajib diisi
+        // Jika kategori 'pelatihan' atau 'sertifikasi', instansi wajib diisi
+        if (in_array($request->kategori, ['pelatihan', 'sertifikasi'])) {
+            $rules['instansi'] = 'required|string|max:255';
+        } else {
+            $rules['instansi'] = 'nullable|string';
+        }
+
+        // Jika kategori 'pelatihan', JP wajib diisi (boleh 0)
         if ($request->kategori == 'pelatihan') {
-            $rules['jp'] = 'required|numeric|min:1';
+            $rules['jp'] = 'required|numeric|min:0';
         } else {
             $rules['jp'] = 'nullable|numeric';
         }
 
-        // ✅ TAMBAHKAN VALIDASI UNIQUE
+        // TAMBAHKAN VALIDASI UNIQUE
         $rules['nama_pelatihan'] .= '|unique:master_pelatihans,nama_pelatihan,NULL,id,kategori,' . $request->kategori . ',tahun,' . $request->tahun;
 
         $request->validate($rules, [
@@ -60,7 +67,7 @@ class MasterPelatihanController extends Controller
         ]);
 
         try {
-            // ✅ CEK LAGI SEBELUM INSERT (ANTI DUPLIKAT)
+            // CEK LAGI SEBELUM INSERT (ANTI DUPLIKAT)
             $exists = MasterPelatihan::where('kategori', $request->kategori)
                 ->where('nama_pelatihan', $request->nama_pelatihan)
                 ->where('tahun', $request->tahun)
@@ -75,6 +82,7 @@ class MasterPelatihanController extends Controller
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
                 'jp'             => $request->jp ?? null,
+                'instansi'       => $request->instansi ?? null,
                 'tahun'          => $request->tahun,
             ]);
 
@@ -91,21 +99,28 @@ class MasterPelatihanController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validasi input (JP hanya wajib untuk kategori 'pelatihan')
+        // Validasi input
         $rules = [
             'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
             'tahun'          => 'required|digits:4',
         ];
 
-        // Jika kategori 'pelatihan', JP wajib diisi
+        // Jika kategori 'pelatihan' atau 'sertifikasi', instansi wajib diisi
+        if (in_array($request->kategori, ['pelatihan', 'sertifikasi'])) {
+            $rules['instansi'] = 'required|string|max:255';
+        } else {
+            $rules['instansi'] = 'nullable|string';
+        }
+
+        // Jika kategori 'pelatihan', JP wajib diisi (boleh 0)
         if ($request->kategori == 'pelatihan') {
-            $rules['jp'] = 'required|numeric|min:1';
+            $rules['jp'] = 'required|numeric|min:0';
         } else {
             $rules['jp'] = 'nullable|numeric';
         }
 
-        // ✅ TAMBAHKAN VALIDASI UNIQUE (kecuali dirinya sendiri)
+        // TAMBAHKAN VALIDASI UNIQUE (kecuali dirinya sendiri)
         $rules['nama_pelatihan'] .= '|unique:master_pelatihans,nama_pelatihan,' . $id . ',id,kategori,' . $request->kategori . ',tahun,' . $request->tahun;
 
         $request->validate($rules, [
@@ -115,7 +130,7 @@ class MasterPelatihanController extends Controller
         try {
             $data = MasterPelatihan::findOrFail($id);
             
-            // ✅ CEK LAGI APAKAH DATA SAMA (ANTI DUPLIKAT)
+            // CEK LAGI APAKAH DATA SAMA (ANTI DUPLIKAT)
             $exists = MasterPelatihan::where('kategori', $request->kategori)
                 ->where('nama_pelatihan', $request->nama_pelatihan)
                 ->where('tahun', $request->tahun)
@@ -134,10 +149,11 @@ class MasterPelatihanController extends Controller
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
                 'jp'             => $newJp,
+                'instansi'       => $request->instansi ?? null,
                 'tahun'          => $request->tahun,
             ]);
 
-            // ✅ TAMBAHKAN: Jika JP berubah dan kategori adalah 'pelatihan', update JP di semua peserta terkait
+            // TAMBAHKAN: Jika JP berubah dan kategori adalah 'pelatihan', update JP di semua peserta terkait
             if ($request->kategori == 'pelatihan' && $oldJp != $newJp) {
                 // Cari semua header pelatihan yang terkait dengan master ini
                 $headers = DB::table('pelatihan')->where('master_pelatihan_id', $data->id)->get();

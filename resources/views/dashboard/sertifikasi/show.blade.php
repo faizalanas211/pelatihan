@@ -57,7 +57,7 @@
                         <div class="p-3 rounded-4 bg-light border">
                             <label class="small text-muted text-uppercase fw-bold">Instansi Penerbit</label>
                             <div class="fw-bold">
-                                {{ $header->instansi_penerbit ?? '-' }}
+                                {{ $sertifikasi->instansi ?: '-' }}
                             </div>
                         </div>
                     </div>

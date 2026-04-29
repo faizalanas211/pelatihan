@@ -30,12 +30,14 @@ class RiwayatSDMController extends Controller
         */
         $pelatihan = DB::table('pelatihan_peserta as pp')
             ->leftJoin('pelatihan as p', 'pp.pelatihan_id', '=', 'p.id')
+            ->leftJoin('master_pelatihans as mp', 'p.master_pelatihan_id', '=', 'mp.id')
             ->where('pp.nip', $pegawai->nip)
             ->select(
                 'p.jenis_pelatihan',
                 'pp.jp',
                 'pp.tanggal_mulai',
                 'pp.tanggal_selesai',
+                'mp.instansi as instansi_penyelenggara'
             )
             ->get();
 
@@ -46,10 +48,11 @@ class RiwayatSDMController extends Controller
         */
         $sertifikasi = DB::table('sertifikasi_peserta as sp')
             ->leftJoin('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
+            ->leftJoin('master_pelatihans as mp', 's.master_pelatihan_id', '=', 'mp.id')
             ->where('sp.nip', $pegawai->nip)
             ->select(
                 's.jenis_sertifikasi',
-                's.instansi_penerbit',
+                'mp.instansi as instansi_penerbit',
                 'sp.tanggal_mulai',
                 'sp.tanggal_selesai',
                 'sp.masa_berlaku'
@@ -152,39 +155,41 @@ public function exportDetail($id)
     }
 
     $pelatihan = DB::table('pelatihan_peserta as pp')
-    ->leftJoin('pelatihan as p', 'pp.pelatihan_id', '=', 'p.id')
-    ->where('pp.nip', $pegawai->nip)
-    ->select(
-        'p.jenis_pelatihan',
-        'p.tahun',
-        'p.instansi_penyelenggara',
-        'pp.jp',
-        'pp.tanggal_mulai',
-        'pp.tanggal_selesai'
-    )
-    ->get();
+        ->leftJoin('pelatihan as p', 'pp.pelatihan_id', '=', 'p.id')
+        ->leftJoin('master_pelatihans as mp', 'p.master_pelatihan_id', '=', 'mp.id')
+        ->where('pp.nip', $pegawai->nip)
+        ->select(
+            'p.jenis_pelatihan',
+            'p.tahun',
+            'mp.instansi as instansi_penyelenggara',
+            'pp.jp',
+            'pp.tanggal_mulai',
+            'pp.tanggal_selesai'
+        )
+        ->get();
 
     $sertifikasi = DB::table('sertifikasi_peserta as sp')
-            ->leftJoin('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
-            ->where('sp.nip', $pegawai->nip)
-            ->select(
-                's.jenis_sertifikasi',
-                's.instansi_penerbit',
-                'sp.tanggal_mulai',
-                'sp.tanggal_selesai',
-                'sp.masa_berlaku'
-            )
-            ->get();
+        ->leftJoin('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
+        ->leftJoin('master_pelatihans as mp', 's.master_pelatihan_id', '=', 'mp.id')
+        ->where('sp.nip', $pegawai->nip)
+        ->select(
+            's.jenis_sertifikasi',
+            'mp.instansi as instansi_penerbit',
+            'sp.tanggal_mulai',
+            'sp.tanggal_selesai',
+            'sp.masa_berlaku'
+        )
+        ->get();
 
     $tubel = DB::table('tubel_peserta as t')
-            ->leftJoin('master_pelatihans as mp', 't.master_pelatihan_id', '=', 'mp.id')
-            ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
-            ->where('p.id', $id)
-            ->select(
-                't.*',
-                'mp.nama_pelatihan'
-            )
-            ->get();
+        ->leftJoin('master_pelatihans as mp', 't.master_pelatihan_id', '=', 'mp.id')
+        ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
+        ->where('p.id', $id)
+        ->select(
+            't.*',
+            'mp.nama_pelatihan'
+        )
+        ->get();
 
     return Excel::download(
         new RiwayatSdmDetailExport($pegawai, $pelatihan, $sertifikasi, $tubel),
