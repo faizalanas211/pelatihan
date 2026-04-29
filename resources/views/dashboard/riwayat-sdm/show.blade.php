@@ -92,8 +92,9 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Pelatihan</th>
+                                <th>Tahun</th>
                                 <th>JP</th>
-                                <th>Tanggal</th>
+                                <th>Tanggal Pelaksanaan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -101,6 +102,7 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_pelatihan ?? '-' }}</td>
+                                <td>{{ $row->tahun }}</td>
                                 <td>{{ $row->jp }}</td>
                                 <td>
                                     {{ $row->tanggal_mulai && $row->tanggal_selesai 
@@ -133,7 +135,8 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Sertifikasi</th>
-                                <th>Tanggal</th>
+                                <th>Tahun</th>
+                                <th>Tanggal Pelaksanaan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -141,6 +144,7 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_sertifikasi ?? '-' }}</td>
+                                <td>{{ $row->tahun }}</td>
                                 <td>{{ $row->tanggal_mulai && $row->tanggal_selesai 
                                         ? $row->tanggal_mulai . ' s/d ' . $row->tanggal_selesai 
                                         : '-' }}

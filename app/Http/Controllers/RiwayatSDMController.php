@@ -33,6 +33,7 @@ class RiwayatSDMController extends Controller
             ->where('pp.nip', $pegawai->nip)
             ->select(
                 'p.jenis_pelatihan',
+                'p.tahun',
                 'pp.jp',
                 'pp.tanggal_mulai',
                 'pp.tanggal_selesai',
@@ -46,10 +47,12 @@ class RiwayatSDMController extends Controller
         */
         $sertifikasi = DB::table('sertifikasi_peserta as sp')
             ->leftJoin('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
+            ->join('master_pelatihans as m', 's.master_pelatihan_id', '=', 'm.id')
             ->where('sp.nip', $pegawai->nip)
             ->select(
                 's.jenis_sertifikasi',
                 's.instansi_penerbit',
+                'm.tahun',
                 'sp.tanggal_mulai',
                 'sp.tanggal_selesai',
                 'sp.masa_berlaku'
