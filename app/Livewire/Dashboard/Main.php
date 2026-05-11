@@ -23,13 +23,11 @@ class Main extends Component
         $this->tahun = date('Y');
     }
 
-    // PERBAIKAN 1: Ganti updatingSort menjadi updatedSort
     public function updatedSort()
     {
         $this->resetPage();
     }
 
-    // PERBAIKAN 2: Tambahkan method untuk handle filter change
     public function updatedTahun()
     {
         $this->resetPage();
@@ -42,7 +40,6 @@ class Main extends Component
         $this->dispatchChartUpdate();
     }
 
-    // PERBAIKAN 3: Method khusus untuk dispatch chart update
     private function dispatchChartUpdate()
     {
         $statistik = $this->getStatistikKegiatan($this->tahun, $this->jenis);
@@ -61,7 +58,6 @@ class Main extends Component
         $statistik = $this->getStatistikKegiatan($this->tahun, $this->jenis);
         $kegiatanTerbaru = $this->getKegiatanTerbaru();
 
-        // PERBAIKAN 4: Panggil dispatch di render juga
         $this->dispatch('updateChart', [
             'labels' => $statistik['labels'],
             'values' => $statistik['values']
@@ -74,41 +70,31 @@ class Main extends Component
         ]);
     }
 
+    /**
+     * Get rekapitulasi JP Pegawai
+     * ✅ JP hanya dari tabel pelatihan_peserta (sertifikasi dan tubel tidak punya JP)
+     */
     private function getRekapitulasiJPQuery()
     {
+        // ✅ JP hanya dari pelatihan
         $pelatihan = DB::table('pelatihan_peserta')
             ->select('nip', DB::raw('COALESCE(SUM(jp),0) as jp_pelatihan'))
             ->groupBy('nip');
 
-        $sertifikasi = DB::table('sertifikasi_peserta as sp')
-            ->join('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
-            ->join('master_pelatihans as m', 's.master_pelatihan_id', '=', 'm.id')
-            ->select('sp.nip', DB::raw('COALESCE(SUM(m.jp),0) as jp_sertifikasi'))
-            ->groupBy('sp.nip');
-
-        $tubel = DB::table('tubel_peserta as tp')
-            ->join('pegawai as p', 'tp.pegawai_id', '=', 'p.id')
-            ->join('master_pelatihans as m', 'tp.master_pelatihan_id', '=', 'm.id')
-            ->select('p.nip', DB::raw('COALESCE(SUM(m.jp),0) as jp_tubel'))
-            ->groupBy('p.nip');
+        // ✅ Sertifikasi tidak memiliki JP (nilai 0)
+        // ✅ Tugas Belajar tidak memiliki JP (nilai 0)
 
         return DB::table('pegawai as p')
-            ->leftJoinSub($pelatihan, 'pl', fn($j) => $j->on('p.nip','=','pl.nip'))
-            ->leftJoinSub($sertifikasi, 's', fn($j) => $j->on('p.nip','=','s.nip'))
-            ->leftJoinSub($tubel, 't', fn($j) => $j->on('p.nip','=','t.nip'))
+            ->leftJoinSub($pelatihan, 'pl', fn($j) => $j->on('p.nip', '=', 'pl.nip'))
             ->where('p.status', 'aktif')
             ->select(
                 'p.id',
                 'p.nip',
                 'p.nama',
                 DB::raw('COALESCE(pl.jp_pelatihan,0) as jp_pelatihan'),
-                DB::raw('COALESCE(s.jp_sertifikasi,0) as jp_sertifikasi'),
-                DB::raw('COALESCE(t.jp_tubel,0) as jp_tubel'),
-                DB::raw('
-                    (COALESCE(pl.jp_pelatihan,0)
-                    + COALESCE(s.jp_sertifikasi,0)
-                    + COALESCE(t.jp_tubel,0)) as jp
-                ')
+                DB::raw('0 as jp_sertifikasi'),
+                DB::raw('0 as jp_tubel'),
+                DB::raw('COALESCE(pl.jp_pelatihan,0) as jp')
             );
     }
 
@@ -152,27 +138,39 @@ class Main extends Component
 
     private function getKegiatanTerbaru()
     {
-        // PERBAIKAN 5: Tambahkan data yang lebih lengkap untuk kegiatan terbaru
-        $pelatihan = DB::table('pelatihan_peserta')
-            ->select(DB::raw("'Pelatihan' as jenis"), 'tanggal_mulai', DB::raw("NULL as nama"))
-            ->orderByDesc('tanggal_mulai')
-            ->limit(3);
+        // Ambil 5 kegiatan terbaru dari pelatihan, sertifikasi, dan tugas belajar
+        $pelatihan = DB::table('pelatihan_peserta as pp')
+            ->join('pelatihan as p', 'pp.pelatihan_id', '=', 'p.id')
+            ->select(
+                DB::raw("'Pelatihan' as jenis"),
+                'p.jenis_pelatihan as nama',
+                'pp.tanggal_mulai'
+            )
+            ->orderByDesc('pp.tanggal_mulai');
 
-        $sertifikasi = DB::table('sertifikasi_peserta')
-            ->select(DB::raw("'Sertifikasi' as jenis"), 'tanggal_mulai', DB::raw("NULL as nama"))
-            ->orderByDesc('tanggal_mulai')
-            ->limit(3);
+        $sertifikasi = DB::table('sertifikasi_peserta as sp')
+            ->join('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
+            ->select(
+                DB::raw("'Sertifikasi' as jenis"),
+                's.jenis_sertifikasi as nama',
+                'sp.tanggal_mulai'
+            )
+            ->orderByDesc('sp.tanggal_mulai');
 
-        $tubel = DB::table('tubel_peserta')
-            ->select(DB::raw("'Tugas Belajar' as jenis"), 'tanggal_mulai', DB::raw("NULL as nama"))
-            ->orderByDesc('tanggal_mulai')
-            ->limit(3);
+        $tubel = DB::table('tubel_peserta as tp')
+            ->join('master_pelatihans as m', 'tp.master_pelatihan_id', '=', 'm.id')
+            ->select(
+                DB::raw("'Tugas Belajar' as jenis"),
+                'm.nama_pelatihan as nama',
+                'tp.tanggal_mulai'
+            )
+            ->orderByDesc('tp.tanggal_mulai');
 
-        return $pelatihan
-            ->union($sertifikasi)
-            ->union($tubel)
+        $kegiatan = $pelatihan->union($sertifikasi)->union($tubel)
             ->orderByDesc('tanggal_mulai')
             ->limit(5)
             ->get();
+
+        return $kegiatan;
     }
 }

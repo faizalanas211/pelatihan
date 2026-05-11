@@ -29,14 +29,11 @@
                     ]) }}" 
                     class="btn rounded-4 px-4 py-2 shadow-sm d-inline-flex align-items-center fw-semibold"
                     style="background: linear-gradient(135deg, #f97316, #f59e0b); color: white;">
-                        <i class="bi bi-plus-circle me-2"></i>Tambah Peserta Pelatihan
+                        <i class="bi bi-plus-circle me-2"></i>Tambah Peserta
                     </a>
 
                     @if(!empty($peserta) && count($peserta) > 0)
-                    <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" 
-                    class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white ms-2">
-                        <i class="bi bi-pencil-square me-2"></i>Edit
-                    </a>
+                    
                     @endif
                 </div>
             </div>
@@ -45,7 +42,7 @@
 
                 {{-- INFO MASTER --}}
                 <div class="row g-4 mb-5">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="p-3 rounded-4 bg-light border">
                             <label class="small text-muted text-uppercase fw-bold">Tahun</label>
                             <div class="fw-bold fs-5 text-orange">
@@ -54,16 +51,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-light border">
-                            <label class="small text-muted text-uppercase fw-bold">JP</label>
-                            <div class="fw-bold fs-5 text-orange">
-                                {{ $pelatihan->jp }} JP
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="p-3 rounded-4 bg-light border">
                             <label class="small text-muted text-uppercase fw-bold">Instansi Penyelenggara</label>
                             <div class="fw-bold">
@@ -113,7 +101,7 @@
 
                                 <td class="text-center">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.85rem;">
-                                        <i class="bi bi-stopwatch"></i> {{ $p->jp ?? $pelatihan->jp }} JP
+                                        <i class="bi bi-stopwatch"></i> {{ $p->jp }} JP
                                     </span>
                                 </td>
 
@@ -138,11 +126,10 @@
                                 </td>
 
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-orange"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modal{{ $p->id }}">
-                                        Kelola
-                                    </button>
+                                    <a href="{{ route('rekap-pelatihan.edit', $pelatihan->id) }}" 
+                                       class="btn btn-sm btn-outline-orange">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
                                 </td>
                             </tr>
 
@@ -175,71 +162,6 @@
                                 </div>
                             </div>
                             @endif
-
-                            {{-- MODAL EDIT --}}
-                            <div class="modal fade" id="modal{{ $p->id }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content rounded-4">
-                                        <form action="{{ route('rekap-pelatihan.updatePeserta', $p->id) }}" 
-                                              method="POST" 
-                                              enctype="multipart/form-data">
-                                            @csrf
-                                            @method('PUT')
-
-                                            <div class="modal-header">
-                                                <h6 class="fw-bold">
-                                                    Kelola: {{ $p->nama_peserta }}
-                                                </h6>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-
-                                            <div class="modal-body">
-
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="small fw-semibold">Tanggal Mulai</label>
-                                                        <input type="date" 
-                                                            name="tanggal_mulai" 
-                                                            class="form-control"
-                                                            value="{{ $p->tanggal_mulai }}">
-                                                    </div>
-
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="small fw-semibold">Tanggal Selesai</label>
-                                                        <input type="date" 
-                                                            name="tanggal_selesai" 
-                                                            class="form-control"
-                                                            value="{{ $p->tanggal_selesai }}">
-                                                    </div>
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="small fw-semibold">Upload Sertifikat</label>
-                                                    <input type="file" name="sertifikat" class="form-control" accept="application/pdf,image/jpeg,image/jpg,image/png">
-                                                    <small class="text-muted">PDF, JPG, JPEG, PNG (Max 2MB)</small>
-
-                                                    @if($p->sertifikat_path)
-                                                        <div class="mt-2">
-                                                            <small class="text-success">
-                                                                ✔ File sudah ada
-                                                            </small>
-                                                        </div>
-                                                    @endif
-                                                </div>
-
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                                <button class="btn text-white" style="background:#f97316;">
-                                                    Simpan
-                                                </button>
-                                            </div>
-
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
 
                             @empty
                             <tr>

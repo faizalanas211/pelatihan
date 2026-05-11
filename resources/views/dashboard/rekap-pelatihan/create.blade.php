@@ -82,7 +82,7 @@
                                 <option value="{{ $m->id }}" 
                                     data-tahun="{{ $m->tahun }}"
                                     {{ $selectedMaster == $m->id ? 'selected' : '' }}>
-                                    {{ $m->nama_pelatihan }} ({{ $m->tahun }}) — {{ $m->jp }} JP
+                                    {{ $m->nama_pelatihan }} ({{ $m->tahun }})
                                 </option>
                             @endforeach
                         </select>
@@ -130,17 +130,22 @@
                                 {{-- BARIS 2: DETAIL --}}
                                 <div class="row g-3">
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
                                         <input type="date" name="tanggal_mulai[]" class="form-control" required>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
                                         <input type="date" name="tanggal_selesai[]" class="form-control" required>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">JP <span class="text-danger">*</span></label>
+                                        <input type="number" name="jp[]" class="form-control" placeholder="0" required min="0" step="1" value="0">
+                                    </div>
+
+                                    <div class="col-md-3">
                                         <label class="small fw-semibold text-muted">Upload Sertifikat</label>
                                         <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf">
                                     </div>
@@ -203,7 +208,7 @@
                                 <i class="bi bi-download me-1"></i> Download Template
                             </a>
                         </div>
-                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai</small>
+                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai | JP</small>
                     </div>
 
                     <div class="mb-3">

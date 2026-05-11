@@ -18,13 +18,14 @@ class MasterPelatihan extends Model
     /**
      * Atribut yang dapat diisi melalui mass assignment.
      * Kategori harus ada di sini agar tidak terblokir saat proses create/update.
-     * * @var array
+     * @var array
      */
     protected $fillable = [
         'kategori', 
         'nama_pelatihan', 
-        'jp', 
-        'instansi',  // ✅ TAMBAHKAN INI
+        'jenjang',
+        'jurusan',
+        'instansi',
         'tahun'
     ];
 
@@ -33,7 +34,6 @@ class MasterPelatihan extends Model
      * @var array
      */
     protected $casts = [
-        'jp' => 'integer',
         'tahun' => 'integer',
     ];
 

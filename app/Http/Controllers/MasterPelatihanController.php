@@ -39,6 +39,7 @@ class MasterPelatihanController extends Controller
     public function store(Request $request)
     {
         // Validasi input
+        // ❌ HAPUS BARIS INI: dd($request->all());
         $rules = [
             'kategori'       => 'required|in:pelatihan,sertifikasi,tubel',
             'nama_pelatihan' => 'required|string|max:255',
@@ -52,11 +53,13 @@ class MasterPelatihanController extends Controller
             $rules['instansi'] = 'nullable|string';
         }
 
-        // Jika kategori 'pelatihan', JP wajib diisi (boleh 0)
-        if ($request->kategori == 'pelatihan') {
-            $rules['jp'] = 'required|numeric|min:0';
+        // Jika kategori 'tubel' (tugas belajar), tambahkan validasi jenjang dan jurusan
+        if ($request->kategori == 'tubel') {
+            $rules['jenjang'] = 'nullable|string|max:50';
+            $rules['jurusan'] = 'nullable|string|max:255';
         } else {
-            $rules['jp'] = 'nullable|numeric';
+            $rules['jenjang'] = 'nullable|string|max:50';
+            $rules['jurusan'] = 'nullable|string|max:255';
         }
 
         // TAMBAHKAN VALIDASI UNIQUE
@@ -81,7 +84,8 @@ class MasterPelatihanController extends Controller
             MasterPelatihan::create([
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
-                'jp'             => $request->jp ?? null,
+                'jenjang'        => $request->jenjang ?? null,
+                'jurusan'        => $request->jurusan ?? null,
                 'instansi'       => $request->instansi ?? null,
                 'tahun'          => $request->tahun,
             ]);
@@ -113,11 +117,13 @@ class MasterPelatihanController extends Controller
             $rules['instansi'] = 'nullable|string';
         }
 
-        // Jika kategori 'pelatihan', JP wajib diisi (boleh 0)
-        if ($request->kategori == 'pelatihan') {
-            $rules['jp'] = 'required|numeric|min:0';
+        // Jika kategori 'tubel' (tugas belajar), tambahkan validasi jenjang dan jurusan
+        if ($request->kategori == 'tubel') {
+            $rules['jenjang'] = 'nullable|string|max:50';
+            $rules['jurusan'] = 'nullable|string|max:255';
         } else {
-            $rules['jp'] = 'nullable|numeric';
+            $rules['jenjang'] = 'nullable|string|max:50';
+            $rules['jurusan'] = 'nullable|string|max:255';
         }
 
         // TAMBAHKAN VALIDASI UNIQUE (kecuali dirinya sendiri)
@@ -141,34 +147,14 @@ class MasterPelatihanController extends Controller
                 return redirect()->back()->withInput()->with('error', 'Data sudah ada! Tidak boleh duplikat.');
             }
             
-            // Simpan nilai JP lama untuk perbandingan
-            $oldJp = $data->jp;
-            $newJp = $request->jp ?? null;
-            
             $data->update([
                 'kategori'       => $request->kategori,
                 'nama_pelatihan' => $request->nama_pelatihan,
-                'jp'             => $newJp,
+                'jenjang'        => $request->jenjang ?? null,
+                'jurusan'        => $request->jurusan ?? null,
                 'instansi'       => $request->instansi ?? null,
                 'tahun'          => $request->tahun,
             ]);
-
-            // TAMBAHKAN: Jika JP berubah dan kategori adalah 'pelatihan', update JP di semua peserta terkait
-            if ($request->kategori == 'pelatihan' && $oldJp != $newJp) {
-                // Cari semua header pelatihan yang terkait dengan master ini
-                $headers = DB::table('pelatihan')->where('master_pelatihan_id', $data->id)->get();
-                
-                foreach ($headers as $header) {
-                    // Update JP semua peserta di pelatihan tersebut
-                    $affected = DB::table('pelatihan_peserta')
-                        ->where('pelatihan_id', $header->id)
-                        ->update(['jp' => $newJp]);
-                    
-                    Log::info('Update JP peserta untuk pelatihan_id ' . $header->id . ', affected: ' . $affected);
-                }
-                
-                Log::info('JP Master diubah dari ' . $oldJp . ' ke ' . $newJp . ', semua peserta terkait diupdate');
-            }
 
             return redirect()->route('master-pelatihan.index')
                              ->with('success', 'Data Master berhasil diperbarui!');

@@ -61,7 +61,7 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">MASTER PELATIHAN</label>
                         <select class="form-select" disabled>
-                            <option selected>{{ $pelatihan->nama_pelatihan }} ({{ $pelatihan->tahun }}) — {{ $pelatihan->jp }} JP</option>
+                            <option selected>{{ $pelatihan->nama_pelatihan }} ({{ $pelatihan->tahun }})</option>
                         </select>
                         <input type="hidden" name="master_pelatihan_id" value="{{ $pelatihan->id }}">
                     </div>
@@ -97,17 +97,22 @@
 
                                 {{-- Detail --}}
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small">Tanggal Mulai <span class="text-danger">*</span></label>
                                         <input type="date" name="tanggal_mulai[]" class="form-control" value="{{ $row->tanggal_mulai }}" required>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="small">Tanggal Selesai <span class="text-danger">*</span></label>
                                         <input type="date" name="tanggal_selesai[]" class="form-control" value="{{ $row->tanggal_selesai }}" required>
                                     </div>
 
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label class="small">JP <span class="text-danger">*</span></label>
+                                        <input type="number" name="jp[]" class="form-control" value="{{ $row->jp }}" required min="0" step="1">
+                                    </div>
+
+                                    <div class="col-md-3">
                                         <label class="small">Upload Sertifikat</label>
                                         <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf">
 

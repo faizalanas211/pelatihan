@@ -42,20 +42,14 @@ class DashboardController extends Controller
             // Cari pegawai berdasarkan NIP (karena users punya kolom nip)
             $pegawai = Pegawai::where('nip', auth()->user()->nip)->first();
             if ($pegawai) {
+                // ✅ JP hanya dari pelatihan (karena sertifikasi dan tubel tidak punya JP)
                 $jpPelatihan = DB::table('pelatihan_peserta')
                     ->where('nip', $pegawai->nip)
                     ->sum('jp');
                 
-                $jpSertifikasi = DB::table('sertifikasi_peserta as sp')
-                    ->join('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
-                    ->join('master_pelatihans as m', 's.master_pelatihan_id', '=', 'm.id')
-                    ->where('sp.nip', $pegawai->nip)
-                    ->sum('m.jp');
-                
-                $jpTubel = DB::table('tubel_peserta as tp')
-                    ->join('master_pelatihans as m', 'tp.master_pelatihan_id', '=', 'm.id')
-                    ->where('tp.pegawai_id', $pegawai->id)
-                    ->sum('m.jp');
+                // Sertifikasi dan Tugas Belajar tidak memiliki JP
+                $jpSertifikasi = 0;
+                $jpTubel = 0;
                 
                 $jpPegawai = $jpPelatihan + $jpSertifikasi + $jpTubel;
             }
@@ -86,20 +80,14 @@ class DashboardController extends Controller
         
         $data = [];
         foreach ($pegawais as $pegawai) {
+            // ✅ JP hanya dari pelatihan (karena sertifikasi dan tubel tidak punya JP)
             $jpPelatihan = DB::table('pelatihan_peserta')
                 ->where('nip', $pegawai->nip)
                 ->sum('jp');
             
-            $jpSertifikasi = DB::table('sertifikasi_peserta as sp')
-                ->join('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
-                ->join('master_pelatihans as m', 's.master_pelatihan_id', '=', 'm.id')
-                ->where('sp.nip', $pegawai->nip)
-                ->sum('m.jp');
-            
-            $jpTubel = DB::table('tubel_peserta as tp')
-                ->join('master_pelatihans as m', 'tp.master_pelatihan_id', '=', 'm.id')
-                ->where('tp.pegawai_id', $pegawai->id)
-                ->sum('m.jp');
+            // Sertifikasi dan Tugas Belajar tidak memiliki JP
+            $jpSertifikasi = 0;
+            $jpTubel = 0;
             
             $totalJP = $jpPelatihan + $jpSertifikasi + $jpTubel;
             $maxJP = 30;

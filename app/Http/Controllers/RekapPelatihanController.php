@@ -56,7 +56,7 @@ class RekapPelatihanController extends Controller
     }
 
     /**
-     * STORE: Menyimpan data pelatihan ke tabel pelatihan (header) dan pelatihan_peserta
+     * STORE: Menyimpan数据 pelatihan ke tabel pelatihan (header) dan pelatihan_peserta
      */
     public function store(Request $request)
     {
@@ -68,6 +68,8 @@ class RekapPelatihanController extends Controller
             'tanggal_mulai.*'     => 'required|date',
             'tanggal_selesai'     => 'required|array',
             'tanggal_selesai.*'   => 'required|date|after_or_equal:tanggal_mulai.*',
+            'jp'                  => 'required|array',
+            'jp.*'                => 'required|numeric|min:0',
             'file_sertifikat'     => 'nullable|array',
             'file_sertifikat.*'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -91,12 +93,11 @@ class RekapPelatihanController extends Controller
                     ]);
                 $pelatihanId = $existingHeader->id;
             } else {
-                // BUAT HEADER BARU (tanpa instansi)
+                // BUAT HEADER BARU (tanpa instansi dan tanpa jp)
                 $pelatihanId = DB::table('pelatihan')->insertGetId([
                     'master_pelatihan_id'    => $master->id,
                     'jenis_pelatihan'        => $master->nama_pelatihan,
                     'tahun'                  => $master->tahun,
-                    'jp'                     => $master->jp,
                     'status'                 => 'selesai',
                     'created_at'             => now(),
                     'updated_at'             => now(),
@@ -143,7 +144,7 @@ class RekapPelatihanController extends Controller
                     'nama_peserta'    => $nama,
                     'tanggal_mulai'   => $request->tanggal_mulai[$index],
                     'tanggal_selesai' => $request->tanggal_selesai[$index],
-                    'jp'              => $master->jp,
+                    'jp'              => $request->jp[$index],
                     'sertifikat_path' => $filePath,
                     'created_at'      => now(),
                     'updated_at'      => now(),
@@ -245,6 +246,7 @@ class RekapPelatihanController extends Controller
         $request->validate([
             'tanggal_mulai'   => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'jp'              => 'required|numeric|min:0',
             'sertifikat'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
@@ -259,15 +261,25 @@ class RekapPelatihanController extends Controller
             $update = [
                 'tanggal_mulai'   => $request->tanggal_mulai,
                 'tanggal_selesai' => $request->tanggal_selesai,
+                'jp'              => $request->jp,
                 'updated_at'      => now(),
             ];
 
-            // HANDLE FILE
+            // HANDLE HAPUS FILE (checkbox)
+            if ($request->has('hapus_file') && $request->hapus_file == 1) {
+                if ($data->sertifikat_path) {
+                    Storage::disk('public')->delete($data->sertifikat_path);
+                }
+                $update['sertifikat_path'] = null;
+            }
+
+            // HANDLE UPLOAD FILE BARU
             if ($request->hasFile('sertifikat')) {
                 $file = $request->file('sertifikat');
                 $ext = $file->getClientOriginalExtension();
                 $timestamp = time();
 
+                // hapus file lama jika ada
                 if ($data->sertifikat_path) {
                     Storage::disk('public')->delete($data->sertifikat_path);
                 }
@@ -291,7 +303,7 @@ class RekapPelatihanController extends Controller
     }
 
     /**
-     * UPDATE MASSAL (edit semua peserta) - DIPERBAIKI UNTUK 0 PESERTA
+     * UPDATE MASSAL (edit semua peserta)
      */
     public function update(Request $request, $id)
     {
@@ -464,9 +476,38 @@ class RekapPelatihanController extends Controller
     }
 
     /**
+     * DESTROY PESERTA: Hapus peserta per individu dari halaman show
+     */
+    public function destroyPeserta($id)
+    {
+        DB::beginTransaction();
+        try {
+            $peserta = DB::table('pelatihan_peserta')->where('id', $id)->first();
+
+            if (!$peserta) {
+                return back()->with('error', 'Data peserta tidak ditemukan');
+            }
+
+            // Hapus file sertifikat jika ada
+            if ($peserta->sertifikat_path) {
+                Storage::disk('public')->delete($peserta->sertifikat_path);
+            }
+
+            // Hapus data peserta
+            DB::table('pelatihan_peserta')->where('id', $id)->delete();
+
+            DB::commit();
+
+            return back()->with('success', 'Peserta berhasil dihapus');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal hapus peserta: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus peserta: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * IMPORT EXCEL: Import peserta dari file Excel
-     * ✅ NAMA dari Excel diabaikan, nama diambil dari database berdasarkan NIP
-     * ✅ Instansi diambil dari master (tidak perlu input)
      */
     public function importExcel(Request $request)
     {
@@ -491,7 +532,6 @@ class RekapPelatihanController extends Controller
                     'master_pelatihan_id'    => $master->id,
                     'jenis_pelatihan'        => $master->nama_pelatihan,
                     'tahun'                  => $master->tahun,
-                    'jp'                     => $master->jp,
                     'status'                 => 'selesai',
                     'created_at'             => now(),
                     'updated_at'             => now(),
@@ -557,19 +597,24 @@ class RekapPelatihanController extends Controller
                 return null;
             };
 
-            // ✅ VALIDASI SEMUA BARIS TERLEBIH DAHULU
+            // ✅ VALIDASI SEMUA BARIS TERLEBIH DAHULU (5 kolom: NIP, NAMA, TGL_MULAI, TGL_SELESAI, JP)
             foreach ($rows as $rowIndex => $row) {
                 $nip = trim($row[0] ?? '');
-                $namaExcel = trim($row[1] ?? ''); // NAMA dari Excel, tidak dipakai
+                $namaExcel = trim($row[1] ?? '');
                 $tanggalMulaiRaw = $row[2] ?? null;
                 $tanggalSelesaiRaw = $row[3] ?? null;
+                $jp = trim($row[4] ?? '');
 
                 if (empty($nip)) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
                     continue;
                 }
 
-                // Cek apakah pegawai ada di database
+                if ($jp === '' || !is_numeric($jp) || $jp < 0) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": JP harus diisi angka (minimal 0)";
+                    continue;
+                }
+
                 $pegawai = DB::table('pegawai')->where('nip', $nip)->first();
                 if (!$pegawai) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": NIP '$nip' tidak ditemukan di database pegawai";
@@ -589,16 +634,15 @@ class RekapPelatihanController extends Controller
                     continue;
                 }
 
-                // ✅ DATA VALID, TAMPUNG DULU (NAMA DIAMBIL DARI DATABASE)
                 $pesertaValid[] = [
                     'nip'             => $nip,
-                    'nama'            => $pegawai->nama, // ✅ NAMA dari database, bukan dari Excel
+                    'nama'            => $pegawai->nama,
                     'tanggal_mulai'   => $tanggalMulai,
                     'tanggal_selesai' => $tanggalSelesai,
+                    'jp'              => (int)$jp,
                 ];
             }
 
-            // ✅ JIKA ADA ERROR, BATALKAN
             if (!empty($errors)) {
                 DB::rollBack();
                 $errorMessage = "Import gagal! Terdapat " . count($errors) . " error.\n";
@@ -609,14 +653,12 @@ class RekapPelatihanController extends Controller
                 return redirect()->back()->withInput()->with('error', $errorMessage);
             }
 
-            // ✅ CEK NIP YANG SUDAH ADA DI DATABASE (UNTUK DETEKSI DUPLIKAT)
             $existingNips = DB::table('pelatihan_peserta')
                 ->where('pelatihan_id', $pelatihanId)
                 ->pluck('nip')
                 ->map(fn($nip) => trim($nip))
                 ->toArray();
 
-            // ✅ PISAHKAN DATA BARU VS DUPLIKAT
             $dataBaru = [];
             $dataDuplikat = [];
 
@@ -628,16 +670,13 @@ class RekapPelatihanController extends Controller
                 }
             }
 
-            // ✅ JIKA SEMUA DATA DUPLIKAT (TIDAK ADA DATA BARU)
             if (empty($dataBaru) && !empty($dataDuplikat)) {
                 DB::commit();
                 return redirect()->route('rekap-pelatihan.show', $master->id)
                     ->with('warning', 'Tidak ada data baru! Semua data (' . count($dataDuplikat) . ' peserta) sudah terdaftar sebelumnya.');
             }
 
-            // ✅ HAPUS DATA LAMA HANYA JIKA ADA DATA BARU
             if ($existingHeader && !empty($dataBaru)) {
-                // Hapus semua peserta lama
                 $oldPeserta = DB::table('pelatihan_peserta')
                     ->where('pelatihan_id', $pelatihanId)
                     ->get();
@@ -653,7 +692,6 @@ class RekapPelatihanController extends Controller
                     ->delete();
             }
 
-            // ✅ INSERT HANYA DATA BARU (YANG TIDAK DUPLIKAT)
             foreach ($dataBaru as $peserta) {
                 DB::table('pelatihan_peserta')->insert([
                     'pelatihan_id'    => $pelatihanId,
@@ -661,7 +699,7 @@ class RekapPelatihanController extends Controller
                     'nama_peserta'    => $peserta['nama'],
                     'tanggal_mulai'   => $peserta['tanggal_mulai'],
                     'tanggal_selesai' => $peserta['tanggal_selesai'],
-                    'jp'              => $master->jp,
+                    'jp'              => $peserta['jp'],
                     'sertifikat_path' => null,
                     'created_at'      => now(),
                     'updated_at'      => now(),
@@ -670,7 +708,6 @@ class RekapPelatihanController extends Controller
 
             DB::commit();
 
-            // ✅ BUAT PESAN SUKSES + WARNING DUPLIKAT
             $message = "Import selesai! " . count($dataBaru) . " peserta berhasil ditambahkan.";
             if (!empty($dataDuplikat)) {
                 $message .= " " . count($dataDuplikat) . " peserta duplikat diabaikan.";
@@ -698,32 +735,29 @@ class RekapPelatihanController extends Controller
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
 
-            // Header kolom
             $sheet->setCellValue('A1', 'NIP');
             $sheet->setCellValue('B1', 'NAMA PESERTA');
             $sheet->setCellValue('C1', 'TANGGAL MULAI');
             $sheet->setCellValue('D1', 'TANGGAL SELESAI');
+            $sheet->setCellValue('E1', 'JP');
 
-            // Contoh data - NIP sebagai STRING agar tidak jadi scientific
             $sheet->setCellValueExplicit('A2', '197912212005012004', DataType::TYPE_STRING);
             $sheet->setCellValue('B2', 'Citra Aniendita Sari');
             $sheet->setCellValue('C2', '19/05/2025');
             $sheet->setCellValue('D2', '13/06/2025');
+            $sheet->setCellValue('E2', '40');
 
-            // Style header
-            $sheet->getStyle('A1:D1')->getFont()->setBold(true);
-            $sheet->getStyle('A1:D1')->getFill()
+            $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:E1')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFF97316');
 
-            foreach (range('A', 'D') as $col) {
+            foreach (range('A', 'E') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 
-            // Buat writer dan output
             $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
             
-            // Set response headers
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename="template_import_peserta.xlsx"');
             header('Cache-Control: max-age=0');
@@ -735,8 +769,6 @@ class RekapPelatihanController extends Controller
             
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Download template gagal: ' . $e->getMessage());
-            
-            // Redirect back dengan pesan error
             return redirect()->back()->with('error', 'Gagal download template: ' . $e->getMessage());
         }
     }

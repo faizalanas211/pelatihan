@@ -97,6 +97,13 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     // ✅ ROUTE IMPORT EXCEL PELATIHAN
     Route::post('rekap-pelatihan/import-excel', [RekapPelatihanController::class, 'importExcel'])->name('rekap-pelatihan.import-excel');
     
+    // ✅ ROUTE HAPUS PESERTA INDIVIDU
+    Route::delete('rekap-pelatihan/peserta/{id}', [RekapPelatihanController::class, 'destroyPeserta'])->name('rekap-pelatihan.destroyPeserta');
+    
+    // ✅ ROUTE BULK ACTION (HAPUS MASSAL & UPDATE JP MASSAL)
+    Route::post('rekap-pelatihan/bulk-delete', [RekapPelatihanController::class, 'bulkDelete'])->name('rekap-pelatihan.bulk-delete');
+    Route::put('rekap-pelatihan/bulk-update-jp', [RekapPelatihanController::class, 'bulkUpdateJp'])->name('rekap-pelatihan.bulk-update-jp');
+    
     // 2. Jadwal Pelatihan
     Route::resource('jadwal-pelatihan', JadwalPelatihanController::class);
     

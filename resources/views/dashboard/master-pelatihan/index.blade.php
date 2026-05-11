@@ -60,8 +60,9 @@
                                 <th class="ps-4 py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 50px;">No</th>
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 140px;">Kategori</th>
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase;">Nama Item</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 80px;">JP</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 220px;">Instansi</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 100px;">Jenjang</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 200px;">Jurusan</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 220px;">Instansi / Universitas</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 90px;">Tahun</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 110px;">Aksi</th>
                             </tr>
@@ -84,26 +85,50 @@
                                     </span>
                                 </td>
                                 <td class="fw-semibold text-dark">{{ $item->nama_pelatihan }}</td>
+                                
+                                {{-- JENJANG (khusus tubel) --}}
                                 <td class="text-center">
-                                    {{-- JP HANYA TAMPIL UNTUK KATEGORI 'pelatihan' --}}
-                                    @if($item->kategori == 'pelatihan')
-                                        <span class="badge rounded-pill px-3 py-2" style="background: #fff3e0; color: #e65100; font-size: 0.8rem;">
-                                            {{ $item->jp ? $item->jp . ' JP' : '-' }}
+                                    @if($item->kategori == 'tubel' && $item->jenjang)
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #faf5ff; color: #6b21a8;">
+                                            {{ $item->jenjang }}
                                         </span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
-                                {{-- INSTANSI HANYA TAMPIL UNTUK PELATIHAN DAN SERTIFIKASI (TIDAK UNTUK TUBEL) --}}
+                                
+                                {{-- JURUSAN (khusus tubel) --}}
+                                <td class="text-center">
+                                    @if($item->kategori == 'tubel' && $item->jurusan)
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #faf5ff; color: #6b21a8;">
+                                            {{ Str::limit($item->jurusan, 35) }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+                                
+                                {{-- INSTANSI / UNIVERSITAS (pakai kolom instansi untuk semua) --}}
                                 <td class="text-center instansi-cell">
-                                    @if(in_array($item->kategori, ['pelatihan', 'sertifikasi']) && $item->instansi)
-                                        <span class="badge rounded-pill px-3 py-2 instansi-badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem;" title="{{ $item->instansi }}">
-                                            {{ Str::limit($item->instansi, 30) }}
-                                        </span>
+                                    @if($item->instansi)
+                                        @if($item->kategori == 'pelatihan')
+                                            <span class="badge rounded-pill px-3 py-2 instansi-badge" style="background: #e0f2fe; color: #0369a1; font-size: 0.75rem;" title="{{ $item->instansi }}">
+                                                {{ Str::limit($item->instansi, 30) }}
+                                            </span>
+                                        @elseif($item->kategori == 'sertifikasi')
+                                            <span class="badge rounded-pill px-3 py-2 instansi-badge" style="background: #f0fdf4; color: #166534; font-size: 0.75rem;" title="{{ $item->instansi }}">
+                                                {{ Str::limit($item->instansi, 30) }}
+                                            </span>
+                                        @else
+                                            <span class="badge rounded-pill px-3 py-2" style="background: #faf5ff; color: #6b21a8; font-size: 0.75rem;" title="{{ $item->instansi }}">
+                                                {{ Str::limit($item->instansi, 30) }}
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
+                                
                                 <td class="text-center text-muted small fw-bold">{{ $item->tahun }}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
@@ -143,24 +168,45 @@
                                                     <label class="form-label small fw-bold text-uppercase text-muted">Nama Item</label>
                                                     <input type="text" name="nama_pelatihan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->nama_pelatihan }}" required>
                                                 </div>
-                                                <div class="row">
-                                                    <div class="col-6 mb-3 area-jp-edit" id="areaJPEdit{{ $item->id }}" style="{{ $item->kategori == 'pelatihan' ? '' : 'display: none;' }}">
-                                                        <label class="form-label small fw-bold text-uppercase text-muted">Jumlah JP</label>
-                                                        <input type="number" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jp }}" placeholder="0">
-                                                    </div>
-                                                    <div class="col-6 mb-3">
-                                                        <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
-                                                        <select name="tahun" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
-                                                            @for($i = date('Y'); $i >= 2020; $i--)
-                                                                <option value="{{ $i }}" {{ $item->tahun == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                                            @endfor
+                                                
+                                                {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Jurusan) --}}
+                                                <div class="row" id="areaTubelEdit{{ $item->id }}" style="{{ $item->kategori == 'tubel' ? '' : 'display: none;' }}">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label small fw-bold text-uppercase text-muted">Jenjang</label>
+                                                        <select name="jenjang" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
+                                                            <option value="">Pilih Jenjang</option>
+                                                            <option value="S1" {{ $item->jenjang == 'S1' ? 'selected' : '' }}>S1</option>
+                                                            <option value="S2" {{ $item->jenjang == 'S2' ? 'selected' : '' }}>S2</option>
+                                                            <option value="S3" {{ $item->jenjang == 'S3' ? 'selected' : '' }}>S3</option>
                                                         </select>
                                                     </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label small fw-bold text-uppercase text-muted">Jurusan</label>
+                                                        <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jurusan }}" placeholder="Masukkan jurusan">
+                                                    </div>
                                                 </div>
-                                                {{-- FIELD INSTANSI HANYA TAMPIL UNTUK PELATIHAN DAN SERTIFIKASI --}}
-                                                <div class="mb-3" id="areaInstansiEdit{{ $item->id }}" style="{{ in_array($item->kategori, ['pelatihan', 'sertifikasi']) ? '' : 'display: none;' }}">
-                                                    <label class="form-label small fw-bold text-uppercase text-muted">Instansi</label>
-                                                    <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->instansi }}" placeholder="Masukkan instansi">
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
+                                                    <select name="tahun" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
+                                                        @for($i = date('Y'); $i >= 2020; $i--)
+                                                            <option value="{{ $i }}" {{ $item->tahun == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                                        @endfor
+                                                    </select>
+                                                </div>
+                                                
+                                                {{-- FIELD INSTANSI (untuk semua kategori) --}}
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-uppercase text-muted" id="labelInstansiEdit{{ $item->id }}">
+                                                        @if($item->kategori == 'pelatihan')
+                                                            Instansi Penyelenggara
+                                                        @elseif($item->kategori == 'sertifikasi')
+                                                            Instansi Penerbit
+                                                        @else
+                                                            Universitas
+                                                        @endif
+                                                    </label>
+                                                    <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->instansi }}" placeholder="Masukkan instansi / universitas">
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 pb-4 pe-4">
@@ -175,31 +221,44 @@
                                 </div>
                             </div>
                             @empty
-                            <tr><td colspan="7" class="text-center py-5">Data tidak ditemukan.上页1 2 3 4 5 ... 27 28 下页
-                                <nav>
-                                    <ul class="pagination">
-                                        <li class="page-item disabled"><span class="page-link">«</span></li>
-                                        <li class="page-item active"><span class="page-link">1</span></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                                        <li class="page-item"><a class="page-link" href="#">27</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">28</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">»</a></li>
-                                    </ul>
-                                </nav>
-                            </td>
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Data tidak ditemukan
+                                </td>
+                            </tr>
                             @endforelse
                         </tbody>
-                    <tr>
+                    </table>
                 </div>
             </div>
         </div>
+        
+        {{-- PAGINATION --}}
+        @if($masterPelatihan->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $masterPelatihan->appends(request()->input())->links() }}
+            {{ $masterPelatihan->appends(request()->input())->links('pagination::bootstrap-5') }}
         </div>
+        @elseif($masterPelatihan->count() > 0)
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    <li class="page-item active">
+                        <span class="page-link">1</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="ms-3 small text-muted d-flex align-items-center">
+                Showing 1 to {{ $masterPelatihan->count() }} of {{ $masterPelatihan->total() }} results
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 
@@ -253,23 +312,37 @@
                         <label class="form-label small fw-bold text-uppercase text-muted" id="labelNama">Nama Item</label>
                         <input type="text" name="nama_pelatihan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" required>
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-3" id="areaJP">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Jumlah JP</label>
-                            <input type="text" name="jp" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="0" value="0">
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
-                            <select name="tahun" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
-                                @for($i = date('Y'); $i >= 2020; $i--)
-                                    <option value="{{ $i }}">{{ $i }}</option>
-                                @endfor
+                    
+                    {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Jurusan) --}}
+                    <div class="row" id="areaTubelTambah" style="display: none;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Jenjang</label>
+                            <select name="jenjang" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
+                                <option value="">Pilih Jenjang</option>
+                                <option value="S1">S1</option>
+                                <option value="S2">S2</option>
+                                <option value="S3">S3</option>
                             </select>
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Jurusan</label>
+                            <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan jurusan">
+                        </div>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Tahun</label>
+                        <select name="tahun" class="form-select rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;">
+                            @for($i = date('Y'); $i >= 2020; $i--)
+                                <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    
+                    {{-- FIELD INSTANSI (untuk semua kategori) --}}
                     <div class="mb-3" id="areaInstansiTambah" style="display: none;">
-                        <label class="form-label small fw-bold text-uppercase text-muted">Instansi</label>
-                        <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan instansi" value="{{ old('instansi') }}">
+                        <label class="form-label small fw-bold text-uppercase text-muted" id="labelInstansi">Instansi</label>
+                        <input type="text" name="instansi" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan instansi / universitas">
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4 pe-4">
@@ -292,33 +365,43 @@
         const formModal = new bootstrap.Modal(document.getElementById('modalTambahData'));
         document.getElementById('inputKategori').value = kat;
         
-        // Ambil elemen area instansi di modal tambah
         const areaInstansiTambah = document.getElementById('areaInstansiTambah');
+        const areaTubelTambah = document.getElementById('areaTubelTambah');
+        const labelInstansi = document.getElementById('labelInstansi');
+        
+        // Reset nilai input
+        document.querySelector('#modalTambahData input[name="nama_pelatihan"]').value = '';
+        document.querySelector('#modalTambahData input[name="instansi"]').value = '';
+        document.querySelector('#modalTambahData input[name="jurusan"]').value = '';
+        document.querySelector('#modalTambahData select[name="jenjang"]').value = '';
+        document.querySelector('#modalTambahData select[name="tahun"]').value = '{{ date("Y") }}';
         
         if(kat === 'pelatihan') {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Pelatihan';
             document.getElementById('labelNama').innerText = 'Nama Pelatihan';
-            document.getElementById('areaJP').style.display = 'block';
-            // Tampilkan field instansi untuk pelatihan
+            labelInstansi.innerText = 'Instansi Penyelenggara';
             areaInstansiTambah.style.display = 'block';
+            areaTubelTambah.style.display = 'none';
+            document.querySelector('#modalTambahData input[name="instansi"]').required = true;
+            document.querySelector('#modalTambahData input[name="instansi"]').placeholder = 'Masukkan instansi penyelenggara';
         } else if(kat === 'sertifikasi') {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Sertifikasi';
             document.getElementById('labelNama').innerText = 'Nama Sertifikasi / Sertifikat';
-            document.getElementById('areaJP').style.display = 'none';
-            document.querySelector('#modalTambahData input[name="jp"]').value = '';
-            // Tampilkan field instansi untuk sertifikasi
+            labelInstansi.innerText = 'Instansi Penerbit';
             areaInstansiTambah.style.display = 'block';
+            areaTubelTambah.style.display = 'none';
+            document.querySelector('#modalTambahData input[name="instansi"]').required = true;
+            document.querySelector('#modalTambahData input[name="instansi"]').placeholder = 'Masukkan instansi penerbit';
         } else {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Tugas Belajar';
-            document.getElementById('labelNama').innerText = 'Nama Universitas / Jenjang';
-            document.getElementById('areaJP').style.display = 'none';
-            document.querySelector('#modalTambahData input[name="jp"]').value = '';
-            // Sembunyikan field instansi untuk tubel (tugas belajar)
-            areaInstansiTambah.style.display = 'none';
-            document.querySelector('#modalTambahData input[name="instansi"]').value = '';
+            document.getElementById('labelNama').innerText = 'Program Studi';
+            labelInstansi.innerText = 'Universitas';
+            areaInstansiTambah.style.display = 'block';
+            areaTubelTambah.style.display = 'block';
+            document.querySelector('#modalTambahData input[name="instansi"]').required = false;
+            document.querySelector('#modalTambahData input[name="instansi"]').placeholder = 'Masukkan nama universitas';
         }
         
-        // Reset button state saat modal dibuka
         const btn = document.getElementById('btnSimpanTambah');
         const spinner = document.getElementById('spinnerTambah');
         if (btn) {
@@ -334,31 +417,26 @@
         new bootstrap.Modal(document.getElementById('modalPilihKategori')).show();
     }
 
-    // Untuk modal edit: sembunyikan field JP jika kategori bukan pelatihan
+    // Untuk modal edit: tampilkan/sembunyikan field sesuai kategori
     document.querySelectorAll('.kategori-select').forEach(select => {
         select.addEventListener('change', function() {
             const itemId = this.getAttribute('data-item-id');
-            const areaJP = document.getElementById('areaJPEdit' + itemId);
-            const areaInstansi = document.getElementById('areaInstansiEdit' + itemId);
+            const areaTubel = document.getElementById('areaTubelEdit' + itemId);
+            const labelInstansi = document.getElementById('labelInstansiEdit' + itemId);
             
             if (this.value === 'pelatihan') {
-                areaJP.style.display = 'block';
-                if (areaInstansi) areaInstansi.style.display = 'block';
+                if (areaTubel) areaTubel.style.display = 'none';
+                if (labelInstansi) labelInstansi.innerText = 'Instansi Penyelenggara';
             } else if (this.value === 'sertifikasi') {
-                areaJP.style.display = 'none';
-                if (areaInstansi) areaInstansi.style.display = 'block';
-                // Kosongkan nilai JP jika kategori bukan pelatihan
-                areaJP.querySelector('input[name="jp"]').value = '';
+                if (areaTubel) areaTubel.style.display = 'none';
+                if (labelInstansi) labelInstansi.innerText = 'Instansi Penerbit';
             } else {
-                areaJP.style.display = 'none';
-                if (areaInstansi) areaInstansi.style.display = 'none';
-                areaJP.querySelector('input[name="jp"]').value = '';
-                if (areaInstansi) areaInstansi.querySelector('input[name="instansi"]').value = '';
+                if (areaTubel) areaTubel.style.display = 'block';
+                if (labelInstansi) labelInstansi.innerText = 'Universitas';
             }
         });
     });
 
-    // ✅ LOADING STATE UNTUK FORM TAMBAH (CEGAH KLIK GANDA)
     const formTambah = document.getElementById('formTambahMaster');
     if (formTambah) {
         formTambah.addEventListener('submit', function(e) {
@@ -371,7 +449,6 @@
         });
     }
 
-    // ✅ LOADING STATE UNTUK SEMUA FORM EDIT (CEGAH KLIK GANDA)
     document.querySelectorAll('.form-edit-master').forEach(form => {
         form.addEventListener('submit', function(e) {
             const btn = this.querySelector('.btn-simpan-edit');
@@ -387,7 +464,6 @@
 <style>
     .kategori-item:hover { background: #fff7ed !important; border-color: #f97316 !important; transform: scale(1.02); transition: 0.2s; }
     
-    /* ✅ PERBAIKI POSISI TOMBOL CLOSE */
     .modal-header {
         position: relative;
         align-items: center;
@@ -403,7 +479,6 @@
         transform: none;
     }
 
-    /* ✅ PERBAIKI TAMPILAN KOLOM INSTANSI */
     .instansi-cell {
         max-width: 220px;
         word-wrap: break-word;
@@ -418,6 +493,29 @@
         line-height: 1.3;
         text-align: left;
         cursor: help;
+    }
+    
+    .pagination {
+        gap: 4px;
+    }
+    
+    .page-link {
+        border-radius: 8px !important;
+        border: none;
+        background-color: #f8f9fa;
+        color: #4a3728;
+        font-weight: 500;
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #f97316, #f59e0b);
+        color: white;
+    }
+    
+    .page-item.disabled .page-link {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        opacity: 0.6;
     }
 </style>
 @endsection

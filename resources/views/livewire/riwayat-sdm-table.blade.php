@@ -1,25 +1,35 @@
 <div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-    
-    {{-- SEARCH --}}
-    <input type="text"
-        wire:model.live.debounce.400ms="search"
-        class="form-control w-50"
-        placeholder="Cari nama / NIP...">
+        <div class="d-flex gap-2">
+            {{-- SEARCH --}}
+            <input type="text"
+                wire:model.live.debounce.400ms="search"
+                class="form-control"
+                style="width: 250px;"
+                placeholder="Cari nama / NIP...">
 
-    {{-- EXPORT --}}
-    <a href="{{ route('riwayat-sdm.export', [
-        'search' => $search,
-        'sort' => $sort,
-        'direction' => $direction
+            {{-- ✅ FILTER TAHUN --}}
+            <select wire:model.live="tahun" class="form-select" style="width: 120px;">
+                <option value="">Semua Tahun</option>
+                @for($i = date('Y'); $i >= 2020; $i--)
+                    <option value="{{ $i }}">{{ $i }}</option>
+                @endfor
+            </select>
+        </div>
+
+        {{-- EXPORT --}}
+        <a href="{{ route('riwayat-sdm.export', [
+            'search' => $search,
+            'tahun' => $tahun,
+            'sort' => $sort,
+            'direction' => $direction
         ]) }}"
         class="btn btn-orange d-flex align-items-center gap-2">
-        <i class="bi bi-file-earmark-excel"></i>
-        Export Excel
-    </a>
-
-</div>
+            <i class="bi bi-file-earmark-excel"></i>
+            Export Excel
+        </a>
+    </div>
 
     {{-- TABLE --}}
     <div class="table-responsive">
@@ -135,7 +145,7 @@
 
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         Tidak ada data
                     </td>
                 </tr>

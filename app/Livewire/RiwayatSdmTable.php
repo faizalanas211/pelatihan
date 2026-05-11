@@ -13,10 +13,16 @@ class RiwayatSdmTable extends Component
     public $search = '';
     public $sort = 'total_jp';
     public $direction = 'desc';
+    public $tahun = ''; // ✅ TAMBAHKAN INI
 
     protected $paginationTheme = 'bootstrap';
 
     public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTahun() // ✅ TAMBAHKAN INI
     {
         $this->resetPage();
     }
@@ -33,18 +39,29 @@ class RiwayatSdmTable extends Component
 
     public function render()
     {
-        // 🔹 SUBQUERY
+        // 🔹 SUBQUERY PELATIHAN (dengan filter tahun)
         $pelatihan = DB::table('pelatihan_peserta')
             ->select('nip', DB::raw('COUNT(*) total_pelatihan'), DB::raw('COALESCE(SUM(jp),0) as total_jp'))
+            ->when($this->tahun, function ($q) {
+                $q->whereYear('tanggal_mulai', $this->tahun);
+            })
             ->groupBy('nip');
 
+        // 🔹 SUBQUERY SERTIFIKASI (dengan filter tahun)
         $sertifikasi = DB::table('sertifikasi_peserta')
             ->select('nip', DB::raw('COUNT(*) total_sertifikasi'))
+            ->when($this->tahun, function ($q) {
+                $q->whereYear('tanggal_mulai', $this->tahun);
+            })
             ->groupBy('nip');
 
+        // 🔹 SUBQUERY TUBEL (dengan filter tahun)
         $tubel = DB::table('tubel_peserta as t')
             ->join('pegawai as p', 't.pegawai_id', '=', 'p.id')
             ->select('p.nip', DB::raw('COUNT(*) total_tubel'))
+            ->when($this->tahun, function ($q) {
+                $q->whereYear('t.tanggal_mulai', $this->tahun);
+            })
             ->groupBy('p.nip');
 
         $data = DB::table('pegawai as p')
