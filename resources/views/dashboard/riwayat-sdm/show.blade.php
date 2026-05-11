@@ -92,6 +92,7 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Pelatihan</th>
+                                <th>Tahun</th>
                                 <th>JP</th>
                                 <th>Instansi</th>
                                 <th>Tanggal</th>
@@ -102,6 +103,7 @@
                             <tr>
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->jenis_pelatihan ?? '-' }}</td>
+                                <td>{{ $row->tahun }}</td>
                                 <td>{{ $row->jp }}</td>
                                 <td>{{ $row->instansi_penyelenggara ?? '-' }}</td>
                                 <td>
