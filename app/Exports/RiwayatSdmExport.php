@@ -36,37 +36,55 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
             // Ambil daftar pelatihan
             $pelatihanList = [];
             $jpList = [];
+            $tahunList = [];
             foreach ($pegawai['pelatihan'] as $p) {
                 $pelatihanList[] = $p->jenis_pelatihan ?? '-';
                 $jpList[] = $p->jp ?? 0;
+                $tahunList[] = $p->tahun ?? '-';
             }
             
-            // Ambil daftar sertifikasi (gabungkan jadi satu string dengan enter)
+            // Ambil daftar sertifikasi & masa berlaku
             $sertifikasiList = [];
+            $masaBerlakuList = [];
             foreach ($pegawai['sertifikasi'] as $s) {
                 $sertifikasiList[] = $s->jenis_sertifikasi ?? '-';
+                $masaBerlakuList[] = $s->masa_berlaku ?? '-';
             }
-            $sertifikasiText = implode("\n", $sertifikasiList);
             
-            // Ambil daftar tubel
+            // Ambil daftar tubel (digabung jadi satu kolom: Jenjang - Prodi - Univ)
             $tubelList = [];
             foreach ($pegawai['tubel'] as $t) {
-                $tubelList[] = $t->nama_pelatihan ?? '-';
+                // Format: Jenjang - Prodi/Jurusan - Universitas
+                $jenjang = $t->jenjang ?? '';
+                $prodi = $t->jurusan ?? '';
+                $univ = $t->instansi ?? '';
+                
+                $tubelText = trim($jenjang . ' ' . $prodi . ' ' . $univ);
+                $tubelText = str_replace('  ', ' ', $tubelText);
+                $tubelText = trim($tubelText);
+                
+                if (empty($tubelText)) {
+                    $tubelText = $t->nama_pelatihan ?? '-';
+                }
+                
+                $tubelList[] = $tubelText;
             }
             
-            // Cari jumlah maksimal baris (berdasarkan pelatihan dan tubel)
-            $maxRows = max(count($pelatihanList), count($tubelList));
+            // Cari jumlah maksimal baris
+            $maxRows = max(count($pelatihanList), count($sertifikasiList), count($tubelList));
             
-            if ($maxRows == 0 && empty($sertifikasiList)) {
+            if ($maxRows == 0) {
                 // Tidak ada kegiatan sama sekali
                 $rows[] = [
                     'no' => $no,
                     'nama' => $pegawai['nama'],
                     'nip' => $pegawai['nip'] . ' ',
                     'pelatihan' => '-',
-                    'sertifikasi' => '-',
-                    'tubel' => '-',
                     'jp' => 0,
+                    'sertifikasi' => '-',
+                    'masa_berlaku' => '-',
+                    'tubel' => '-',
+                    'tahun' => '-',
                 ];
                 $no++;
             } else {
@@ -76,9 +94,11 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                         'nama' => $i === 0 ? $pegawai['nama'] : '',
                         'nip' => $i === 0 ? $pegawai['nip'] . ' ' : '',
                         'pelatihan' => $pelatihanList[$i] ?? '',
-                        'sertifikasi' => ($i === 0 && !empty($sertifikasiText)) ? $sertifikasiText : '',
-                        'tubel' => $tubelList[$i] ?? '',
                         'jp' => $jpList[$i] ?? 0,
+                        'sertifikasi' => $sertifikasiList[$i] ?? '',
+                        'masa_berlaku' => $masaBerlakuList[$i] ?? '',
+                        'tubel' => $tubelList[$i] ?? '',
+                        'tahun' => $tahunList[$i] ?? '',
                     ];
                 }
                 $no++;
@@ -95,9 +115,11 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
             'Nama',
             'NIP',
             'Pelatihan',
+            'JP',
             'Sertifikasi',
+            'Masa Berlaku',
             'Tubel',
-            'JP'
+            'Tahun'
         ];
     }
 
@@ -111,7 +133,7 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                 $sheet->insertNewRowBefore(1, 2);
                 
                 // Judul
-                $sheet->mergeCells('A1:G1');
+                $sheet->mergeCells('A1:I1');
                 $sheet->setCellValue('A1', 'LAPORAN PENGEMBANGAN KOMPETENSI PEGAWAI BALAI BAHASA JAWA TENGAH');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
@@ -125,8 +147,8 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                     ],
                 ]);
                 
-                // Header style
-                $sheet->getStyle('A3:G3')->applyFromArray([
+                // Header style (A3:I3)
+                $sheet->getStyle('A3:I3')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -144,7 +166,7 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                 ]);
                 
                 $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
+                $highestColumn = 'I'; // Karena kolom sampai I
                 
                 // Format NIP sebagai teks
                 if ($highestRow >= 4) {
@@ -158,9 +180,11 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                     }
                 }
                 
-                // Wrap text untuk kolom Sertifikasi (E)
+                // Wrap text untuk kolom Sertifikasi (F), Masa Berlaku (G), Tubel (H)
                 if ($highestRow >= 4) {
-                    $sheet->getStyle('E4:E' . $highestRow)->getAlignment()->setWrapText(true);
+                    $sheet->getStyle('F4:F' . $highestRow)->getAlignment()->setWrapText(true);
+                    $sheet->getStyle('G4:G' . $highestRow)->getAlignment()->setWrapText(true);
+                    $sheet->getStyle('H4:H' . $highestRow)->getAlignment()->setWrapText(true);
                 }
                 
                 // Merge cell untuk nama dan nip yang sama
@@ -188,7 +212,7 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                 
                 // Style data
                 if ($highestRow >= 4) {
-                    $sheet->getStyle('A4:G' . $highestRow)->applyFromArray([
+                    $sheet->getStyle('A4:I' . $highestRow)->applyFromArray([
                         'alignment' => [
                             'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                         ],
@@ -205,12 +229,18 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                         'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT],
                     ]);
                     $sheet->getStyle('E4:E' . $highestRow)->applyFromArray([
-                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, 'wrap' => true],
+                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
                     ]);
                     $sheet->getStyle('F4:F' . $highestRow)->applyFromArray([
-                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT],
+                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, 'wrap' => true],
                     ]);
                     $sheet->getStyle('G4:G' . $highestRow)->applyFromArray([
+                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, 'wrap' => true],
+                    ]);
+                    $sheet->getStyle('H4:H' . $highestRow)->applyFromArray([
+                        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT, 'wrap' => true],
+                    ]);
+                    $sheet->getStyle('I4:I' . $highestRow)->applyFromArray([
                         'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
                     ]);
                     

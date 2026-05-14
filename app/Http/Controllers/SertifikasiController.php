@@ -64,12 +64,10 @@ class SertifikasiController extends Controller
             'master_pelatihan_id' => 'required|exists:master_pelatihans,id',
             'pegawai_id'          => 'required|array',
             'pegawai_id.*'        => 'required|string',
-            'tanggal_mulai'       => 'required|array',
-            'tanggal_mulai.*'     => 'required|date',
-            'tanggal_selesai'     => 'required|array',
-            'tanggal_selesai.*'   => 'required|date|after_or_equal:tanggal_mulai.*',
+            'tanggal_perolehan'   => 'required|array',
+            'tanggal_perolehan.*' => 'required|date',
             'masa_berlaku'        => 'nullable|array',
-            'masa_berlaku.*'      => 'nullable|date',
+            'masa_berlaku.*'      => 'nullable|string|max:100',
             'file_sertifikat'     => 'nullable|array',
             'file_sertifikat.*'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -124,15 +122,14 @@ class SertifikasiController extends Controller
 
                 // INSERT KE TABEL sertifikasi_peserta
                 DB::table('sertifikasi_peserta')->insert([
-                    'sertifikasi_id'  => $sertifikasiId,
-                    'nip'             => $nip,
-                    'nama_peserta'    => $nama,
-                    'tanggal_mulai'   => $request->tanggal_mulai[$index],
-                    'tanggal_selesai' => $request->tanggal_selesai[$index],
-                    'masa_berlaku'    => $request->masa_berlaku[$index] ?? null,
-                    'sertifikat_path' => $filePath,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
+                    'sertifikasi_id'     => $sertifikasiId,
+                    'nip'                => $nip,
+                    'nama_peserta'       => $nama,
+                    'tanggal_perolehan'  => $request->tanggal_perolehan[$index],
+                    'masa_berlaku'       => $request->masa_berlaku[$index] ?? null,
+                    'sertifikat_path'    => $filePath,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
                 ]);
             }
 
@@ -219,10 +216,9 @@ class SertifikasiController extends Controller
     public function updatePeserta(Request $request, $id)
     {
         $request->validate([
-            'tanggal_mulai'   => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'masa_berlaku'    => 'nullable|date',
-            'sertifikat'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'tanggal_perolehan'   => 'required|date',
+            'masa_berlaku'        => 'nullable|string|max:100',
+            'sertifikat'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         DB::beginTransaction();
@@ -234,10 +230,9 @@ class SertifikasiController extends Controller
             }
 
             $update = [
-                'tanggal_mulai'   => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'masa_berlaku'    => $request->masa_berlaku,
-                'updated_at'      => now(),
+                'tanggal_perolehan'   => $request->tanggal_perolehan,
+                'masa_berlaku'        => $request->masa_berlaku,
+                'updated_at'          => now(),
             ];
 
             // HANDLE FILE
@@ -336,13 +331,12 @@ class SertifikasiController extends Controller
                 $dataLama = $rowId ? ($dataLamaSemua[$rowId] ?? null) : null;
 
                 $dataUpdate = [
-                    'sertifikasi_id'  => $id,
-                    'nip'             => $nip,
-                    'nama_peserta'    => $nama,
-                    'tanggal_mulai'   => $request->tanggal_mulai[$i],
-                    'tanggal_selesai' => $request->tanggal_selesai[$i],
-                    'masa_berlaku'    => $request->masa_berlaku[$i] ?? null,
-                    'updated_at'      => now(),
+                    'sertifikasi_id'     => $id,
+                    'nip'                => $nip,
+                    'nama_peserta'       => $nama,
+                    'tanggal_perolehan'  => $request->tanggal_perolehan[$i],
+                    'masa_berlaku'       => $request->masa_berlaku[$i] ?? null,
+                    'updated_at'         => now(),
                 ];
 
                 // HANDLE HAPUS FILE (checkbox)
@@ -537,9 +531,8 @@ class SertifikasiController extends Controller
             foreach ($rows as $rowIndex => $row) {
                 $nip = trim($row[0] ?? '');
                 $namaExcel = trim($row[1] ?? ''); // NAMA dari Excel, tidak dipakai
-                $tanggalMulaiRaw = $row[2] ?? null;
-                $tanggalSelesaiRaw = $row[3] ?? null;
-                $masaBerlakuRaw = $row[4] ?? null;
+                $tanggalPerolehanRaw = $row[2] ?? null;
+                $masaBerlakuRaw = $row[3] ?? null;
 
                 if (empty($nip)) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
@@ -553,27 +546,21 @@ class SertifikasiController extends Controller
                     continue;
                 }
 
-                $tanggalMulai = $parseDate($tanggalMulaiRaw);
-                $tanggalSelesai = $parseDate($tanggalSelesaiRaw);
-                $masaBerlaku = $parseDate($masaBerlakuRaw);
+                $tanggalPerolehan = $parseDate($tanggalPerolehanRaw);
+                if (!$tanggalPerolehan) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal perolehan tidak valid ('{$tanggalPerolehanRaw}')";
+                    continue;
+                }
 
-                if (!$tanggalMulai) {
-                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal mulai tidak valid ('{$tanggalMulaiRaw}')";
-                    continue;
-                }
-                
-                if (!$tanggalSelesai) {
-                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal selesai tidak valid ('{$tanggalSelesaiRaw}')";
-                    continue;
-                }
+                // Masa berlaku sekarang text, tidak divalidasi tanggal
+                $masaBerlaku = !empty($masaBerlakuRaw) ? trim($masaBerlakuRaw) : null;
 
                 // ✅ DATA VALID, TAMPUNG DULU (NAMA DIAMBIL DARI DATABASE)
                 $pesertaValid[] = [
-                    'nip'             => $nip,
-                    'nama'            => $pegawai->nama, // ✅ NAMA dari database, bukan dari Excel
-                    'tanggal_mulai'   => $tanggalMulai,
-                    'tanggal_selesai' => $tanggalSelesai,
-                    'masa_berlaku'    => $masaBerlaku,
+                    'nip'                => $nip,
+                    'nama'               => $pegawai->nama, // ✅ NAMA dari database, bukan dari Excel
+                    'tanggal_perolehan'  => $tanggalPerolehan,
+                    'masa_berlaku'       => $masaBerlaku,
                 ];
             }
 
@@ -635,15 +622,14 @@ class SertifikasiController extends Controller
             // ✅ INSERT HANYA DATA BARU (YANG TIDAK DUPLIKAT)
             foreach ($dataBaru as $peserta) {
                 DB::table('sertifikasi_peserta')->insert([
-                    'sertifikasi_id'  => $sertifikasiId,
-                    'nip'             => $peserta['nip'],
-                    'nama_peserta'    => $peserta['nama'],
-                    'tanggal_mulai'   => $peserta['tanggal_mulai'],
-                    'tanggal_selesai' => $peserta['tanggal_selesai'],
-                    'masa_berlaku'    => $peserta['masa_berlaku'],
-                    'sertifikat_path' => null,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
+                    'sertifikasi_id'     => $sertifikasiId,
+                    'nip'                => $peserta['nip'],
+                    'nama_peserta'       => $peserta['nama'],
+                    'tanggal_perolehan'  => $peserta['tanggal_perolehan'],
+                    'masa_berlaku'       => $peserta['masa_berlaku'],
+                    'sertifikat_path'    => null,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
                 ]);
             }
 
@@ -677,27 +663,25 @@ class SertifikasiController extends Controller
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
 
-            // Header kolom (5 kolom untuk sertifikasi)
+            // Header kolom (4 kolom untuk sertifikasi - TANPA Tanggal Selesai)
             $sheet->setCellValue('A1', 'NIP');
             $sheet->setCellValue('B1', 'NAMA PESERTA');
-            $sheet->setCellValue('C1', 'TANGGAL MULAI');
-            $sheet->setCellValue('D1', 'TANGGAL SELESAI');
-            $sheet->setCellValue('E1', 'MASA BERLAKU (Opsional)');
+            $sheet->setCellValue('C1', 'TANGGAL PEROLEHAN');
+            $sheet->setCellValue('D1', 'MASA BERLAKU (Opsional)');
 
             // Contoh data - NIP sebagai STRING agar tidak jadi scientific
             $sheet->setCellValueExplicit('A2', '197912212005012004', DataType::TYPE_STRING);
             $sheet->setCellValue('B2', 'Citra Aniendita Sari');
             $sheet->setCellValue('C2', '19/05/2025');
-            $sheet->setCellValue('D2', '13/06/2025');
-            $sheet->setCellValue('E2', '19/05/2026');
+            $sheet->setCellValue('D2', '5 tahun');
 
             // Style header
-            $sheet->getStyle('A1:E1')->getFont()->setBold(true);
-            $sheet->getStyle('A1:E1')->getFill()
+            $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:D1')->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('FFF97316');
 
-            foreach (range('A', 'E') as $col) {
+            foreach (range('A', 'D') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 

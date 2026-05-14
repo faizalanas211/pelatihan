@@ -25,7 +25,7 @@
                 <h3 class="fw-bold mb-0" style="background: linear-gradient(135deg, #f97316, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     Edit Data Tugas Belajar
                 </h3>
-                <p class="text-muted mb-0 mt-1">Input peserta tugas belajar berdasarkan master data</p>
+                <p class="text-muted mb-0 mt-1">Edit peserta tugas belajar berdasarkan master data</p>
             </div>
         </div>
         <div class="mt-3 mb-4" style="height: 3px; background: linear-gradient(90deg, #f97316, #f59e0b, #fbbf24); border-radius: 2px;"></div>
@@ -106,60 +106,34 @@
                                 {{-- Detail --}}
                                 <div class="row g-3">
 
-                                    <div class="col-md-3">
-                                        <label class="small">Tanggal Mulai <span class="text-danger">*</span></label>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
                                         <input type="date" name="tanggal_mulai[]" 
                                                class="form-control"
                                                value="{{ $row->tanggal_mulai }}" required>
                                     </div>
 
-                                    <div class="col-md-3">
-                                        <label class="small">Tanggal Selesai <span class="text-danger">*</span></label>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Tanggal Selesai</label>
                                         <input type="date" name="tanggal_selesai[]" 
                                                class="form-control"
-                                               value="{{ $row->tanggal_selesai }}" required>
+                                               value="{{ $row->tanggal_selesai }}">
+                                        <small class="text-muted">Kosongkan jika belum selesai</small>
                                     </div>
 
-                                    <div class="col-md-3">
-                                        <label class="small">No SK</label>
-                                        <input type="text" name="no_sk[]" 
-                                               class="form-control"
-                                               value="{{ $row->no_sk_tubel }}">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label class="small">Upload SK</label>
-                                        <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
-
-                                        @if($row->file_sk_tubel)
-                                            <div class="mt-2 file-existing d-flex align-items-center gap-3">
-                                                <a href="{{ asset('storage/'.$row->file_sk_tubel) }}" 
-                                                target="_blank" 
-                                                class="text-decoration-none fw-semibold"
-                                                style="color:#16a34a;">
-                                                    Lihat file
-                                                </a>
-
-                                                {{-- ✅ checkbox hapus --}}
-                                                <div class="form-check">
-                                                    <input class="form-check-input" 
-                                                        type="checkbox" 
-                                                        name="hapus_file[]" 
-                                                        value="{{ $row->id }}" 
-                                                        id="hapus{{ $row->id }}">
-                                                    <label class="form-check-label text-danger small" for="hapus{{ $row->id }}">
-                                                        Hapus file
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endif
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Status <span class="text-danger">*</span></label>
+                                        <select name="status[]" class="form-select" required>
+                                            <option value="belum_selesai" {{ $row->status == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                            <option value="selesai" {{ $row->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                        </select>
                                     </div>
 
                                 </div>
 
                                 <div class="d-flex justify-content-end mt-3">
                                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="hapusBaris(this)">
-                                        Hapus
+                                        <i class="bi bi-trash me-1"></i> Hapus
                                     </button>
                                 </div>
 
@@ -172,9 +146,9 @@
 
                     {{-- ACTION --}}
                     <div class="text-end mt-4">
-                        <a href="{{ route('tugas-belajar.index') }}" class="btn btn-light">Batal</a>
+                        <a href="{{ route('tugas-belajar.show', $tubel->id) }}" class="btn btn-light">Batal</a>
                         <button type="submit" class="btn text-white" style="background: #f97316;">
-                            Simpan
+                            <i class="bi bi-save me-1"></i> Simpan
                         </button>
                     </div>
 
@@ -198,16 +172,12 @@ function tambahBaris() {
     baris.querySelectorAll('input').forEach(i => i.value = '');
     baris.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
 
-    // ❗ hapus preview file lama
-    baris.querySelectorAll('.file-existing').forEach(el => el.remove());
-
     container.appendChild(baris);
     updateHapusButton();
 }
 
 function hapusBaris(btn) {
-    // ✅ PERUBAHAN: HAPUS LANGSUNG TANPA CEK JUMLAH BARIS
-    // BISA HAPUS SEMUA PESERTA TERMASUK YANG TERAKHIR
+    // HAPUS LANGSUNG TANPA CEK JUMLAH BARIS
     btn.closest('.baris-peserta').remove();
     updateHapusButton();
 }
@@ -216,40 +186,36 @@ function updateHapusButton() {
     const rows = document.querySelectorAll('.baris-peserta');
     rows.forEach((row, index) => {
         const btn = row.querySelector('.btn-outline-danger');
-        // ✅ Tombol hapus selalu muncul
+        // Tombol hapus selalu muncul
         if(btn) {
             btn.style.display = 'inline-block';
         }
     });
 }
-
-document.getElementById('filterTahun').addEventListener('change', function () {
-    let tahun = this.value;
-    let options = document.querySelectorAll('#masterTubel option');
-
-    options.forEach(option => {
-        let optTahun = option.getAttribute('data-tahun');
-
-        if (!tahun || optTahun === tahun) {
-            option.style.display = 'block';
-        } else {
-            option.style.display = 'none';
-        }
-    });
-
-    // reset pilihan
-    document.getElementById('masterTubel').value = '';
-});
 </script>
 
 <style>
 .btn-orange-outline {
     border: 1px solid #f97316;
     color: #f97316;
+    background: transparent;
 }
 .btn-orange-outline:hover {
     background: #f97316;
     color: white;
+}
+.btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background: transparent;
+}
+.btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
 }
 </style>
 @endsection

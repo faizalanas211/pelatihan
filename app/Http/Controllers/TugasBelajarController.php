@@ -37,8 +37,6 @@ class TugasBelajarController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('nama_pelatihan', 'like', "%{$search}%");
-                    // kalau mau tambah:
-                    // ->orWhere('penyelenggara', 'like', "%{$search}%");
                 });
             })
 
@@ -115,8 +113,11 @@ class TugasBelajarController extends Controller
             'tanggal_mulai'     => 'required|array',
             'tanggal_mulai.*'   => 'required|date',
 
-            'tanggal_selesai'   => 'required|array',
-            'tanggal_selesai.*' => 'required|date|after_or_equal:tanggal_mulai.*',
+            'tanggal_selesai'   => 'nullable|array',
+            'tanggal_selesai.*' => 'nullable|date|after_or_equal:tanggal_mulai.*',
+
+            'status'            => 'required|array',
+            'status.*'          => 'required|in:belum_selesai,selesai',
 
             'no_sk'             => 'nullable|array',
             'no_sk.*'           => 'nullable|string',
@@ -158,8 +159,9 @@ class TugasBelajarController extends Controller
                     'master_pelatihan_id' => $master->id,
                     'pegawai_id'          => $pegawaiId,
                     'tanggal_mulai'       => $request->tanggal_mulai[$index],
-                    'tanggal_selesai'     => $request->tanggal_selesai[$index],
-                    'no_sk_tubel'         => $request->no_sk[$index],
+                    'tanggal_selesai'     => $request->tanggal_selesai[$index] ?? null,
+                    'status'              => $request->status[$index],
+                    'no_sk_tubel'         => $request->no_sk[$index] ?? null,
                     'file_sk_tubel'       => $filePath,
                     'created_at'          => now(),
                     'updated_at'          => now(),
@@ -204,7 +206,8 @@ class TugasBelajarController extends Controller
     {
         $request->validate([
             'tanggal_mulai'   => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',
+            'status'          => 'required|in:belum_selesai,selesai',
             'no_sk_tubel'     => 'nullable|string',
             'file_sk_tubel'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -220,6 +223,7 @@ class TugasBelajarController extends Controller
             $update = [
                 'tanggal_mulai'   => $request->tanggal_mulai,
                 'tanggal_selesai' => $request->tanggal_selesai,
+                'status'          => $request->status,
                 'no_sk_tubel'     => $request->no_sk_tubel,
                 'updated_at'      => now(),
             ];
@@ -314,7 +318,8 @@ class TugasBelajarController extends Controller
                     'master_pelatihan_id' => $request->master_pelatihan_id,
                     'pegawai_id'          => $pegawaiId,
                     'tanggal_mulai'       => $request->tanggal_mulai[$i],
-                    'tanggal_selesai'     => $request->tanggal_selesai[$i],
+                    'tanggal_selesai'     => $request->tanggal_selesai[$i] ?? null,
+                    'status'              => $request->status[$i],
                     'no_sk_tubel'         => $request->no_sk[$i] ?? null,
                     'updated_at'          => now(),
                 ];
@@ -490,7 +495,7 @@ class TugasBelajarController extends Controller
                 $nama = trim($row[1] ?? ''); // tidak dipakai, hanya untuk user
                 $tanggalMulaiRaw = $row[2] ?? null;
                 $tanggalSelesaiRaw = $row[3] ?? null;
-                $noSk = trim($row[4] ?? '');
+                $status = trim($row[4] ?? 'belum_selesai');
 
                 if (empty($nip)) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": NIP kosong";
@@ -505,15 +510,16 @@ class TugasBelajarController extends Controller
                 }
 
                 $tanggalMulai = $parseDate($tanggalMulaiRaw);
-                $tanggalSelesai = $parseDate($tanggalSelesaiRaw);
-
                 if (!$tanggalMulai) {
                     $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal mulai tidak valid ('{$tanggalMulaiRaw}')";
                     continue;
                 }
                 
-                if (!$tanggalSelesai) {
-                    $errors[] = "Baris " . ($rowIndex + 2) . ": Format tanggal selesai tidak valid ('{$tanggalSelesaiRaw}')";
+                $tanggalSelesai = $parseDate($tanggalSelesaiRaw);
+                
+                // Validasi status
+                if (!in_array($status, ['belum_selesai', 'selesai'])) {
+                    $errors[] = "Baris " . ($rowIndex + 2) . ": Status harus 'belum_selesai' atau 'selesai'";
                     continue;
                 }
 
@@ -523,7 +529,7 @@ class TugasBelajarController extends Controller
                     'nip'             => $nip,
                     'tanggal_mulai'   => $tanggalMulai,
                     'tanggal_selesai' => $tanggalSelesai,
-                    'no_sk_tubel'     => $noSk,
+                    'status'          => $status,
                 ];
             }
 
@@ -589,7 +595,8 @@ class TugasBelajarController extends Controller
                     'pegawai_id'          => $peserta['pegawai_id'],
                     'tanggal_mulai'       => $peserta['tanggal_mulai'],
                     'tanggal_selesai'     => $peserta['tanggal_selesai'],
-                    'no_sk_tubel'         => $peserta['no_sk_tubel'],
+                    'status'              => $peserta['status'],
+                    'no_sk_tubel'         => null,
                     'file_sk_tubel'       => null,
                     'created_at'          => now(),
                     'updated_at'          => now(),
@@ -626,19 +633,26 @@ class TugasBelajarController extends Controller
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
 
-            // Header kolom (5 kolom untuk tugas belajar - SAMA DENGAN PELATIHAN)
+            // Header kolom (5 kolom untuk tugas belajar - dengan STATUS)
             $sheet->setCellValue('A1', 'NIP');
             $sheet->setCellValue('B1', 'NAMA PESERTA');
             $sheet->setCellValue('C1', 'TANGGAL MULAI');
-            $sheet->setCellValue('D1', 'TANGGAL SELESAI');
-            $sheet->setCellValue('E1', 'NO SK TUGAS BELAJAR (Opsional)');
+            $sheet->setCellValue('D1', 'TANGGAL SELESAI (Opsional)');
+            $sheet->setCellValue('E1', 'STATUS');
 
             // Contoh data - NIP sebagai STRING agar tidak jadi scientific
             $sheet->setCellValueExplicit('A2', '197912212005012004', DataType::TYPE_STRING);
             $sheet->setCellValue('B2', 'Citra Aniendita Sari');
             $sheet->setCellValue('C2', '19/05/2025');
-            $sheet->setCellValue('D2', '13/06/2025');
-            $sheet->setCellValue('E2', 'SK.001/2025');
+            $sheet->setCellValue('D2', '');
+            $sheet->setCellValue('E2', 'belum_selesai');
+
+            // Contoh data 2 - status selesai
+            $sheet->setCellValueExplicit('A3', '198512102010011001', DataType::TYPE_STRING);
+            $sheet->setCellValue('B3', 'Ahmad Budi Setiawan');
+            $sheet->setCellValue('C3', '01/08/2024');
+            $sheet->setCellValue('D3', '31/07/2025');
+            $sheet->setCellValue('E3', 'selesai');
 
             // Style header
             $sheet->getStyle('A1:E1')->getFont()->setBold(true);

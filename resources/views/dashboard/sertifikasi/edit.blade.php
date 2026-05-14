@@ -61,7 +61,7 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold">MASTER SERTIFIKASI</label>
                         <select class="form-select" disabled>
-                            <option selected>{{ $sertifikasi->nama_pelatihan }} ({{ $sertifikasi->tahun }}) — {{ $sertifikasi->jp }} JP</option>
+                            <option selected>{{ $sertifikasi->nama_pelatihan }} ({{ $sertifikasi->tahun }}) — {{ $sertifikasi->jp ?? '-' }} JP</option>
                         </select>
                         <input type="hidden" name="master_pelatihan_id" value="{{ $sertifikasi->id }}">
                     </div>
@@ -97,23 +97,19 @@
 
                                 {{-- Detail --}}
                                 <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="small">Tanggal Mulai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_mulai[]" class="form-control" value="{{ $row->tanggal_mulai }}" required>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Tanggal Perolehan <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_perolehan[]" class="form-control" value="{{ $row->tanggal_perolehan }}" required>
                                     </div>
 
-                                    <div class="col-md-3">
-                                        <label class="small">Tanggal Selesai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_selesai[]" class="form-control" value="{{ $row->tanggal_selesai }}" required>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Masa Berlaku</label>
+                                        <input type="text" name="masa_berlaku[]" class="form-control" value="{{ $row->masa_berlaku }}" placeholder="Contoh: 5 tahun">
+                                        <small class="text-muted">Contoh: 5 tahun, 3 tahun, seumur hidup</small>
                                     </div>
 
-                                    <div class="col-md-3">
-                                        <label class="small">Masa Berlaku</label>
-                                        <input type="date" name="masa_berlaku[]" class="form-control" value="{{ $row->masa_berlaku }}">
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <label class="small">Upload Sertifikat</label>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold">Upload Sertifikat</label>
                                         <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf,image/jpeg,image/jpg,image/png">
                                         <small class="text-muted">PDF, JPG, JPEG, PNG (Max 2MB)</small>
 

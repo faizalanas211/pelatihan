@@ -35,6 +35,7 @@ class RiwayatSDMController extends Controller
                 ->where('pp.nip', $pegawai->nip)
                 ->select(
                     'p.jenis_pelatihan',
+                    'p.tahun',
                     'pp.jp',
                     'pp.tanggal_mulai',
                     'pp.tanggal_selesai',
@@ -54,8 +55,7 @@ class RiwayatSDMController extends Controller
                 ->select(
                     's.jenis_sertifikasi',
                     'mp.instansi as instansi_penerbit',
-                    'sp.tanggal_mulai',
-                    'sp.tanggal_selesai',
+                    'sp.tanggal_perolehan',
                     'sp.masa_berlaku'
                 )
                 ->get();
@@ -70,9 +70,13 @@ class RiwayatSDMController extends Controller
                 ->where('tp.pegawai_id', $pegawai->id)
                 ->select(
                     'mp.nama_pelatihan',
+                    'mp.jenjang',
+                    'mp.jurusan',
+                    'mp.instansi as universitas',
+                    'mp.tahun',
                     'tp.tanggal_mulai',
                     'tp.tanggal_selesai',
-                    'tp.no_sk_tubel'
+                    'tp.status'
                 )
                 ->get();
 
@@ -105,7 +109,7 @@ class RiwayatSDMController extends Controller
     public function export()
     {
         $search = request('search');
-        $tahun = request('tahun'); // ✅ ambil parameter tahun
+        $tahun = request('tahun');
 
         // Ambil semua pegawai aktif dengan filter
         $pegawais = DB::table('pegawai')
@@ -122,34 +126,40 @@ class RiwayatSDMController extends Controller
         $data = [];
         
         foreach ($pegawais as $pegawai) {
-            // ✅ FILTER PELATIHAN BERDASARKAN TAHUN
+            // ✅ PELATIHAN (ambil tahun juga)
             $pelatihan = DB::table('pelatihan_peserta as pp')
                 ->leftJoin('pelatihan as p', 'pp.pelatihan_id', '=', 'p.id')
                 ->where('pp.nip', $pegawai->nip)
                 ->when($tahun, function ($q) use ($tahun) {
                     $q->whereYear('pp.tanggal_mulai', $tahun);
                 })
-                ->select('p.jenis_pelatihan', 'pp.jp')
+                ->select('p.jenis_pelatihan', 'pp.jp', 'p.tahun')
                 ->get();
             
-            // ✅ FILTER SERTIFIKASI BERDASARKAN TAHUN
+            // ✅ SERTIFIKASI (ambil masa berlaku)
             $sertifikasi = DB::table('sertifikasi_peserta as sp')
                 ->leftJoin('sertifikasi as s', 'sp.sertifikasi_id', '=', 's.id')
                 ->where('sp.nip', $pegawai->nip)
                 ->when($tahun, function ($q) use ($tahun) {
-                    $q->whereYear('sp.tanggal_mulai', $tahun);
+                    $q->whereYear('sp.tanggal_perolehan', $tahun);
                 })
-                ->select('s.jenis_sertifikasi')
+                ->select('s.jenis_sertifikasi', 'sp.masa_berlaku')
                 ->get();
             
-            // ✅ FILTER TUBEL BERDASARKAN TAHUN
+            // ✅ TUBEL (ambil jenjang, jurusan, instansi, tahun)
             $tubel = DB::table('tubel_peserta as tp')
                 ->leftJoin('master_pelatihans as mp', 'tp.master_pelatihan_id', '=', 'mp.id')
                 ->where('tp.pegawai_id', $pegawai->id)
                 ->when($tahun, function ($q) use ($tahun) {
                     $q->whereYear('tp.tanggal_mulai', $tahun);
                 })
-                ->select('mp.nama_pelatihan')
+                ->select(
+                    'mp.nama_pelatihan',
+                    'mp.jenjang',
+                    'mp.jurusan',
+                    'mp.instansi',
+                    'mp.tahun'
+                )
                 ->get();
             
             $data[] = [
@@ -202,8 +212,7 @@ class RiwayatSDMController extends Controller
             ->select(
                 's.jenis_sertifikasi',
                 'mp.instansi as instansi_penerbit',
-                'sp.tanggal_mulai',
-                'sp.tanggal_selesai',
+                'sp.tanggal_perolehan',
                 'sp.masa_berlaku'
             )
             ->get();
@@ -214,7 +223,12 @@ class RiwayatSDMController extends Controller
             ->where('p.id', $id)
             ->select(
                 't.*',
-                'mp.nama_pelatihan'
+                'mp.nama_pelatihan',
+                'mp.jenjang',
+                'mp.jurusan',
+                'mp.instansi as universitas',
+                'mp.tahun',
+                't.status'
             )
             ->get();
 

@@ -13,6 +13,7 @@ class TubelPeserta extends Model
         'pegawai_id',
         'tanggal_mulai',
         'tanggal_selesai',
+        'status',
         'no_sk_tubel',
         'file_sk_tubel',
     ];

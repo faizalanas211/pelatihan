@@ -134,8 +134,8 @@ class DashboardController extends Controller
         
         if ($jenis == 'semua' || $jenis == 'sertifikasi') {
             $sertifikasi = DB::table('sertifikasi_peserta')
-                ->whereYear('tanggal_mulai', $tahun)
-                ->select(DB::raw('MONTH(tanggal_mulai) as bulan'), DB::raw('COUNT(*) as total'))
+                ->whereYear('tanggal_perolehan', $tahun)
+                ->select(DB::raw('MONTH(tanggal_perolehan) as bulan'), DB::raw('COUNT(*) as total'))
                 ->groupBy('bulan')
                 ->get();
             foreach ($sertifikasi as $item) {
@@ -180,9 +180,9 @@ class DashboardController extends Controller
             ->select(
                 DB::raw("'Sertifikasi' as jenis"),
                 's.jenis_sertifikasi as nama',
-                'sp.tanggal_mulai'
+                'sp.tanggal_perolehan'
             )
-            ->orderBy('sp.tanggal_mulai', 'desc')
+            ->orderBy('sp.tanggal_perolehan', 'desc')
             ->get();
         
         $tubel = DB::table('tubel_peserta as tp')

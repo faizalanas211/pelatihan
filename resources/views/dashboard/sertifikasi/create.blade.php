@@ -137,22 +137,18 @@
                                 {{-- BARIS 2: DETAIL --}}
                                 <div class="row g-3">
 
-                                    <div class="col-md-3">
-                                        <label class="small fw-semibold text-muted">Tanggal Mulai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_mulai[]" class="form-control" required>
+                                    <div class="col-md-4">
+                                        <label class="small fw-semibold text-muted">Tanggal Perolehan <span class="text-danger">*</span></label>
+                                        <input type="date" name="tanggal_perolehan[]" class="form-control" required>
                                     </div>
 
-                                    <div class="col-md-3">
-                                        <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_selesai[]" class="form-control" required>
-                                    </div>
-
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label class="small fw-semibold text-muted">Masa Berlaku</label>
-                                        <input type="date" name="masa_berlaku[]" class="form-control">
+                                        <input type="text" name="masa_berlaku[]" class="form-control" placeholder="Contoh: 5 tahun">
+                                        <small class="text-muted">Contoh: 5 tahun, 3 tahun, seumur hidup</small>
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <label class="small fw-semibold text-muted">Upload Sertifikat</label>
                                         <input type="file" name="file_sertifikat[]" class="form-control" accept="application/pdf,image/jpeg,image/jpg,image/png">
                                         <small class="text-muted">PDF, JPG, JPEG, PNG (Max 2MB)</small>
@@ -216,7 +212,7 @@
                                 <i class="bi bi-download me-1"></i> Download Template
                             </a>
                         </div>
-                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai | Masa Berlaku (Opsional)</small>
+                        <small class="text-muted">Format: NIP | Nama | Tanggal Perolehan | Masa Berlaku (Opsional)</small>
                     </div>
 
                     <div class="mb-3">

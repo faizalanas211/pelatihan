@@ -34,7 +34,7 @@
 
                     @if($peserta->count() > 0)
                     <a href="{{ route('tugas-belajar.edit', $tubel->id) }}" 
-                    class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white">
+                    class="btn btn-warning rounded-4 px-4 shadow-sm fw-bold text-white ms-2">
                         <i class="bi bi-pencil-square me-2"></i>Edit
                     </a>
                     @endif
@@ -54,11 +54,20 @@
                         </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-4">
                         <div class="p-3 rounded-4 bg-light border">
-                            <label class="small text-muted text-uppercase fw-bold">Program / Perguruan Tinggi</label>
+                            <label class="small text-muted text-uppercase fw-bold">Jenjang</label>
                             <div class="fw-bold">
-                                {{ $tubel->nama_pelatihan }}
+                                {{ $tubel->jenjang ?? '-' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-4 bg-light border">
+                            <label class="small text-muted text-uppercase fw-bold">Prodi/Jurusan</label>
+                            <div class="fw-bold">
+                                {{ $tubel->jurusan ?? '-' }}
                             </div>
                         </div>
                     </div>
@@ -77,9 +86,9 @@
                                 <th class="text-center">NO</th>
                                 <th>NIP</th>
                                 <th>NAMA</th>
-                                <th class="text-center">TANGGAL</th>
-                                <th>NO SK</th>
-                                <th class="text-center">FILE SK</th>
+                                <th class="text-center">TANGGAL MULAI</th>
+                                <th class="text-center">TANGGAL SELESAI</th>
+                                <th class="text-center">STATUS</th>
                                 <th class="text-center">AKSI</th>
                             </tr>
                         </thead>
@@ -90,33 +99,30 @@
                                 <td>{{ $p->pegawai->nip }}</td>
                                 <td class="text-uppercase">{{ $p->pegawai->nama }}</td>
 
-                                {{-- tanggal --}}
+                                {{-- tanggal mulai --}}
                                 <td class="text-center">
                                     {{ \Carbon\Carbon::parse($p->tanggal_mulai)->format('d M Y') }}
-                                    <br>
-                                        <small class="text-muted">s/d</small>
-                                    <br>
-                                    {{ \Carbon\Carbon::parse($p->tanggal_selesai)->format('d M Y') }}
                                 </td>
 
-                                <td>
-                                    @if($p->no_sk_tubel)
-                                        {{ $p->no_sk_tubel }}
+                                {{-- tanggal selesai (nullable) --}}
+                                <td class="text-center">
+                                    @if($p->tanggal_selesai)
+                                        {{ \Carbon\Carbon::parse($p->tanggal_selesai)->format('d M Y') }}
                                     @else
-                                        <span class="text-muted small">Belum ada</span>
+                                        <span class="text-muted small">-</span>
                                     @endif
                                 </td>
 
-                                {{-- file --}}
+                                {{-- status --}}
                                 <td class="text-center">
-                                    @if($p->file_sk_tubel)
-                                        <a href="{{ asset('storage/'.$p->file_sk_tubel) }}" 
-                                           target="_blank" 
-                                           class="btn btn-success btn-sm">
-                                            Lihat
-                                        </a>
+                                    @if($p->status == 'selesai')
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #f0fdf4; color: #166534;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Selesai
+                                        </span>
                                     @else
-                                        <span class="text-muted small">Belum ada</span>
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #b45309;">
+                                            <i class="bi bi-clock-fill me-1"></i> Belum Selesai
+                                        </span>
                                     @endif
                                 </td>
 
@@ -125,7 +131,7 @@
                                     <button class="btn btn-sm btn-outline-orange"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modal{{ $p->id }}">
-                                        Kelola
+                                        <i class="bi bi-gear me-1"></i> Kelola
                                     </button>
                                 </td>
                             </tr>
@@ -152,11 +158,12 @@
                                                 {{-- TANGGAL --}}
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="small fw-semibold">Tanggal Mulai</label>
+                                                        <label class="small fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
                                                         <input type="date" 
                                                             name="tanggal_mulai" 
                                                             class="form-control"
-                                                            value="{{ $p->tanggal_mulai }}">
+                                                            value="{{ $p->tanggal_mulai }}"
+                                                            required>
                                                     </div>
 
                                                     <div class="col-md-6 mb-3">
@@ -165,28 +172,17 @@
                                                             name="tanggal_selesai" 
                                                             class="form-control"
                                                             value="{{ $p->tanggal_selesai }}">
+                                                        <small class="text-muted">Kosongkan jika belum selesai</small>
                                                     </div>
                                                 </div>
 
-                                                {{-- NO SK --}}
+                                                {{-- STATUS --}}
                                                 <div class="mb-3">
-                                                    <label class="small fw-semibold">No SK</label>
-                                                    <input type="text" 
-                                                        name="no_sk_tubel" 
-                                                        class="form-control"
-                                                        value="{{ $p->no_sk_tubel }}">
-                                                </div>
-
-                                                {{-- FILE --}}
-                                                <div class="mb-3">
-                                                    <label class="small fw-semibold">Upload SK</label>
-                                                    <input type="file" name="file_sk_tubel" class="form-control" accept="application/pdf">
-
-                                                    @if($p->file_sk_tubel)
-                                                        <small class="text-success">
-                                                            ✔ File sudah ada
-                                                        </small>
-                                                    @endif
+                                                    <label class="small fw-semibold">Status <span class="text-danger">*</span></label>
+                                                    <select name="status" class="form-select" required>
+                                                        <option value="belum_selesai" {{ $p->status == 'belum_selesai' ? 'selected' : '' }}>Belum Selesai</option>
+                                                        <option value="selesai" {{ $p->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                                    </select>
                                                 </div>
 
                                             </div>
@@ -194,7 +190,7 @@
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                                                 <button class="btn text-white" style="background:#f97316;">
-                                                    Simpan
+                                                    <i class="bi bi-save me-1"></i> Simpan
                                                 </button>
                                             </div>
 
@@ -205,7 +201,8 @@
 
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                     Belum ada peserta
                                 </td>
                             </tr>
@@ -216,7 +213,7 @@
 
                 <div class="mt-4">
                     <a href="{{ route('tugas-belajar.index') }}" class="btn btn-light">
-                        ← Kembali
+                        <i class="bi bi-arrow-left me-1"></i> Kembali
                     </a>
                 </div>
 
@@ -230,6 +227,7 @@
 .btn-outline-orange {
     border: 1px solid #f97316;
     color: #f97316;
+    background: transparent;
 }
 .btn-outline-orange:hover {
     background: #f97316;

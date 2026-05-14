@@ -142,9 +142,57 @@
             @endforelse
         </div>
 
-        <div class="d-flex justify-content-center mt-5">
-            {{ $sertifikasi->appends(request()->input())->links() }}
+        {{-- PAGINATION CUSTOM MANUAL (SAMA SEPERTI REKAP PELATIHAN & TUGAS BELAJAR) --}}
+        @if($sertifikasi->total() > 0)
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-5 pt-2">
+            <div class="small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Showing {{ $sertifikasi->firstItem() }} to {{ $sertifikasi->lastItem() }} of {{ $sertifikasi->total() }} results
+            </div>
+            
+            <div class="d-flex gap-1">
+                {{-- Previous --}}
+                @if($sertifikasi->onFirstPage())
+                    <span class="px-3 py-1 rounded" style="background: #e9ecef; color: #adb5bd; font-size: 0.8rem;">Previous</span>
+                @else
+                    <a href="{{ $sertifikasi->previousPageUrl() }}" class="px-3 py-1 rounded text-decoration-none" style="background: #f1f3f5; color: #495057; font-size: 0.8rem;">Previous</a>
+                @endif
+
+                {{-- Nomor Halaman --}}
+                @php
+                    $currentPage = $sertifikasi->currentPage();
+                    $lastPage = $sertifikasi->lastPage();
+                    $start = max(1, $currentPage - 1);
+                    $end = min($lastPage, $currentPage + 1);
+                    
+                    if ($start > 1) {
+                        echo '<a href="'.$sertifikasi->url(1).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">1</a>';
+                        if ($start > 2) echo '<span class="px-1" style="color: #adb5bd;">...</span>';
+                    }
+                    
+                    for ($i = $start; $i <= $end; $i++) {
+                        if ($i == $currentPage) {
+                            echo '<span class="px-2 py-1 rounded text-center" style="min-width: 32px; background: #f97316; color: white; font-size: 0.8rem;">'.$i.'</span>';
+                        } else {
+                            echo '<a href="'.$sertifikasi->url($i).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">'.$i.'</a>';
+                        }
+                    }
+                    
+                    if ($end < $lastPage) {
+                        if ($end < $lastPage - 1) echo '<span class="px-1" style="color: #adb5bd;">...</span>';
+                        echo '<a href="'.$sertifikasi->url($lastPage).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">'.$lastPage.'</a>';
+                    }
+                @endphp
+
+                {{-- Next --}}
+                @if($sertifikasi->hasMorePages())
+                    <a href="{{ $sertifikasi->nextPageUrl() }}" class="px-3 py-1 rounded text-decoration-none" style="background: #f1f3f5; color: #495057; font-size: 0.8rem;">Next</a>
+                @else
+                    <span class="px-3 py-1 rounded" style="background: #e9ecef; color: #adb5bd; font-size: 0.8rem;">Next</span>
+                @endif
+            </div>
         </div>
+        @endif
     </div>
 
 </div>
@@ -167,19 +215,6 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         line-height: 1.4;
-    }
-    
-    .pagination .page-item .page-link {
-        border: none;
-        background: #fff;
-        color: #f97316;
-        margin: 0 2px;
-        border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .pagination .page-item.active .page-link {
-        background: #f97316;
-        color: #fff;
     }
     
     .border-top {

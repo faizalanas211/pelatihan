@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    {{-- SERTIFIKASI --}}
+    {{-- SERTIFIKASI (DIUBAH) --}}
     <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-header fw-bold">Sertifikasi</div>
@@ -138,7 +138,7 @@
                                 <th>No</th>
                                 <th>Nama Sertifikasi</th>
                                 <th>Instansi</th>
-                                <th>Tanggal</th>
+                                <th>Tanggal Perolehan</th>
                                 <th>Masa Berlaku</th>
                             </tr>
                         </thead>
@@ -149,12 +149,10 @@
                                 <td>{{ $row->jenis_sertifikasi ?? '-' }}</td>
                                 <td>{{ $row->instansi_penerbit ?? '-' }}</td>
                                 <td>
-                                    {{ $row->tanggal_mulai && $row->tanggal_selesai 
-                                        ? date('d M Y', strtotime($row->tanggal_mulai)) . ' s/d ' . date('d M Y', strtotime($row->tanggal_selesai))
-                                        : '-' }}
+                                    {{ $row->tanggal_perolehan ? date('d M Y', strtotime($row->tanggal_perolehan)) : '-' }}
                                 </td>
                                 <td>
-                                    {{ $row->masa_berlaku ? date('d M Y', strtotime($row->masa_berlaku)) : '-' }}
+                                    {{ $row->masa_berlaku ?? '-' }}
                                 </td>
                             </tr>
                             @endforeach
@@ -167,7 +165,7 @@
         </div>
     </div>
 
-    {{-- TUBEL --}}
+    {{-- TUBEL (DIUBAH) --}}
     <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-header fw-bold">Tugas Belajar</div>
@@ -184,6 +182,7 @@
                                 <th>Program</th>
                                 <th>Tanggal Mulai</th>
                                 <th>Tanggal Selesai</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -192,7 +191,20 @@
                                 <td>{{ $i+1 }}</td>
                                 <td>{{ $row->nama_pelatihan ?? '-' }}</td>
                                 <td>{{ $row->tanggal_mulai ? date('d M Y', strtotime($row->tanggal_mulai)) : '-' }}</td>
-                                <td>{{ $row->tanggal_selesai ? date('d M Y', strtotime($row->tanggal_selesai)) : '-' }}</td>
+                                <td>
+                                    {{ $row->tanggal_selesai ? date('d M Y', strtotime($row->tanggal_selesai)) : '-' }}
+                                </td>
+                                <td>
+                                    @if($row->status == 'selesai')
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #f0fdf4; color: #166534;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Selesai
+                                        </span>
+                                    @else
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #fef3c7; color: #b45309;">
+                                            <i class="bi bi-clock-fill me-1"></i> Belum Selesai
+                                        </span>
+                                    @endif
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -206,3 +218,14 @@
 
 </div>
 @endsection
+
+<style>
+.btn-orange {
+    background: #f97316;
+    color: white;
+}
+.btn-orange:hover {
+    background: #e06500;
+    color: white;
+}
+</style>

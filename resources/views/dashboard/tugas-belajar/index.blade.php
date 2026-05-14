@@ -142,60 +142,57 @@
             @endforelse
         </div>
 
-        {{-- Pagination --}}
-@if($tubel->hasPages())
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-5 pt-3">
-    <div class="mb-3 mb-md-0 text-muted small">
-        Menampilkan {{ $tubel->firstItem() ?? 0 }}
-        sampai {{ $tubel->lastItem() ?? 0 }}
-        dari {{ $tubel->total() }} program
-    </div>
+        {{-- PAGINATION CUSTOM MANUAL (SAMA SEPERTI REKAP PELATIHAN) --}}
+        @if($tubel->total() > 0)
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-5 pt-2">
+            <div class="small text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Showing {{ $tubel->firstItem() }} to {{ $tubel->lastItem() }} of {{ $tubel->total() }} results
+            </div>
+            
+            <div class="d-flex gap-1">
+                {{-- Previous --}}
+                @if($tubel->onFirstPage())
+                    <span class="px-3 py-1 rounded" style="background: #e9ecef; color: #adb5bd; font-size: 0.8rem;">Previous</span>
+                @else
+                    <a href="{{ $tubel->previousPageUrl() }}" class="px-3 py-1 rounded text-decoration-none" style="background: #f1f3f5; color: #495057; font-size: 0.8rem;">Previous</a>
+                @endif
 
-    <nav>
-        <ul class="pagination mb-0" style="gap: 4px;">
-            {{-- First Page --}}
-            <li class="page-item {{ $tubel->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $tubel->url(1) }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
-                    <i class="bi bi-chevron-double-left" style="font-size: 0.75rem;"></i>
-                </a>
-            </li>
+                {{-- Nomor Halaman --}}
+                @php
+                    $currentPage = $tubel->currentPage();
+                    $lastPage = $tubel->lastPage();
+                    $start = max(1, $currentPage - 1);
+                    $end = min($lastPage, $currentPage + 1);
+                    
+                    if ($start > 1) {
+                        echo '<a href="'.$tubel->url(1).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">1</a>';
+                        if ($start > 2) echo '<span class="px-1" style="color: #adb5bd;">...</span>';
+                    }
+                    
+                    for ($i = $start; $i <= $end; $i++) {
+                        if ($i == $currentPage) {
+                            echo '<span class="px-2 py-1 rounded text-center" style="min-width: 32px; background: #f97316; color: white; font-size: 0.8rem;">'.$i.'</span>';
+                        } else {
+                            echo '<a href="'.$tubel->url($i).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">'.$i.'</a>';
+                        }
+                    }
+                    
+                    if ($end < $lastPage) {
+                        if ($end < $lastPage - 1) echo '<span class="px-1" style="color: #adb5bd;">...</span>';
+                        echo '<a href="'.$tubel->url($lastPage).'" class="px-2 py-1 rounded text-center text-decoration-none" style="min-width: 32px; background: #f1f3f5; color: #495057; font-size: 0.8rem;">'.$lastPage.'</a>';
+                    }
+                @endphp
 
-            {{-- Previous Page --}}
-            <li class="page-item {{ $tubel->onFirstPage() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $tubel->previousPageUrl() }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
-                    <i class="bi bi-chevron-left" style="font-size: 0.75rem;"></i>
-                </a>
-            </li>
-
-            {{-- Page Numbers --}}
-            @foreach($tubel->getUrlRange(
-                max(1, $tubel->currentPage() - 2),
-                min($tubel->lastPage(), $tubel->currentPage() + 2)
-            ) as $page => $url)
-                <li class="page-item {{ $page == $tubel->currentPage() ? 'active' : '' }}">
-                    <a class="page-link" href="{{ $url }}" style="border-radius: 8px; padding: 6px 12px; font-size: 0.85rem; color: {{ $page == $tubel->currentPage() ? 'white' : '#4a3728' }}; background: {{ $page == $tubel->currentPage() ? '#f97316' : 'white' }}; border: 1px solid {{ $page == $tubel->currentPage() ? '#f97316' : '#e9ecef' }};">
-                        {{ $page }}
-                    </a>
-                </li>
-            @endforeach
-
-            {{-- Next Page --}}
-            <li class="page-item {{ !$tubel->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $tubel->nextPageUrl() }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
-                    <i class="bi bi-chevron-right" style="font-size: 0.75rem;"></i>
-                </a>
-            </li>
-
-            {{-- Last Page --}}
-            <li class="page-item {{ !$tubel->hasMorePages() ? 'disabled' : '' }}">
-                <a class="page-link" href="{{ $tubel->url($tubel->lastPage()) }}" style="border-radius: 8px; padding: 6px 10px; color: #4a3728; border: 1px solid #e9ecef;">
-                    <i class="bi bi-chevron-double-right" style="font-size: 0.75rem;"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div>
-@endif
+                {{-- Next --}}
+                @if($tubel->hasMorePages())
+                    <a href="{{ $tubel->nextPageUrl() }}" class="px-3 py-1 rounded text-decoration-none" style="background: #f1f3f5; color: #495057; font-size: 0.8rem;">Next</a>
+                @else
+                    <span class="px-3 py-1 rounded" style="background: #e9ecef; color: #adb5bd; font-size: 0.8rem;">Next</span>
+                @endif
+            </div>
+        </div>
+        @endif
     </div>
 
 </div>
@@ -212,22 +209,10 @@
         transform: translateX(3px);
     }
     
-    /* Smooth Pagination */
-    .pagination .page-link {
-        transition: all 0.2s;
-        border-radius: 10px;
-        margin: 0 3px;
-        color: #4a3728;
-        border: none;
-    }
-    .pagination .page-link:hover {
-        background: #f97316;
-        color: white;
-    }
-    .pagination .active .page-link {
-        background: #f97316;
-        color: white;
-        box-shadow: 0 2px 6px rgba(249,115,22,0.2);
+    .text-orange { color: #f97316 !important; }
+    
+    .border-top {
+        border-top: 1px solid #f0f0f0 !important;
     }
 </style>
 

@@ -7,6 +7,35 @@
 @section('content')
 <div class="row g-4">
 
+    {{-- NOTIFIKASI ERROR & VALIDASI --}}
+    @if(session('error'))
+        <div class="col-12">
+            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4 shadow-sm d-flex align-items-center justify-content-between" role="alert" style="background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.1rem;"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="col-12">
+            <div class="alert alert-danger alert-dismissible fade show border-0 rounded-4 shadow-sm" role="alert" style="background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545;">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
     {{-- HEADER & FILTER --}}
     <div class="col-12">
         <div class="card border-0 shadow-sm rounded-4 p-4">
@@ -61,7 +90,7 @@
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 140px;">Kategori</th>
                                 <th class="py-3" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase;">Nama Item</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 100px;">Jenjang</th>
-                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 200px;">Jurusan</th>
+                                <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 200px;">Prodi/Jurusan</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 220px;">Instansi / Universitas</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 90px;">Tahun</th>
                                 <th class="py-3 text-center" style="color: #b87a4a; font-size: 0.75rem; text-transform: uppercase; width: 110px;">Aksi</th>
@@ -97,7 +126,7 @@
                                     @endif
                                 </td>
                                 
-                                {{-- JURUSAN (khusus tubel) --}}
+                                {{-- PRODI/JURUSAN (khusus tubel) --}}
                                 <td class="text-center">
                                     @if($item->kategori == 'tubel' && $item->jurusan)
                                         <span class="badge rounded-pill px-3 py-2" style="background: #faf5ff; color: #6b21a8;">
@@ -169,7 +198,7 @@
                                                     <input type="text" name="nama_pelatihan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->nama_pelatihan }}" required>
                                                 </div>
                                                 
-                                                {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Jurusan) --}}
+                                                {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Prodi/Jurusan) --}}
                                                 <div class="row" id="areaTubelEdit{{ $item->id }}" style="{{ $item->kategori == 'tubel' ? '' : 'display: none;' }}">
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label small fw-bold text-uppercase text-muted">Jenjang</label>
@@ -181,8 +210,8 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label small fw-bold text-uppercase text-muted">Jurusan</label>
-                                                        <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jurusan }}" placeholder="Masukkan jurusan">
+                                                        <label class="form-label small fw-bold text-uppercase text-muted">Prodi/Jurusan</label>
+                                                        <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" value="{{ $item->jurusan }}" placeholder="Masukkan prodi/jurusan">
                                                     </div>
                                                 </div>
                                                 
@@ -313,7 +342,7 @@
                         <input type="text" name="nama_pelatihan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" required>
                     </div>
                     
-                    {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Jurusan) --}}
+                    {{-- FIELD KHUSUS TUGAS BELAJAR (Jenjang & Prodi/Jurusan) --}}
                     <div class="row" id="areaTubelTambah" style="display: none;">
                         <div class="col-md-6 mb-3">
                             <label class="form-label small fw-bold text-uppercase text-muted">Jenjang</label>
@@ -325,8 +354,8 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-uppercase text-muted">Jurusan</label>
-                            <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan jurusan">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Prodi/Jurusan</label>
+                            <input type="text" name="jurusan" class="form-control rounded-3 border-0 shadow-sm p-3" style="background: #f8f9fa;" placeholder="Masukkan prodi/jurusan">
                         </div>
                     </div>
                     
@@ -394,7 +423,7 @@
             document.querySelector('#modalTambahData input[name="instansi"]').placeholder = 'Masukkan instansi penerbit';
         } else {
             document.getElementById('judulModalTambah').innerText = 'Tambah Master Tugas Belajar';
-            document.getElementById('labelNama').innerText = 'Program Studi';
+            document.getElementById('labelNama').innerText = 'Nama Tugas Belajar';
             labelInstansi.innerText = 'Universitas';
             areaInstansiTambah.style.display = 'block';
             areaTubelTambah.style.display = 'block';

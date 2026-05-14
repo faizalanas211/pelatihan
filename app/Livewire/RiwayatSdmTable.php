@@ -47,11 +47,11 @@ class RiwayatSdmTable extends Component
             })
             ->groupBy('nip');
 
-        // 🔹 SUBQUERY SERTIFIKASI (dengan filter tahun)
+        // 🔹 SUBQUERY SERTIFIKASI (dengan filter tahun) - FIX: ganti tanggal_mulai jadi tanggal_perolehan
         $sertifikasi = DB::table('sertifikasi_peserta')
             ->select('nip', DB::raw('COUNT(*) total_sertifikasi'))
             ->when($this->tahun, function ($q) {
-                $q->whereYear('tanggal_mulai', $this->tahun);
+                $q->whereYear('tanggal_perolehan', $this->tahun);
             })
             ->groupBy('nip');
 

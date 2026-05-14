@@ -114,8 +114,8 @@ class Main extends Component
 
         if ($jenis == 'semua' || $jenis == 'sertifikasi') {
             $rows = DB::table('sertifikasi_peserta')
-                ->whereYear('tanggal_mulai', $tahun)
-                ->selectRaw('MONTH(tanggal_mulai) as bulan, COUNT(*) as total')
+                ->whereYear('tanggal_perolehan', $tahun)
+                ->selectRaw('MONTH(tanggal_perolehan) as bulan, COUNT(*) as total')
                 ->groupBy('bulan')->get();
 
             foreach ($rows as $r) $data[$r->bulan] += $r->total;
@@ -153,9 +153,9 @@ class Main extends Component
             ->select(
                 DB::raw("'Sertifikasi' as jenis"),
                 's.jenis_sertifikasi as nama',
-                'sp.tanggal_mulai'
+                'sp.tanggal_perolehan'
             )
-            ->orderByDesc('sp.tanggal_mulai');
+            ->orderByDesc('sp.tanggal_perolehan');
 
         $tubel = DB::table('tubel_peserta as tp')
             ->join('master_pelatihans as m', 'tp.master_pelatihan_id', '=', 'm.id')

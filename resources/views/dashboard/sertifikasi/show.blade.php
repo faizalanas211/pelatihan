@@ -76,7 +76,7 @@
                                 <th class="text-center">NO</th>
                                 <th>NIP</th>
                                 <th>NAMA</th>
-                                <th class="text-center">TANGGAL PELAKSANAAN</th>
+                                <th class="text-center">TANGGAL PEROLEHAN</th>
                                 <th class="text-center">MASA BERLAKU</th>
                                 <th class="text-center">FILE SERTIFIKAT</th>
                                 <th class="text-center">AKSI</th>
@@ -85,7 +85,7 @@
                         <tbody>
                             @forelse($peserta as $i => $p)
                             @php
-                                $extension = pathinfo($p->sertifikat_path, PATHINFO_EXTENSION);
+                                $extension = pathinfo($p->sertifikat_path ?? '', PATHINFO_EXTENSION);
                                 $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png']);
                             @endphp
                             <tr>
@@ -94,15 +94,21 @@
                                 <td class="text-uppercase">{{ $p->nama_peserta }}</td>
 
                                 <td class="text-center">
-                                    {{ \Carbon\Carbon::parse($p->tanggal_mulai)->format('d M Y') }}
-                                    <br>
-                                    <small class="text-muted">s/d</small>
-                                    <br>
-                                    {{ \Carbon\Carbon::parse($p->tanggal_selesai)->format('d M Y') }}
+                                    @if($p->tanggal_perolehan)
+                                        {{ \Carbon\Carbon::parse($p->tanggal_perolehan)->format('d M Y') }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
 
                                 <td class="text-center">
-                                    {{ $p->masa_berlaku ? \Carbon\Carbon::parse($p->masa_berlaku)->format('d M Y') : '-' }}
+                                    @if($p->masa_berlaku)
+                                        <span class="badge rounded-pill px-3 py-2" style="background: #f0fdf4; color: #166534;">
+                                            {{ $p->masa_berlaku }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
 
                                 <td class="text-center">
@@ -178,20 +184,15 @@
                                             </div>
 
                                             <div class="modal-body">
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="small fw-semibold">Tanggal Mulai</label>
-                                                        <input type="date" name="tanggal_mulai" class="form-control" value="{{ $p->tanggal_mulai }}">
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="small fw-semibold">Tanggal Selesai</label>
-                                                        <input type="date" name="tanggal_selesai" class="form-control" value="{{ $p->tanggal_selesai }}">
-                                                    </div>
+                                                <div class="mb-3">
+                                                    <label class="small fw-semibold">Tanggal Perolehan</label>
+                                                    <input type="date" name="tanggal_perolehan" class="form-control" value="{{ $p->tanggal_perolehan }}">
                                                 </div>
 
                                                 <div class="mb-3">
                                                     <label class="small fw-semibold">Masa Berlaku</label>
-                                                    <input type="date" name="masa_berlaku" class="form-control" value="{{ $p->masa_berlaku }}">
+                                                    <input type="text" name="masa_berlaku" class="form-control" value="{{ $p->masa_berlaku }}" placeholder="Contoh: 5 tahun">
+                                                    <small class="text-muted">Contoh: 5 tahun, 3 tahun, seumur hidup</small>
                                                 </div>
 
                                                 <div class="mb-3">

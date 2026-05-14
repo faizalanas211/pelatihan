@@ -136,16 +136,26 @@
                                     </div>
 
                                     <div class="col-md-3">
-                                        <label class="small fw-semibold text-muted">Tanggal Selesai <span class="text-danger">*</span></label>
-                                        <input type="date" name="tanggal_selesai[]" class="form-control" required>
+                                        <label class="small fw-semibold text-muted">Tanggal Selesai</label>
+                                        <input type="date" name="tanggal_selesai[]" class="form-control">
                                     </div>
 
                                     <div class="col-md-3">
+                                        <label class="small fw-semibold text-muted">Status <span class="text-danger">*</span></label>
+                                        <select name="status[]" class="form-select" required>
+                                            <option value="">-- Pilih Status --</option>
+                                            <option value="belum_selesai">Belum Selesai</option>
+                                            <option value="selesai">Selesai</option>
+                                        </select>
+                                    </div>
+
+                                    {{-- FIELD NO SK & UPLOAD SK (DISEMBUNYIKAN DULU) --}}
+                                    <div class="col-md-3" id="areaNoSk" style="display: none;">
                                         <label class="small fw-semibold text-muted">No SK</label>
                                         <input type="text" name="no_sk[]" class="form-control" placeholder="Nomor SK">
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-3" id="areaUploadSk" style="display: none;">
                                         <label class="small fw-semibold text-muted">Upload SK</label>
                                         <input type="file" name="file_sk[]" class="form-control" accept="application/pdf">
                                     </div>
@@ -208,7 +218,7 @@
                                 <i class="bi bi-download me-1"></i> Download Template
                             </a>
                         </div>
-                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai | No SK (Opsional)</small>
+                        <small class="text-muted">Format: NIP | Nama | Tanggal Mulai | Tanggal Selesai | Status</small>
                     </div>
 
                     <div class="mb-3">
