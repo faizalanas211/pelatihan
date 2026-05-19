@@ -36,23 +36,31 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
             // Ambil daftar pelatihan
             $pelatihanList = [];
             $jpList = [];
-            $tahunList = [];
+            $tahunPelatihanList = [];
             foreach ($pegawai['pelatihan'] as $p) {
                 $pelatihanList[] = $p->jenis_pelatihan ?? '-';
                 $jpList[] = $p->jp ?? 0;
-                $tahunList[] = $p->tahun ?? '-';
+                $tahunPelatihanList[] = $p->tahun ?? '-';
             }
             
             // Ambil daftar sertifikasi & masa berlaku
             $sertifikasiList = [];
             $masaBerlakuList = [];
+            $tahunSertifikasiList = [];
             foreach ($pegawai['sertifikasi'] as $s) {
                 $sertifikasiList[] = $s->jenis_sertifikasi ?? '-';
                 $masaBerlakuList[] = $s->masa_berlaku ?? '-';
+                // Ambil tahun dari sertifikasi (prioritas dari properti tahun, atau dari tanggal_perolehan)
+                $tahunSertifikasi = $s->tahun ?? null;
+                if (!$tahunSertifikasi && isset($s->tanggal_perolehan)) {
+                    $tahunSertifikasi = date('Y', strtotime($s->tanggal_perolehan));
+                }
+                $tahunSertifikasiList[] = $tahunSertifikasi ?? '-';
             }
             
             // Ambil daftar tubel (digabung jadi satu kolom: Jenjang - Prodi - Univ)
             $tubelList = [];
+            $tahunTubelList = [];
             foreach ($pegawai['tubel'] as $t) {
                 // Format: Jenjang - Prodi/Jurusan - Universitas
                 $jenjang = $t->jenjang ?? '';
@@ -68,6 +76,7 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                 }
                 
                 $tubelList[] = $tubelText;
+                $tahunTubelList[] = $t->tahun ?? '-';
             }
             
             // Cari jumlah maksimal baris
@@ -89,6 +98,15 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                 $no++;
             } else {
                 for ($i = 0; $i < $maxRows; $i++) {
+                    // Prioritaskan tahun dari pelatihan, lalu sertifikasi, lalu tubel
+                    $tahunValue = $tahunPelatihanList[$i] ?? '';
+                    if (empty($tahunValue) || $tahunValue == '-') {
+                        $tahunValue = $tahunSertifikasiList[$i] ?? '';
+                    }
+                    if (empty($tahunValue) || $tahunValue == '-') {
+                        $tahunValue = $tahunTubelList[$i] ?? '';
+                    }
+                    
                     $rows[] = [
                         'no' => $i === 0 ? $no : '',
                         'nama' => $i === 0 ? $pegawai['nama'] : '',
@@ -98,7 +116,7 @@ class RiwayatSdmExport implements FromCollection, WithHeadings, WithTitle, WithS
                         'sertifikasi' => $sertifikasiList[$i] ?? '',
                         'masa_berlaku' => $masaBerlakuList[$i] ?? '',
                         'tubel' => $tubelList[$i] ?? '',
-                        'tahun' => $tahunList[$i] ?? '',
+                        'tahun' => $tahunValue,
                     ];
                 }
                 $no++;
